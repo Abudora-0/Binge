@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Binge — Upload Video</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-950 text-white min-h-screen">
+
+  <!-- Navbar -->
+  <nav class="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
+    <h1 class="text-2xl font-bold text-red-500">Binge <span class="text-gray-400 text-sm font-normal ml-2">Creator Studio</span></h1>
+    <div class="flex items-center gap-4">
+      <a href="/creator/dashboard" class="text-gray-400 hover:text-white text-sm transition">← Back to Dashboard</a>
+      <a href="/auth/logout" class="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-1.5 rounded-lg transition">Logout</a>
+    </div>
+  </nav>
+
+  <div class="max-w-3xl mx-auto px-6 py-10">
+
+    <h2 class="text-2xl font-bold mb-2"><%= isEdit ? 'Edit Video' : 'Upload New Video' %></h2>
+    <p class="text-gray-400 text-sm mb-8"><%= isEdit ? 'Update your video details below' : 'Fill in the details below to publish your video' %></p>
+
+    <!-- Error -->
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="bg-red-500/20 border border-red-500 text-red-400 px-4 py-3 rounded-lg mb-6 text-sm">
+        <%= error %>
+      </div>
+    <% } %>
+
+    <form action="<%= isEdit ? '/creator/video/edit/' + video.Id : '/creator/upload' %>" method="POST" class="space-y-6">
+
+      <!-- Title -->
+      <div>
+        <label class="block text-gray-400 text-sm mb-1">Video Title <span class="text-red-500">*</span></label>
+        <input
+          type="text"
+          name="title"
+          required
+          maxlength="200"
+          placeholder="Enter a catchy title"
+          value="<%= isEdit ? video.Title : '' %>"
+          class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition"
+        />
+      </div>
+
+      <!-- Description -->
+      <div>
+        <label class="block text-gray-400 text-sm mb-1">Description</label>
+        <textarea
+          name="description"
+          rows="4"
+          placeholder="Tell viewers about your video..."
+          class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition resize-none"
+        ><%= isEdit ? video.Description : '' %></textarea>
+      </div>
+
+      <!-- Video URL -->
+      <div>
+        <label class="block text-gray-400 text-sm mb-1">Video URL <span class="text-red-500">*</span></label>
+        <input
+          type="url"
+          name="videoUrl"
+          required
+          placeholder="https://www.youtube.com/watch?v=..."
+          value="<%= isEdit ? video.VideoUrl : '' %>"
+          class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition"
+        />
+        <p class="text-gray-500 text-xs mt-1">Paste a YouTube or any video URL</p>
+      </div>
+
+      <!-- Duration & Category row -->
+      <div class="flex gap-4">
+
+        <!-- Duration -->
+        <div class="flex-1">
+          <label class="block text-gray-400 text-sm mb-1">Duration (seconds) <span class="text-red-500">*</span></label>
+          <input
+            type="number"
+            name="duration"
+            required
+            min="1"
+            placeholder="e.g. 600"
+            value="<%= isEdit ? video.Duration : '' %>"
+            class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition"
+          />
+        </div>
+
+        <!-- Category -->
+        <div class="flex-1">
+          <label class="block text-gray-400 text-sm mb-1">Category <span class="text-red-500">*</span></label>
+          <select
+            name="categoryId"
+            required
+            class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition"
+          >
+            <option value="">Select a category</option>
+            <% categories.forEach(cat => { %>
+              <option value="<%= cat.Id %>" <%= isEdit && video.CategoryId === cat.Id ? 'selected' : '' %>>
+                <%= cat.Name %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+
+      </div>
+
+      <!-- Visibility -->
+      <div>
+        <label class="block text-gray-400 text-sm mb-2">Visibility</label>
+        <div class="flex gap-6">
+          <label class="flex items-center gap-2 text-gray-300 text-sm cursor-pointer">
+            <input type="radio" name="status" value="Published"
+              <%= !isEdit || video.Status === 'Published' ? 'checked' : '' %>
+              class="accent-red-500"> Published
+          </label>
+          <label class="flex items-center gap-2 text-gray-300 text-sm cursor-pointer">
+            <input type="radio" name="status" value="Private"
+              <%= isEdit && video.Status === 'Private' ? 'checked' : '' %>
+              class="accent-red-500"> Private
+          </label>
+          <label class="flex items-center gap-2 text-gray-300 text-sm cursor-pointer">
+            <input type="radio" name="status" value="Unlisted"
+              <%= isEdit && video.Status === 'Unlisted' ? 'checked' : '' %>
+              class="accent-red-500"> Unlisted
+          </label>
+        </div>
+      </div>
+
+      <!-- Tags -->
+      <div>
+        <label class="block text-gray-400 text-sm mb-2">Tags</label>
+        <div class="flex flex-wrap gap-3">
+          <% tags.forEach(tag => { %>
+            <label class="flex items-center gap-2 text-gray-300 text-sm cursor-pointer bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-700 hover:border-red-500 transition">
+              <input type="checkbox" name="tags" value="<%= tag.Id %>"
+                <%= isEdit && video.tags && video.tags.includes(tag.Id) ? 'checked' : '' %>
+                class="accent-red-500">
+              <%= tag.Name %>
+            </label>
+          <% }) %>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div class="flex gap-3 pt-2">
+        <button
+          type="submit"
+          class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg transition">
+          <%= isEdit ? 'Save Changes' : 'Upload Video' %>
+        </button>
+        <a href="/creator/dashboard"
+           class="flex-1 text-center bg-gray-800 hover:bg-gray-700 text-white font-semibold py-3 rounded-lg transition">
+          Cancel
+        </a>
+      </div>
+
+    </form>
+  </div>
+
+</body>
+</html>

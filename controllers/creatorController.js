@@ -48,4 +48,111 @@ const dashboard = (req, res) => {
     });
 };
 
-module.exports = { dashboard };
+const showUpload = (req, res) => {
+    if (!req.session.user) return res.redirect('/auth/login');
+
+    // Get categories and tags
+    db.query('SELECT * FROM category ORDER BY Name', (err, categories) => {
+        if (err) categories = [];
+        db.query('SELECT * FROM tag ORDER BY Name', (err, tags) => {
+            if (err) tags = [];
+            res.render('creator/upload', {
+                user: req.session.user,
+                categories,
+                tags,
+                isEdit: false,
+                video: {},
+                error: null
+            });
+        });
+    });
+};
+
+const uploadVideo = (req, res) => {
+    if (!req.session.user) return res.redirect('/auth/login');
+
+    const { title, description, videoUrl, duration, categoryId, status } = req.body;
+    let tags = req.body.tags || [];
+    if (!Array.isArray(tags)) tags = [tags];
+    const userId = req.session.user.id;
+
+    // ── Validators ──
+    if (!title || !videoUrl || !duration || !categoryId) {
+        return db.query('SELECT * FROM category', (err, categories) => {
+            db.query('SELECT * FROM tag', (err2, tagList) => {
+                res.render('creator/upload', {
+                    user: req.session.user,
+                    categories: categories || [],
+                    tags: tagList || [],
+                    isEdit: false,
+                    video: {},
+                    error: 'Title, URL, Duration and Category are required.'
+                });
+            });
+        });
+    }
+
+    if (title.length < 3) {
+        return db.query('SELECT * FROM category', (err, categories) => {
+            db.query('SELECT * FROM tag', (err2, tagList) => {
+                res.render('creator/upload', {
+                    user: req.session.user,
+                    categories: categories || [],
+                    tags: tagList || [],
+                    isEdit: false,
+                    video: {},
+                    error: 'Title must be at least 3 characters.'
+                });
+            });
+        });
+    }
+
+    if (isNaN(duration) || duration <= 0) {
+        return db.query('SELECT * FROM category', (err, categories) => {
+            db.query('SELECT * FROM tag', (err2, tagList) => {
+                res.render('creator/upload', {
+                    user: req.session.user,
+                    categories: categories || [],
+                    tags: tagList || [],
+                    isEdit: false,
+                    video: {},
+                    error: 'Duration must be a positive number.'
+                });
+            });
+        });
+    }
+
+    // Get creator ID
+    db.query('SELECT Id FROM creator WHERE UserId = ?', [userId], (err, result) => {
+        if (err || result.length === 0) return res.redirect('/auth/login');
+
+        const creatorId = result[0].Id;
+
+        const insertVideo = `
+            INSERT INTO video (CreatorId, CategoryId, Title, Description, VideoUrl, Duration, Views, Status)
+            VALUES (?, ?, ?, ?, ?, ?, 0, ?)
+        `;
+
+        db.query(insertVideo, [creatorId, categoryId, title, description, videoUrl, duration, status || 'Published'], (err, result) => {
+            if (err) {
+                console.error('DB Error:', err.message);
+                return res.redirect('/creator/dashboard');
+            }
+
+            const videoId = result.insertId;
+
+            // Insert tags
+            if (tags.length > 0) {
+                const tagValues = tags.map(tagId => [videoId, tagId]);
+                db.query('INSERT INTO videotag (VideoId, TagId) VALUES ?', [tagValues], (err) => {
+                    if (err) console.error('Tag insert error:', err.message);
+                });
+            }
+
+            res.redirect('/creator/dashboard');
+        });
+    });
+};
+
+module.exports = { dashboard, showUpload, uploadVideo };
+

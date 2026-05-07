@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Binge — Admin Panel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-950 text-white min-h-screen">
+
+  <!-- Navbar -->
+  <nav class="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
+    <h1 class="text-2xl font-bold text-red-500">Binge <span class="text-gray-400 text-sm font-normal ml-2">Admin Panel</span></h1>
+    <div class="flex items-center gap-4">
+      <span class="text-gray-400 text-sm">Welcome, <span class="text-white font-medium"><%= user.firstName %></span></span>
+      <a href="/auth/logout" class="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-1.5 rounded-lg transition">Logout</a>
+    </div>
+  </nav>
+
+  <div class="max-w-7xl mx-auto px-6 py-8">
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
+      <div class="bg-gray-900 rounded-xl p-4 text-center">
+        <p class="text-2xl font-bold text-red-500"><%= stats.users %></p>
+        <p class="text-gray-400 text-xs mt-1">Users</p>
+      </div>
+      <div class="bg-gray-900 rounded-xl p-4 text-center">
+        <p class="text-2xl font-bold text-red-500"><%= stats.creators %></p>
+        <p class="text-gray-400 text-xs mt-1">Creators</p>
+      </div>
+      <div class="bg-gray-900 rounded-xl p-4 text-center">
+        <p class="text-2xl font-bold text-red-500"><%= stats.videos %></p>
+        <p class="text-gray-400 text-xs mt-1">Videos</p>
+      </div>
+      <div class="bg-gray-900 rounded-xl p-4 text-center">
+        <p class="text-2xl font-bold text-red-500"><%= stats.comments %></p>
+        <p class="text-gray-400 text-xs mt-1">Comments</p>
+      </div>
+      <div class="bg-gray-900 rounded-xl p-4 text-center">
+        <p class="text-2xl font-bold text-red-500"><%= stats.views.toLocaleString() %></p>
+        <p class="text-gray-400 text-xs mt-1">Total Views</p>
+      </div>
+      <div class="bg-gray-900 rounded-xl p-4 text-center">
+        <p class="text-2xl font-bold text-yellow-500"><%= stats.reports %></p>
+        <p class="text-gray-400 text-xs mt-1">Pending Reports</p>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex gap-2 mb-6" id="tabs">
+      <button onclick="showTab('users')"    id="tab-users"    class="tab-btn bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium">Users</button>
+      <button onclick="showTab('videos')"   id="tab-videos"   class="tab-btn bg-gray-800 text-gray-300 px-4 py-2 rounded-lg text-sm font-medium">Videos</button>
+      <button onclick="showTab('reports')"  id="tab-reports"  class="tab-btn bg-gray-800 text-gray-300 px-4 py-2 rounded-lg text-sm font-medium">
+        Reports <% if(stats.reports > 0) { %><span class="bg-yellow-500 text-black text-xs px-1.5 py-0.5 rounded-full ml-1"><%= stats.reports %></span><% } %>
+      </button>
+    </div>
+
+    <!-- Users Tab -->
+    <div id="tab-content-users" class="tab-content">
+      <div class="bg-gray-900 rounded-2xl p-6">
+        <h3 class="font-bold mb-4">All Users</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-gray-400 border-b border-gray-800">
+                <th class="text-left pb-3">Name</th>
+                <th class="text-left pb-3">Email</th>
+                <th class="text-left pb-3">Role</th>
+                <th class="text-left pb-3">Country</th>
+                <th class="text-left pb-3">Status</th>
+                <th class="text-left pb-3">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% allUsers.forEach(u => { %>
+                <tr class="border-b border-gray-800 hover:bg-gray-800 transition">
+                  <td class="py-3 pr-4 font-medium"><%= u.FirstName %> <%= u.LastName %></td>
+                  <td class="py-3 pr-4 text-gray-400"><%= u.Email %></td>
+                  <td class="py-3 pr-4">
+                    <span class="px-2 py-1 rounded-full text-xs <%= u.Role === 'Creator' ? 'bg-blue-500/20 text-blue-400' : 'bg-gray-500/20 text-gray-400' %>">
+                      <%= u.Role %>
+                    </span>
+                  </td>
+                  <td class="py-3 pr-4 text-gray-400"><%= u.Country %></td>
+                  <td class="py-3 pr-4">
+                    <span class="px-2 py-1 rounded-full text-xs <%= u.Status === 'Active' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400' %>">
+                      <%= u.Status %>
+                    </span>
+                  </td>
+                  <td class="py-3">
+                    <form action="/admin/user/status" method="POST" class="inline">
+                      <input type="hidden" name="userId" value="<%= u.Id %>">
+                      <input type="hidden" name="status" value="<%= u.Status === 'Active' ? 'Suspended' : 'Active' %>">
+                      <button type="submit"
+                        class="text-xs px-3 py-1 rounded-lg transition
+                        <%= u.Status === 'Active' ? 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/40' : 'bg-green-500/20 text-green-400 hover:bg-green-500/40' %>">
+                        <%= u.Status === 'Active' ? 'Suspend' : 'Activate' %>
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Videos Tab -->
+    <div id="tab-content-videos" class="tab-content hidden">
+      <div class="bg-gray-900 rounded-2xl p-6">
+        <h3 class="font-bold mb-4">All Videos</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-gray-400 border-b border-gray-800">
+                <th class="text-left pb-3">Title</th>
+                <th class="text-left pb-3">Creator</th>
+                <th class="text-left pb-3">Category</th>
+                <th class="text-left pb-3">Views</th>
+                <th class="text-left pb-3">Status</th>
+                <th class="text-left pb-3">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% allVideos.forEach(v => { %>
+                <tr class="border-b border-gray-800 hover:bg-gray-800 transition">
+                  <td class="py-3 pr-4 font-medium"><%= v.Title %></td>
+                  <td class="py-3 pr-4 text-gray-400"><%= v.ChannelName %></td>
+                  <td class="py-3 pr-4 text-gray-400"><%= v.Category %></td>
+                  <td class="py-3 pr-4 text-gray-400"><%= v.Views.toLocaleString() %></td>
+                  <td class="py-3 pr-4">
+                    <span class="px-2 py-1 rounded-full text-xs
+                      <%= v.Status === 'Published' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400' %>">
+                      <%= v.Status %>
+                    </span>
+                  </td>
+                  <td class="py-3">
+                    <a href="/admin/video/delete/<%= v.Id %>"
+                       onclick="return confirm('Delete this video permanently?')"
+                       class="bg-red-600/20 text-red-400 hover:bg-red-600/40 text-xs px-3 py-1 rounded-lg transition">
+                      Delete
+                    </a>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reports Tab -->
+    <div id="tab-content-reports" class="tab-content hidden">
+      <div class="bg-gray-900 rounded-2xl p-6">
+        <h3 class="font-bold mb-4">Pending Reports</h3>
+        <% if (pendingReports.length === 0) { %>
+          <p class="text-gray-500 text-sm">No pending reports. Platform is clean! ✅</p>
+        <% } else { %>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="text-gray-400 border-b border-gray-800">
+                  <th class="text-left pb-3">Video</th>
+                  <th class="text-left pb-3">Reported By</th>
+                  <th class="text-left pb-3">Reason</th>
+                  <th class="text-left pb-3">Date</th>
+                  <th class="text-left pb-3">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% pendingReports.forEach(r => { %>
+                  <tr class="border-b border-gray-800 hover:bg-gray-800 transition">
+                    <td class="py-3 pr-4 font-medium"><%= r.VideoTitle %></td>
+                    <td class="py-3 pr-4 text-gray-400"><%= r.FirstName %> <%= r.LastName %></td>
+                    <td class="py-3 pr-4 text-gray-400"><%= r.Reason %></td>
+                    <td class="py-3 pr-4 text-gray-400"><%= new Date(r.ReportedAt).toLocaleDateString() %></td>
+                    <td class="py-3 flex gap-2">
+                      <form action="/admin/report/resolve" method="POST" class="inline">
+                        <input type="hidden" name="reportId" value="<%= r.Id %>">
+                        <input type="hidden" name="status" value="Dismissed">
+                        <button type="submit" class="bg-gray-500/20 text-gray-400 hover:bg-gray-500/40 text-xs px-3 py-1 rounded-lg transition">Dismiss</button>
+                      </form>
+                      <form action="/admin/report/resolve" method="POST" class="inline">
+                        <input type="hidden" name="reportId" value="<%= r.Id %>">
+                        <input type="hidden" name="status" value="ActionTaken">
+                        <button type="submit" class="bg-red-600/20 text-red-400 hover:bg-red-600/40 text-xs px-3 py-1 rounded-lg transition">Take Action</button>
+                      </form>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function showTab(name) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(el => {
+        el.classList.remove('bg-red-600', 'text-white');
+        el.classList.add('bg-gray-800', 'text-gray-300');
+      });
+      document.getElementById('tab-content-' + name).classList.remove('hidden');
+      document.getElementById('tab-' + name).classList.add('bg-red-600', 'text-white');
+      document.getElementById('tab-' + name).classList.remove('bg-gray-800', 'text-gray-300');
+    }
+  </script>
+
+</body>
+</html>

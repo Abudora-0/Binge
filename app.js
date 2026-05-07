@@ -31,6 +31,9 @@ app.use('/auth', authRoutes);
 const viewerRoutes = require('./routes/viewerRoutes');
 app.use('/viewer', viewerRoutes);
 
+const creatorRoutes = require('./routes/creatorRoutes');
+app.use('/creator', creatorRoutes);
+
 // Redirect root to login
 app.get('/', (req, res) => {
     res.redirect('/auth/login');

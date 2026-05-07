@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Binge — Creator Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-950 text-white min-h-screen">
+
+  <!-- Navbar -->
+  <nav class="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
+    <h1 class="text-2xl font-bold text-red-500">Binge <span class="text-gray-400 text-sm font-normal ml-2">Creator Studio</span></h1>
+    <div class="flex items-center gap-4">
+      <span class="text-gray-400 text-sm">Welcome, <span class="text-white font-medium"><%= user.firstName %></span></span>
+      <a href="/auth/logout" class="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-1.5 rounded-lg transition">Logout</a>
+    </div>
+  </nav>
+
+  <div class="max-w-7xl mx-auto px-6 py-8">
+
+    <!-- Channel Info -->
+    <div class="bg-gray-900 rounded-2xl p-6 mb-8 flex items-center gap-6">
+      <div class="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center text-2xl font-bold">
+        <%= creator.ChannelName.charAt(0).toUpperCase() %>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold"><%= creator.ChannelName %></h2>
+        <p class="text-gray-400 text-sm mt-1"><%= creator.Bio || 'No bio yet' %></p>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div class="bg-gray-900 rounded-xl p-5 text-center">
+        <p class="text-3xl font-bold text-red-500"><%= stats.totalVideos %></p>
+        <p class="text-gray-400 text-sm mt-1">Total Videos</p>
+      </div>
+      <div class="bg-gray-900 rounded-xl p-5 text-center">
+        <p class="text-3xl font-bold text-red-500"><%= stats.totalViews.toLocaleString() %></p>
+        <p class="text-gray-400 text-sm mt-1">Total Views</p>
+      </div>
+      <div class="bg-gray-900 rounded-xl p-5 text-center">
+        <p class="text-3xl font-bold text-red-500"><%= stats.subscribers.toLocaleString() %></p>
+        <p class="text-gray-400 text-sm mt-1">Subscribers</p>
+      </div>
+      <div class="bg-gray-900 rounded-xl p-5 text-center">
+        <p class="text-3xl font-bold text-red-500"><%= stats.published %></p>
+        <p class="text-gray-400 text-sm mt-1">Published</p>
+      </div>
+    </div>
+
+    <!-- Videos Table -->
+    <div class="bg-gray-900 rounded-2xl p-6">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-lg font-bold">My Videos</h3>
+        <a href="/creator/upload" class="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded-lg transition">
+          + Upload Video
+        </a>
+      </div>
+
+      <% if (videos.length === 0) { %>
+        <div class="text-center text-gray-500 py-12">
+          <p class="text-4xl mb-3">🎬</p>
+          <p>No videos yet. Upload your first video!</p>
+        </div>
+      <% } else { %>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-gray-400 border-b border-gray-800">
+                <th class="text-left pb-3">Title</th>
+                <th class="text-left pb-3">Category</th>
+                <th class="text-left pb-3">Views</th>
+                <th class="text-left pb-3">Status</th>
+                <th class="text-left pb-3">Date</th>
+                <th class="text-left pb-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% videos.forEach(video => { %>
+                <tr class="border-b border-gray-800 hover:bg-gray-800 transition">
+                  <td class="py-3 pr-4 font-medium"><%= video.Title %></td>
+                  <td class="py-3 pr-4 text-gray-400"><%= video.Category %></td>
+                  <td class="py-3 pr-4 text-gray-400"><%= video.Views.toLocaleString() %></td>
+                  <td class="py-3 pr-4">
+                    <span class="px-2 py-1 rounded-full text-xs
+                      <%= video.Status === 'Published' ? 'bg-green-500/20 text-green-400' :
+                          video.Status === 'Private'   ? 'bg-yellow-500/20 text-yellow-400' :
+                          'bg-gray-500/20 text-gray-400' %>">
+                      <%= video.Status %>
+                    </span>
+                  </td>
+                  <td class="py-3 pr-4 text-gray-400"><%= new Date(video.UploadDate).toLocaleDateString() %></td>
+                  <td class="py-3 flex gap-2">
+                    <a href="/creator/video/edit/<%= video.Id %>"
+                       class="bg-blue-600/20 text-blue-400 hover:bg-blue-600/40 text-xs px-3 py-1 rounded-lg transition">
+                      Edit
+                    </a>
+                    <a href="/creator/video/delete/<%= video.Id %>"
+                       class="bg-red-600/20 text-red-400 hover:bg-red-600/40 text-xs px-3 py-1 rounded-lg transition"
+                       onclick="return confirm('Are you sure you want to delete this video?')">
+                      Delete
+                    </a>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+
+  </div>
+
+</body>
+</html>

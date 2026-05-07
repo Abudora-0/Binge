@@ -154,5 +154,107 @@ const uploadVideo = (req, res) => {
     });
 };
 
-module.exports = { dashboard, showUpload, uploadVideo };
+const showEdit = (req, res) => {
+    if (!req.session.user) return res.redirect('/auth/login');
+
+    const videoId = req.params.id;
+    const userId  = req.session.user.id;
+
+    db.query('SELECT Id FROM creator WHERE UserId = ?', [userId], (err, result) => {
+        if (err || result.length === 0) return res.redirect('/auth/login');
+
+        const creatorId = result[0].Id;
+
+        db.query('SELECT * FROM video WHERE Id = ? AND CreatorId = ?', [videoId, creatorId], (err, videoResult) => {
+            if (err || videoResult.length === 0) return res.redirect('/creator/dashboard');
+
+            const video = videoResult[0];
+
+            // Get selected tags for this video
+            db.query('SELECT TagId FROM videotag WHERE VideoId = ?', [videoId], (err, tagResult) => {
+                video.tags = tagResult ? tagResult.map(t => t.TagId) : [];
+
+                db.query('SELECT * FROM category ORDER BY Name', (err, categories) => {
+                    db.query('SELECT * FROM tag ORDER BY Name', (err, tags) => {
+                        res.render('creator/upload', {
+                            user: req.session.user,
+                            categories: categories || [],
+                            tags: tags || [],
+                            isEdit: true,
+                            video,
+                            error: null
+                        });
+                    });
+                });
+            });
+        });
+    });
+};
+
+const editVideo = (req, res) => {
+    if (!req.session.user) return res.redirect('/auth/login');
+
+    const videoId = req.params.id;
+    const userId  = req.session.user.id;
+    const { title, description, videoUrl, duration, categoryId, status } = req.body;
+    let tags = req.body.tags || [];
+    if (!Array.isArray(tags)) tags = [tags];
+
+    // Validators
+    if (!title || !videoUrl || !duration || !categoryId) {
+        return res.redirect('/creator/dashboard');
+    }
+
+    db.query('SELECT Id FROM creator WHERE UserId = ?', [userId], (err, result) => {
+        if (err || result.length === 0) return res.redirect('/auth/login');
+
+        const creatorId = result[0].Id;
+
+        const updateQuery = `
+            UPDATE video
+            SET Title = ?, Description = ?, VideoUrl = ?,
+                Duration = ?, CategoryId = ?, Status = ?
+            WHERE Id = ? AND CreatorId = ?
+        `;
+
+        db.query(updateQuery, [title, description, videoUrl, duration, categoryId, status, videoId, creatorId], (err) => {
+            if (err) {
+                console.error('DB Error:', err.message);
+                return res.redirect('/creator/dashboard');
+            }
+
+            // Update tags — delete old then insert new
+            db.query('DELETE FROM videotag WHERE VideoId = ?', [videoId], (err) => {
+                if (tags.length > 0) {
+                    const tagValues = tags.map(tagId => [videoId, tagId]);
+                    db.query('INSERT INTO videotag (VideoId, TagId) VALUES ?', [tagValues], (err) => {
+                        if (err) console.error('Tag update error:', err.message);
+                    });
+                }
+                res.redirect('/creator/dashboard');
+            });
+        });
+    });
+};
+
+const deleteVideo = (req, res) => {
+    if (!req.session.user) return res.redirect('/auth/login');
+
+    const videoId = req.params.id;
+    const userId  = req.session.user.id;
+
+    db.query('SELECT Id FROM creator WHERE UserId = ?', [userId], (err, result) => {
+        if (err || result.length === 0) return res.redirect('/auth/login');
+
+        const creatorId = result[0].Id;
+
+        db.query('DELETE FROM video WHERE Id = ? AND CreatorId = ?', [videoId, creatorId], (err) => {
+            if (err) console.error('Delete error:', err.message);
+            res.redirect('/creator/dashboard');
+        });
+    });
+};
+
+module.exports = { dashboard, showUpload, uploadVideo, showEdit, editVideo, deleteVideo };
+
 

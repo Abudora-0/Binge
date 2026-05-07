@@ -1,5 +1,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
+const session = require('express-session');
 const db = require('./config/db');
 
 dotenv.config();
@@ -12,18 +13,24 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
+// Session
+app.use(session({
+    secret: 'binge_secret_key',
+    resave: false,
+    saveUninitialized: false
+}));
+
 // View engine
 app.set('view engine', 'ejs');
-app.set('views', './views');
+app.set('views', __dirname + '/views');
+
+// Routes
+const authRoutes = require('./routes/authRoutes');
+app.use('/auth', authRoutes);
 
 // Redirect root to login
 app.get('/', (req, res) => {
     res.redirect('/auth/login');
-});
-
-// Auth routes
-app.get('/auth/login', (req, res) => {
-    res.render('login', { error: null });
 });
 
 // Start server

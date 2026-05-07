@@ -28,5 +28,5 @@ app.get('/auth/login', (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-    console.log(`ViewTube running at http://localhost:${PORT}`);
+    console.log(`Binge running at http://localhost:${PORT}`);
 });

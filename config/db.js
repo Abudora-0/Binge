@@ -13,7 +13,7 @@ db.connect((err) => {
         console.error('Database connection failed:', err.message);
         return;
     }
-    console.log('Connected to ViewTubeDB successfully!');
+    console.log('Connected to BingeDB successfully!');
 });
 
 module.exports = db;

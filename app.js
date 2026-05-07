@@ -28,6 +28,9 @@ app.set('views', __dirname + '/views');
 const authRoutes = require('./routes/authRoutes');
 app.use('/auth', authRoutes);
 
+const viewerRoutes = require('./routes/viewerRoutes');
+app.use('/viewer', viewerRoutes);
+
 // Redirect root to login
 app.get('/', (req, res) => {
     res.redirect('/auth/login');

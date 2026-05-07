@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Binge — Home</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-950 text-white min-h-screen">
+
+  <!-- Navbar -->
+  <nav class="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
+    <h1 class="text-2xl font-bold text-red-500">Binge</h1>
+    <div class="flex items-center gap-4">
+      <span class="text-gray-400 text-sm">Welcome, <span class="text-white font-medium"><%= user.firstName %></span></span>
+      <a href="/auth/logout" class="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-1.5 rounded-lg transition">Logout</a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-6 py-8">
+
+    <!-- Search & Filter -->
+    <div class="flex gap-3 mb-8">
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Search videos..."
+        class="flex-1 bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition"
+      />
+      <select id="categoryFilter" class="bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition">
+        <option value="">All Categories</option>
+        <option value="Technology">Technology</option>
+        <option value="Education">Education</option>
+        <option value="Gaming">Gaming</option>
+        <option value="Music">Music</option>
+        <option value="Vlogs">Vlogs</option>
+        <option value="Sports">Sports</option>
+        <option value="Comedy">Comedy</option>
+      </select>
+    </div>
+
+    <!-- Videos Grid -->
+    <% if (videos.length === 0) { %>
+      <div class="text-center text-gray-500 mt-20">
+        <p class="text-5xl mb-4">🎬</p>
+        <p class="text-xl">No videos yet. Check back later!</p>
+      </div>
+    <% } else { %>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5" id="videoGrid">
+        <% videos.forEach(video => { %>
+          <div class="video-card bg-gray-900 rounded-xl overflow-hidden hover:ring-2 hover:ring-red-500 transition cursor-pointer"
+               data-title="<%= video.Title.toLowerCase() %>"
+               data-category="<%= video.Category %>">
+
+            <!-- Thumbnail placeholder -->
+            <div class="bg-gray-800 h-44 flex items-center justify-center">
+              <span class="text-5xl">🎬</span>
+            </div>
+
+            <!-- Info -->
+            <div class="p-3">
+              <h3 class="text-white text-sm font-semibold line-clamp-2 mb-1"><%= video.Title %></h3>
+              <p class="text-gray-400 text-xs"><%= video.ChannelName %></p>
+              <div class="flex items-center justify-between mt-2">
+                <span class="text-gray-500 text-xs"><%= video.Views.toLocaleString() %> views</span>
+                <span class="text-gray-500 text-xs"><%= new Date(video.UploadDate).toLocaleDateString() %></span>
+              </div>
+              <span class="inline-block mt-2 bg-red-600/20 text-red-400 text-xs px-2 py-0.5 rounded-full"><%= video.Category %></span>
+            </div>
+
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+
+  </div>
+
+  <!-- Search & Filter Script -->
+  <script>
+    const searchInput = document.getElementById('searchInput');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const cards = document.querySelectorAll('.video-card');
+
+    function filterVideos() {
+      const search = searchInput.value.toLowerCase();
+      const category = categoryFilter.value;
+      cards.forEach(card => {
+        const matchSearch = card.dataset.title.includes(search);
+        const matchCategory = !category || card.dataset.category === category;
+        card.style.display = matchSearch && matchCategory ? 'block' : 'none';
+      });
+    }
+
+    searchInput.addEventListener('input', filterVideos);
+    categoryFilter.addEventListener('change', filterVideos);
+  </script>
+
+</body>
+</html>

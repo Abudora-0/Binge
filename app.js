@@ -2,6 +2,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 const session = require('express-session');
 const db = require('./config/db');
+const logger = require('./config/logger');
 
 dotenv.config();
 
@@ -43,6 +44,12 @@ app.use('/reports', reportRoutes);
 // Redirect root to login
 app.get('/', (req, res) => {
     res.redirect('/auth/login');
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+    logger.logError('GlobalHandler', err.message);
+    res.status(500).send('Something went wrong. Please try again.');
 });
 
 // Start server

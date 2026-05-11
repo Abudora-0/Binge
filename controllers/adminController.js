@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const logger = require('../config/logger');
 
 const dashboard = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
@@ -76,7 +77,7 @@ const dashboard = (req, res) => {
             });
         });
     }).catch(err => {
-        console.error('Admin dashboard error:', err);
+        logger.logError('adminController', err.message);
         res.redirect('/auth/login');
     });
 };
@@ -86,7 +87,7 @@ const updateUserStatus = (req, res) => {
 
     const { userId, status } = req.body;
     db.query('UPDATE user SET Status = ? WHERE Id = ?', [status, userId], (err) => {
-        if (err) console.error('Status update error:', err.message);
+        if (err) logger.logError('adminController', err.message);
         res.redirect('/admin/dashboard');
     });
 };
@@ -96,7 +97,7 @@ const deleteVideo = (req, res) => {
 
     const videoId = req.params.id;
     db.query('DELETE FROM video WHERE Id = ?', [videoId], (err) => {
-        if (err) console.error('Delete error:', err.message);
+        if (err) logger.logError('adminController', err.message);
         res.redirect('/admin/dashboard');
     });
 };
@@ -106,7 +107,7 @@ const resolveReport = (req, res) => {
 
     const { reportId, status } = req.body;
     db.query('UPDATE report SET Status = ? WHERE Id = ?', [status, reportId], (err) => {
-        if (err) console.error('Report resolve error:', err.message);
+        if (err) logger.logError('adminController', err.message);
         res.redirect('/admin/dashboard');
     });
 };

@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const logger = require('../config/logger');
 
 const home = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
@@ -15,7 +16,7 @@ const home = (req, res) => {
 
     db.query(query, (err, videos) => {
         if (err) {
-            console.error('DB Error:', err.message);
+            logger.logError('viewerController', err.message);
             return res.render('viewer/home', { user: req.session.user, videos: [] });
         }
         res.render('viewer/home', { user: req.session.user, videos });
@@ -163,7 +164,7 @@ const addComment = (req, res) => {
         'INSERT INTO comment (VideoId, UserId, Content) VALUES (?, ?, ?)',
         [videoId, userId, content.trim()],
         (err) => {
-            if (err) console.error('Comment error:', err.message);
+            if (err) logger.logError('viewerController', err.message);
             res.redirect('/viewer/watch/' + videoId);
         }
     );

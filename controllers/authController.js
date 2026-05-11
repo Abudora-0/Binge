@@ -1,5 +1,6 @@
-const db = require('../config/db');
-const bcrypt = require('bcryptjs');
+const db      = require('../config/db');
+const bcrypt  = require('bcryptjs');
+const logger  = require('../config/logger');
 
 // Show login page
 const showLogin = (req, res) => {
@@ -63,7 +64,7 @@ const register = (req, res) => {
     const checkEmail = 'SELECT Id FROM user WHERE Email = ?';
     db.query(checkEmail, [email], (err, results) => {
         if (err) {
-            console.error('DB Error:', err.message);
+            logger.logError('authController', err.message);
             return res.render('register', {
                 error: 'Something went wrong. Please try again.',
                 success: null
@@ -88,7 +89,7 @@ const register = (req, res) => {
 
         db.query(insertUser, [firstName, lastName, email, hashedPassword, country], (err, result) => {
             if (err) {
-                console.error('DB Error:', err.message);
+                logger.logError('authController', err.message);
                 return res.render('register', {
                     error: 'Registration failed. Please try again.',
                     success: null
@@ -105,7 +106,7 @@ const register = (req, res) => {
                 `;
                 db.query(insertCreator, [userId, channelName], (err) => {
                     if (err) {
-                        console.error('DB Error:', err.message);
+                        logger.logError('authController', err.message);
                         return res.render('register', {
                             error: 'Account created but creator setup failed.',
                             success: null
@@ -145,7 +146,7 @@ const login = (req, res) => {
     const query = 'SELECT * FROM user WHERE Email = ?';
     db.query(query, [email], (err, results) => {
         if (err) {
-            console.error('DB Error:', err.message);
+            logger.logError('authController', err.message);
             return res.render('login', { error: 'Something went wrong. Please try again.' });
         }
 

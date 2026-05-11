@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const logger = require('../config/logger');
 
 const dashboard = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
@@ -11,7 +12,7 @@ const dashboard = (req, res) => {
 
     db.query(creatorQuery, [userId], (err, creatorResult) => {
         if (err || creatorResult.length === 0) {
-            console.error('Creator not found:', err);
+            logger.logError('creatorController', err.message);
             return res.redirect('/auth/login');
         }
 
@@ -28,7 +29,7 @@ const dashboard = (req, res) => {
 
         db.query(videosQuery, [creator.Id], (err, videos) => {
             if (err) {
-                console.error('DB Error:', err.message);
+                logger.logError('creatorController', err.message);
                 videos = [];
             }
 
@@ -135,7 +136,7 @@ const uploadVideo = (req, res) => {
 
         db.query(insertVideo, [creatorId, categoryId, title, description, videoUrl, duration, status || 'Published'], (err, result) => {
             if (err) {
-                console.error('DB Error:', err.message);
+                logger.logError('creatorController', err.message);
                 return res.redirect('/creator/dashboard');
             }
 
@@ -145,7 +146,7 @@ const uploadVideo = (req, res) => {
             if (tags.length > 0) {
                 const tagValues = tags.map(tagId => [videoId, tagId]);
                 db.query('INSERT INTO videotag (VideoId, TagId) VALUES ?', [tagValues], (err) => {
-                    if (err) console.error('Tag insert error:', err.message);
+                    if (err) logger.logError('creatorController', err.message);
                 });
             }
 
@@ -219,7 +220,7 @@ const editVideo = (req, res) => {
 
         db.query(updateQuery, [title, description, videoUrl, duration, categoryId, status, videoId, creatorId], (err) => {
             if (err) {
-                console.error('DB Error:', err.message);
+                logger.logError('creatorController', err.message);
                 return res.redirect('/creator/dashboard');
             }
 
@@ -228,7 +229,7 @@ const editVideo = (req, res) => {
                 if (tags.length > 0) {
                     const tagValues = tags.map(tagId => [videoId, tagId]);
                     db.query('INSERT INTO videotag (VideoId, TagId) VALUES ?', [tagValues], (err) => {
-                        if (err) console.error('Tag update error:', err.message);
+                        if (err) logger.logError('creatorController', err.message);
                     });
                 }
                 res.redirect('/creator/dashboard');
@@ -249,7 +250,7 @@ const deleteVideo = (req, res) => {
         const creatorId = result[0].Id;
 
         db.query('DELETE FROM video WHERE Id = ? AND CreatorId = ?', [videoId, creatorId], (err) => {
-            if (err) console.error('Delete error:', err.message);
+            if (err) logger.logError('creatorController', err.message);
             res.redirect('/creator/dashboard');
         });
     });

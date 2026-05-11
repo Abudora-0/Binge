@@ -1,5 +1,6 @@
 const mysql = require('mysql2');
 require('dotenv').config();
+const logger = require('./logger');
 
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
@@ -10,10 +11,10 @@ const db = mysql.createConnection({
 
 db.connect((err) => {
     if (err) {
-        console.error('Database connection failed:', err.message);
+        logger.logError('DatabaseConnection', err.message);
         return;
     }
-    console.log('Connected to BingeDB successfully!');
+    logger.logInfo('Connected to BingeDB successfully!');
 });
 
 module.exports = db;

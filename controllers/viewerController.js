@@ -136,16 +136,87 @@ const subscribe = (req, res) => {
     const creatorId = req.params.id;
     const userId    = req.session.user.id;
 
-    // Check if already subscribed — toggle
-    db.query('SELECT Id FROM subscription WHERE ViewerId = ? AND CreatorId = ?', [userId, creatorId], (err, result) => {
-        if (result && result.length > 0) {
-            db.query('DELETE FROM subscription WHERE ViewerId = ? AND CreatorId = ?', [userId, creatorId]);
-            db.query('UPDATE creator SET TotalSubscribers = TotalSubscribers - 1 WHERE Id = ?', [creatorId]);
-        } else {
-            db.query('INSERT INTO subscription (ViewerId, CreatorId) VALUES (?, ?)', [userId, creatorId]);
-            db.query('UPDATE creator SET TotalSubscribers = TotalSubscribers + 1 WHERE Id = ?', [creatorId]);
+    // Use transaction — subscribe + update count must both succeed or both fail
+    db.beginTransaction((err) => {
+        if (err) {
+            logger.logError('subscribe - beginTransaction', err.message);
+            return res.redirect('back');
         }
-        res.redirect('back');
+
+        db.query('SELECT Id FROM subscription WHERE ViewerId = ? AND CreatorId = ?',
+            [userId, creatorId], (err, result) => {
+            if (err) {
+                return db.rollback(() => {
+                    logger.logError('subscribe - check', err.message);
+                    res.redirect('back');
+                });
+            }
+
+            if (result.length > 0) {
+                // Unsubscribe
+                db.query('DELETE FROM subscription WHERE ViewerId = ? AND CreatorId = ?',
+                    [userId, creatorId], (err) => {
+                    if (err) {
+                        return db.rollback(() => {
+                            logger.logError('subscribe - delete', err.message);
+                            res.redirect('back');
+                        });
+                    }
+
+                    db.query('UPDATE creator SET TotalSubscribers = TotalSubscribers - 1 WHERE Id = ?',
+                        [creatorId], (err) => {
+                        if (err) {
+                            return db.rollback(() => {
+                                logger.logError('subscribe - update count', err.message);
+                                res.redirect('back');
+                            });
+                        }
+
+                        db.commit((err) => {
+                            if (err) {
+                                return db.rollback(() => {
+                                    logger.logError('subscribe - commit', err.message);
+                                    res.redirect('back');
+                                });
+                            }
+                            res.redirect('back');
+                        });
+                    });
+                });
+
+            } else {
+                // Subscribe
+                db.query('INSERT INTO subscription (ViewerId, CreatorId) VALUES (?, ?)',
+                    [userId, creatorId], (err) => {
+                    if (err) {
+                        return db.rollback(() => {
+                            logger.logError('subscribe - insert', err.message);
+                            res.redirect('back');
+                        });
+                    }
+
+                    db.query('UPDATE creator SET TotalSubscribers = TotalSubscribers + 1 WHERE Id = ?',
+                        [creatorId], (err) => {
+                        if (err) {
+                            return db.rollback(() => {
+                                logger.logError('subscribe - update count', err.message);
+                                res.redirect('back');
+                            });
+                        }
+
+                        db.commit((err) => {
+                            if (err) {
+                                return db.rollback(() => {
+                                    logger.logError('subscribe - commit', err.message);
+                                    res.redirect('back');
+                                });
+                            }
+                            res.redirect('back');
+                        });
+                    });
+                });
+            }
+        });
     });
 };
 

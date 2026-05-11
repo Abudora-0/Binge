@@ -34,16 +34,18 @@ const dashboard = (req, res) => {
             }
 
             // Get stats
-            const totalViews    = videos.reduce((sum, v) => sum + v.Views, 0);
-            const totalVideos   = videos.length;
-            const published     = videos.filter(v => v.Status === 'Published').length;
+            const totalViews = videos.reduce((sum, v) => sum + v.Views, 0);
+            const totalVideos = videos.length;
+            const published = videos.filter(v => v.Status === 'Published').length;
 
             res.render('creator/dashboard', {
                 user: req.session.user,
                 creator,
                 videos,
-                stats: { totalViews, totalVideos, published,
-                         subscribers: creator.TotalSubscribers }
+                stats: {
+                    totalViews, totalVideos, published,
+                    subscribers: creator.TotalSubscribers
+                }
             });
         });
     });
@@ -129,28 +131,62 @@ const uploadVideo = (req, res) => {
 
         const creatorId = result[0].Id;
 
-        const insertVideo = `
+        // Transaction — insert video + insert tags must both succeed
+        db.beginTransaction((err) => {
+            if (err) {
+                logger.logError('uploadVideo - beginTransaction', err.message);
+                return res.redirect('/creator/dashboard');
+            }
+
+            const insertVideo = `
             INSERT INTO video (CreatorId, CategoryId, Title, Description, VideoUrl, Duration, Views, Status)
             VALUES (?, ?, ?, ?, ?, ?, 0, ?)
         `;
 
-        db.query(insertVideo, [creatorId, categoryId, title, description, videoUrl, duration, status || 'Published'], (err, result) => {
-            if (err) {
-                logger.logError('creatorController', err.message);
-                return res.redirect('/creator/dashboard');
-            }
+            db.query(insertVideo,
+                [creatorId, categoryId, title, description, videoUrl, duration, status || 'Published'],
+                (err, result) => {
+                    if (err) {
+                        return db.rollback(() => {
+                            logger.logError('uploadVideo - insert', err.message);
+                            res.redirect('/creator/dashboard');
+                        });
+                    }
 
-            const videoId = result.insertId;
+                    const videoId = result.insertId;
 
-            // Insert tags
-            if (tags.length > 0) {
-                const tagValues = tags.map(tagId => [videoId, tagId]);
-                db.query('INSERT INTO videotag (VideoId, TagId) VALUES ?', [tagValues], (err) => {
-                    if (err) logger.logError('creatorController', err.message);
+                    if (tags.length > 0) {
+                        const tagValues = tags.map(tagId => [videoId, tagId]);
+                        db.query('INSERT INTO videotag (VideoId, TagId) VALUES ?', [tagValues], (err) => {
+                            if (err) {
+                                return db.rollback(() => {
+                                    logger.logError('uploadVideo - tags', err.message);
+                                    res.redirect('/creator/dashboard');
+                                });
+                            }
+
+                            db.commit((err) => {
+                                if (err) {
+                                    return db.rollback(() => {
+                                        logger.logError('uploadVideo - commit', err.message);
+                                        res.redirect('/creator/dashboard');
+                                    });
+                                }
+                                res.redirect('/creator/dashboard');
+                            });
+                        });
+                    } else {
+                        db.commit((err) => {
+                            if (err) {
+                                return db.rollback(() => {
+                                    logger.logError('uploadVideo - commit', err.message);
+                                    res.redirect('/creator/dashboard');
+                                });
+                            }
+                            res.redirect('/creator/dashboard');
+                        });
+                    }
                 });
-            }
-
-            res.redirect('/creator/dashboard');
         });
     });
 };
@@ -159,7 +195,7 @@ const showEdit = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
 
     const videoId = req.params.id;
-    const userId  = req.session.user.id;
+    const userId = req.session.user.id;
 
     db.query('SELECT Id FROM creator WHERE UserId = ?', [userId], (err, result) => {
         if (err || result.length === 0) return res.redirect('/auth/login');
@@ -196,7 +232,7 @@ const editVideo = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
 
     const videoId = req.params.id;
-    const userId  = req.session.user.id;
+    const userId = req.session.user.id;
     const { title, description, videoUrl, duration, categoryId, status } = req.body;
     let tags = req.body.tags || [];
     if (!Array.isArray(tags)) tags = [tags];
@@ -242,7 +278,7 @@ const deleteVideo = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
 
     const videoId = req.params.id;
-    const userId  = req.session.user.id;
+    const userId = req.session.user.id;
 
     db.query('SELECT Id FROM creator WHERE UserId = ?', [userId], (err, result) => {
         if (err || result.length === 0) return res.redirect('/auth/login');

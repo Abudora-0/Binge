@@ -37,6 +37,9 @@ app.use('/creator', creatorRoutes);
 const adminRoutes = require('./routes/adminRoutes');
 app.use('/admin', adminRoutes);
 
+const reportRoutes = require('./routes/reportRoutes');
+app.use('/reports', reportRoutes);
+
 // Redirect root to login
 app.get('/', (req, res) => {
     res.redirect('/auth/login');

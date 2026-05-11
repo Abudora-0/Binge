@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Binge — Reports</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-950 text-white min-h-screen">
+
+  <nav class="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
+    <h1 class="text-2xl font-bold text-red-500">Binge <span class="text-gray-400 text-sm font-normal ml-2">Reports</span></h1>
+    <div class="flex items-center gap-4">
+      <a href="/admin/dashboard" class="text-gray-400 hover:text-white text-sm transition">← Admin Panel</a>
+      <a href="/auth/logout" class="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-1.5 rounded-lg transition">Logout</a>
+    </div>
+  </nav>
+
+  <div class="max-w-5xl mx-auto px-6 py-10">
+    <h2 class="text-2xl font-bold mb-2">PDF Business Reports</h2>
+    <p class="text-gray-400 text-sm mb-8">Click any report to generate and view it as a PDF</p>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+      <a href="/reports/trending" target="_blank"
+         class="bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition group">
+        <div class="text-2xl mb-2">🔥</div>
+        <h3 class="font-bold group-hover:text-red-400 transition">Trending Videos</h3>
+        <p class="text-gray-400 text-xs mt-1">Top videos by views, likes and comments</p>
+      </a>
+
+      <a href="/reports/creators" target="_blank"
+         class="bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition group">
+        <div class="text-2xl mb-2">🎬</div>
+        <h3 class="font-bold group-hover:text-red-400 transition">Top Creators</h3>
+        <p class="text-gray-400 text-xs mt-1">Most subscribed creators on the platform</p>
+      </a>
+
+      <a href="/reports/categories" target="_blank"
+         class="bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition group">
+        <div class="text-2xl mb-2">📊</div>
+        <h3 class="font-bold group-hover:text-red-400 transition">Category Engagement</h3>
+        <p class="text-gray-400 text-xs mt-1">Views and likes broken down by category</p>
+      </a>
+
+      <a href="/reports/engagement" target="_blank"
+         class="bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition group">
+        <div class="text-2xl mb-2">📈</div>
+        <h3 class="font-bold group-hover:text-red-400 transition">Video Engagement Score</h3>
+        <p class="text-gray-400 text-xs mt-1">Engagement score per video based on views, likes and comments</p>
+      </a>
+
+      <a href="/reports/monthly" target="_blank"
+         class="bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition group">
+        <div class="text-2xl mb-2">📅</div>
+        <h3 class="font-bold group-hover:text-red-400 transition">Monthly Watch Summary</h3>
+        <p class="text-gray-400 text-xs mt-1">Watch activity broken down by month and year</p>
+      </a>
+
+      <a href="/reports/users" target="_blank"
+         class="bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition group">
+        <div class="text-2xl mb-2">👥</div>
+        <h3 class="font-bold group-hover:text-red-400 transition">All Users</h3>
+        <p class="text-gray-400 text-xs mt-1">Complete list of registered users with roles and status</p>
+      </a>
+
+      <a href="/reports/videos" target="_blank"
+         class="bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition group">
+        <div class="text-2xl mb-2">🎥</div>
+        <h3 class="font-bold group-hover:text-red-400 transition">All Videos</h3>
+        <p class="text-gray-400 text-xs mt-1">Complete video library with views and status</p>
+      </a>
+
+      <a href="/reports/comments" target="_blank"
+         class="bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition group">
+        <div class="text-2xl mb-2">💬</div>
+        <h3 class="font-bold group-hover:text-red-400 transition">Comment Activity</h3>
+        <p class="text-gray-400 text-xs mt-1">Comment count per video and last activity date</p>
+      </a>
+
+      <a href="/reports/subscriptions" target="_blank"
+         class="bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition group">
+        <div class="text-2xl mb-2">🔔</div>
+        <h3 class="font-bold group-hover:text-red-400 transition">Subscription Report</h3>
+        <p class="text-gray-400 text-xs mt-1">Subscription counts and activity per creator</p>
+      </a>
+
+      <a href="/reports/moderation" target="_blank"
+         class="bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition group">
+        <div class="text-2xl mb-2">🚨</div>
+        <h3 class="font-bold group-hover:text-red-400 transition">Content Moderation</h3>
+        <p class="text-gray-400 text-xs mt-1">All reported videos with status and resolution</p>
+      </a>
+
+    </div>
+  </div>
+
+</body>
+</html>

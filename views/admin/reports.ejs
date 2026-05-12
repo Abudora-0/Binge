@@ -18,79 +18,174 @@
 
   <div class="max-w-5xl mx-auto px-6 py-10">
     <h2 class="text-2xl font-bold mb-2">PDF Business Reports</h2>
-    <p class="text-gray-400 text-sm mb-8">Click any report to generate and view it as a PDF</p>
+    <p class="text-gray-400 text-sm mb-8">Select a report, apply filters and generate PDF</p>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-      <a href="/reports/trending" target="_blank"
-         class="bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition group">
+      <!-- Report 1: Trending Videos with filters -->
+      <div class="bg-gray-900 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition">
         <div class="text-2xl mb-2">🔥</div>
-        <h3 class="font-bold group-hover:text-red-400 transition">Trending Videos</h3>
-        <p class="text-gray-400 text-xs mt-1">Top videos by views, likes and comments</p>
-      </a>
+        <h3 class="font-bold mb-3">Trending Videos</h3>
+        <form action="/reports/trending" method="GET" target="_blank" class="space-y-2">
+          <select name="categoryId" class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-red-500">
+            <option value="">All Categories</option>
+            <% categories.forEach(c => { %>
+              <option value="<%= c.Id %>"><%= c.Name %></option>
+            <% }) %>
+          </select>
+          <div class="flex gap-2">
+            <input type="date" name="from" class="flex-1 bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-red-500">
+            <input type="date" name="to"   class="flex-1 bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-red-500">
+          </div>
+          <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white text-xs py-2 rounded-lg transition">Generate PDF</button>
+        </form>
+      </div>
 
-      <a href="/reports/creators" target="_blank"
-         class="bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition group">
+      <!-- Report 2: Top Creators -->
+      <div class="bg-gray-900 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition">
         <div class="text-2xl mb-2">🎬</div>
-        <h3 class="font-bold group-hover:text-red-400 transition">Top Creators</h3>
-        <p class="text-gray-400 text-xs mt-1">Most subscribed creators on the platform</p>
-      </a>
+        <h3 class="font-bold mb-3">Top Creators</h3>
+        <form action="/reports/creators" method="GET" target="_blank" class="space-y-2">
+          <select name="country" class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-red-500">
+            <option value="">All Countries</option>
+            <option value="Pakistan">Pakistan</option>
+            <option value="India">India</option>
+            <option value="USA">USA</option>
+            <option value="UK">UK</option>
+            <option value="UAE">UAE</option>
+          </select>
+          <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white text-xs py-2 rounded-lg transition">Generate PDF</button>
+        </form>
+      </div>
 
-      <a href="/reports/categories" target="_blank"
-         class="bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition group">
+      <!-- Report 3: Category Engagement -->
+      <div class="bg-gray-900 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition">
         <div class="text-2xl mb-2">📊</div>
-        <h3 class="font-bold group-hover:text-red-400 transition">Category Engagement</h3>
-        <p class="text-gray-400 text-xs mt-1">Views and likes broken down by category</p>
-      </a>
+        <h3 class="font-bold mb-3">Category Engagement</h3>
+        <form action="/reports/categories" method="GET" target="_blank" class="space-y-2">
+          <div class="flex gap-2">
+            <input type="date" name="from" class="flex-1 bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-red-500">
+            <input type="date" name="to"   class="flex-1 bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-red-500">
+          </div>
+          <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white text-xs py-2 rounded-lg transition">Generate PDF</button>
+        </form>
+      </div>
 
-      <a href="/reports/engagement" target="_blank"
-         class="bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition group">
+      <!-- Report 4: Video Engagement -->
+      <div class="bg-gray-900 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition">
         <div class="text-2xl mb-2">📈</div>
-        <h3 class="font-bold group-hover:text-red-400 transition">Video Engagement Score</h3>
-        <p class="text-gray-400 text-xs mt-1">Engagement score per video based on views, likes and comments</p>
-      </a>
+        <h3 class="font-bold mb-3">Video Engagement Score</h3>
+        <form action="/reports/engagement" method="GET" target="_blank" class="space-y-2">
+          <select name="categoryId" class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-red-500">
+            <option value="">All Categories</option>
+            <% categories.forEach(c => { %>
+              <option value="<%= c.Id %>"><%= c.Name %></option>
+            <% }) %>
+          </select>
+          <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white text-xs py-2 rounded-lg transition">Generate PDF</button>
+        </form>
+      </div>
 
-      <a href="/reports/monthly" target="_blank"
-         class="bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition group">
+      <!-- Report 5: Monthly Watch -->
+      <div class="bg-gray-900 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition">
         <div class="text-2xl mb-2">📅</div>
-        <h3 class="font-bold group-hover:text-red-400 transition">Monthly Watch Summary</h3>
-        <p class="text-gray-400 text-xs mt-1">Watch activity broken down by month and year</p>
-      </a>
+        <h3 class="font-bold mb-3">Monthly Watch Summary</h3>
+        <form action="/reports/monthly" method="GET" target="_blank" class="space-y-2">
+          <div class="flex gap-2">
+            <input type="number" name="month" min="1" max="12" placeholder="Month (1-12)"
+              class="flex-1 bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-red-500">
+            <input type="number" name="year" min="2024" max="2030" placeholder="Year"
+              class="flex-1 bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-red-500">
+          </div>
+          <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white text-xs py-2 rounded-lg transition">Generate PDF</button>
+        </form>
+      </div>
 
-      <a href="/reports/users" target="_blank"
-         class="bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition group">
+      <!-- Report 6: All Users -->
+      <div class="bg-gray-900 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition">
         <div class="text-2xl mb-2">👥</div>
-        <h3 class="font-bold group-hover:text-red-400 transition">All Users</h3>
-        <p class="text-gray-400 text-xs mt-1">Complete list of registered users with roles and status</p>
-      </a>
+        <h3 class="font-bold mb-3">All Users</h3>
+        <form action="/reports/users" method="GET" target="_blank" class="space-y-2">
+          <select name="status" class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-red-500">
+            <option value="">All Status</option>
+            <option value="Active">Active</option>
+            <option value="Suspended">Suspended</option>
+            <option value="Banned">Banned</option>
+          </select>
+          <select name="country" class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-red-500">
+            <option value="">All Countries</option>
+            <option value="Pakistan">Pakistan</option>
+            <option value="India">India</option>
+            <option value="USA">USA</option>
+            <option value="UK">UK</option>
+            <option value="UAE">UAE</option>
+          </select>
+          <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white text-xs py-2 rounded-lg transition">Generate PDF</button>
+        </form>
+      </div>
 
-      <a href="/reports/videos" target="_blank"
-         class="bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition group">
+      <!-- Report 7: All Videos -->
+      <div class="bg-gray-900 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition">
         <div class="text-2xl mb-2">🎥</div>
-        <h3 class="font-bold group-hover:text-red-400 transition">All Videos</h3>
-        <p class="text-gray-400 text-xs mt-1">Complete video library with views and status</p>
-      </a>
+        <h3 class="font-bold mb-3">All Videos</h3>
+        <form action="/reports/videos" method="GET" target="_blank" class="space-y-2">
+          <select name="status" class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-red-500">
+            <option value="">All Status</option>
+            <option value="Published">Published</option>
+            <option value="Private">Private</option>
+            <option value="Unlisted">Unlisted</option>
+          </select>
+          <select name="categoryId" class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-red-500">
+            <option value="">All Categories</option>
+            <% categories.forEach(c => { %>
+              <option value="<%= c.Id %>"><%= c.Name %></option>
+            <% }) %>
+          </select>
+          <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white text-xs py-2 rounded-lg transition">Generate PDF</button>
+        </form>
+      </div>
 
-      <a href="/reports/comments" target="_blank"
-         class="bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition group">
+      <!-- Report 8: Comment Activity -->
+      <div class="bg-gray-900 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition">
         <div class="text-2xl mb-2">💬</div>
-        <h3 class="font-bold group-hover:text-red-400 transition">Comment Activity</h3>
-        <p class="text-gray-400 text-xs mt-1">Comment count per video and last activity date</p>
-      </a>
+        <h3 class="font-bold mb-3">Comment Activity</h3>
+        <form action="/reports/comments" method="GET" target="_blank" class="space-y-2">
+          <div class="flex gap-2">
+            <input type="date" name="from" class="flex-1 bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-red-500">
+            <input type="date" name="to"   class="flex-1 bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-red-500">
+          </div>
+          <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white text-xs py-2 rounded-lg transition">Generate PDF</button>
+        </form>
+      </div>
 
-      <a href="/reports/subscriptions" target="_blank"
-         class="bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition group">
+      <!-- Report 9: Subscriptions -->
+      <div class="bg-gray-900 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition">
         <div class="text-2xl mb-2">🔔</div>
-        <h3 class="font-bold group-hover:text-red-400 transition">Subscription Report</h3>
-        <p class="text-gray-400 text-xs mt-1">Subscription counts and activity per creator</p>
-      </a>
+        <h3 class="font-bold mb-3">Subscription Report</h3>
+        <form action="/reports/subscriptions" method="GET" target="_blank" class="space-y-2">
+          <div class="flex gap-2">
+            <input type="date" name="from" class="flex-1 bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-red-500">
+            <input type="date" name="to"   class="flex-1 bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-red-500">
+          </div>
+          <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white text-xs py-2 rounded-lg transition">Generate PDF</button>
+        </form>
+      </div>
 
-      <a href="/reports/moderation" target="_blank"
-         class="bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition group">
+      <!-- Report 10: Moderation -->
+      <div class="bg-gray-900 border border-gray-700 hover:border-red-500 rounded-xl p-5 transition">
         <div class="text-2xl mb-2">🚨</div>
-        <h3 class="font-bold group-hover:text-red-400 transition">Content Moderation</h3>
-        <p class="text-gray-400 text-xs mt-1">All reported videos with status and resolution</p>
-      </a>
+        <h3 class="font-bold mb-3">Content Moderation</h3>
+        <form action="/reports/moderation" method="GET" target="_blank" class="space-y-2">
+          <select name="status" class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-red-500">
+            <option value="">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="Reviewed">Reviewed</option>
+            <option value="Dismissed">Dismissed</option>
+            <option value="ActionTaken">Action Taken</option>
+          </select>
+          <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white text-xs py-2 rounded-lg transition">Generate PDF</button>
+        </form>
+      </div>
 
     </div>
   </div>

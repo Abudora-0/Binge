@@ -46,17 +46,37 @@ function pageHeader(doc, title, subtitle = '') {
     return 120;
 }
 
-// ── Report 1: Top Trending Videos ──────────────────────────
+// Report 1: Trending Videos with filters
 const trendingVideos = (req, res) => {
-    const query = `SELECT * FROM vw_TrendingVideos LIMIT 20`;
-    db.query(query, (err, rows) => {
-        if (err) return res.status(500).send('Report error');
+    const { categoryId, from, to } = req.query;
 
+    let query = `
+        SELECT v.Id, v.Title, v.Views, v.UploadDate,
+               c.ChannelName, cat.Name AS Category,
+               COUNT(DISTINCT l.Id)  AS TotalLikes,
+               COUNT(DISTINCT cm.Id) AS TotalComments
+        FROM video v
+        JOIN creator c    ON v.CreatorId  = c.Id
+        JOIN category cat ON v.CategoryId = cat.Id
+        LEFT JOIN likes l    ON l.VideoId  = v.Id
+        LEFT JOIN comment cm ON cm.VideoId = v.Id
+        WHERE v.Status = 'Published'
+    `;
+    const params = [];
+
+    if (categoryId) { query += ` AND v.CategoryId = ?`;   params.push(categoryId); }
+    if (from)       { query += ` AND v.UploadDate >= ?`;  params.push(from); }
+    if (to)         { query += ` AND v.UploadDate <= ?`;  params.push(to); }
+
+    query += ` GROUP BY v.Id, v.Title, v.Views, v.UploadDate, c.ChannelName, cat.Name
+               ORDER BY v.Views DESC LIMIT 20`;
+
+    db.query(query, params, (err, rows) => {
+        if (err) return res.status(500).send('Report error');
         const doc = new PDFDocument({ margin: 40, size: 'A4' });
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', 'inline; filename="trending_videos.pdf"');
         doc.pipe(res);
-
         const y = pageHeader(doc, 'Top Trending Videos', `Generated on ${new Date().toLocaleDateString()}`);
         const headers = ['Title', 'Channel', 'Category', 'Views', 'Likes', 'Comments'];
         const data = rows.map(r => [r.Title, r.ChannelName, r.Category, r.Views, r.TotalLikes, r.TotalComments]);
@@ -65,26 +85,28 @@ const trendingVideos = (req, res) => {
     });
 };
 
-// ── Report 2: Most Subscribed Creators ─────────────────────
+// Report 2: Top Creators with country filter
 const topCreators = (req, res) => {
-    const query = `
+    const { country } = req.query;
+
+    let query = `
         SELECT c.ChannelName, c.TotalSubscribers, c.TotalViews,
-               COUNT(DISTINCT v.Id) AS TotalVideos,
-               u.Country
+               COUNT(DISTINCT v.Id) AS TotalVideos, u.Country
         FROM creator c
         JOIN user u ON c.UserId = u.Id
         LEFT JOIN video v ON v.CreatorId = c.Id
-        GROUP BY c.Id, c.ChannelName, c.TotalSubscribers, c.TotalViews, u.Country
-        ORDER BY c.TotalSubscribers DESC
     `;
-    db.query(query, (err, rows) => {
-        if (err) return res.status(500).send('Report error');
+    const params = [];
+    if (country) { query += ` WHERE u.Country = ?`; params.push(country); }
+    query += ` GROUP BY c.Id, c.ChannelName, c.TotalSubscribers, c.TotalViews, u.Country
+               ORDER BY c.TotalSubscribers DESC`;
 
+    db.query(query, params, (err, rows) => {
+        if (err) return res.status(500).send('Report error');
         const doc = new PDFDocument({ margin: 40, size: 'A4' });
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', 'inline; filename="top_creators.pdf"');
         doc.pipe(res);
-
         const y = pageHeader(doc, 'Most Subscribed Creators', `Generated on ${new Date().toLocaleDateString()}`);
         const headers = ['Channel', 'Subscribers', 'Total Views', 'Videos', 'Country'];
         const data = rows.map(r => [r.ChannelName, r.TotalSubscribers, r.TotalViews, r.TotalVideos, r.Country]);
@@ -154,24 +176,29 @@ const monthlyWatch = (req, res) => {
     });
 };
 
-// ── Report 6: All Users ─────────────────────────────────────
+// Report 6: All Users with filters
 const allUsers = (req, res) => {
-    const query = `
+    const { status, country } = req.query;
+
+    let query = `
         SELECT u.FirstName, u.LastName, u.Email, u.Country,
                u.JoinDate, u.Status,
                CASE WHEN c.Id IS NOT NULL THEN 'Creator' ELSE 'Viewer' END AS Role
         FROM user u
         LEFT JOIN creator c ON c.UserId = u.Id
-        ORDER BY u.JoinDate DESC
+        WHERE 1=1
     `;
-    db.query(query, (err, rows) => {
-        if (err) return res.status(500).send('Report error');
+    const params = [];
+    if (status)  { query += ` AND u.Status = ?`;  params.push(status); }
+    if (country) { query += ` AND u.Country = ?`; params.push(country); }
+    query += ` ORDER BY u.JoinDate DESC`;
 
+    db.query(query, params, (err, rows) => {
+        if (err) return res.status(500).send('Report error');
         const doc = new PDFDocument({ margin: 40, size: 'A4' });
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', 'inline; filename="all_users.pdf"');
         doc.pipe(res);
-
         const y = pageHeader(doc, 'All Users Report', `Generated on ${new Date().toLocaleDateString()}`);
         const headers = ['First Name', 'Last Name', 'Email', 'Country', 'Role', 'Status'];
         const data = rows.map(r => [r.FirstName, r.LastName, r.Email, r.Country, r.Role, r.Status]);
@@ -180,24 +207,30 @@ const allUsers = (req, res) => {
     });
 };
 
-// ── Report 7: All Videos ────────────────────────────────────
+
+// Report 7: All Videos with filters
 const allVideos = (req, res) => {
-    const query = `
+    const { status, categoryId } = req.query;
+
+    let query = `
         SELECT v.Title, c.ChannelName, cat.Name AS Category,
-               v.Views, v.Status, v.UploadDate, v.Duration
+               v.Views, v.Status, v.UploadDate
         FROM video v
         JOIN creator c    ON v.CreatorId  = c.Id
         JOIN category cat ON v.CategoryId = cat.Id
-        ORDER BY v.UploadDate DESC
+        WHERE 1=1
     `;
-    db.query(query, (err, rows) => {
-        if (err) return res.status(500).send('Report error');
+    const params = [];
+    if (status)     { query += ` AND v.Status = ?`;     params.push(status); }
+    if (categoryId) { query += ` AND v.CategoryId = ?`; params.push(categoryId); }
+    query += ` ORDER BY v.UploadDate DESC`;
 
+    db.query(query, params, (err, rows) => {
+        if (err) return res.status(500).send('Report error');
         const doc = new PDFDocument({ margin: 40, size: 'A4' });
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', 'inline; filename="all_videos.pdf"');
         doc.pipe(res);
-
         const y = pageHeader(doc, 'All Videos Report', `Generated on ${new Date().toLocaleDateString()}`);
         const headers = ['Title', 'Channel', 'Category', 'Views', 'Status', 'Upload Date'];
         const data = rows.map(r => [
@@ -270,25 +303,29 @@ const subscriptions = (req, res) => {
     });
 };
 
-// ── Report 10: Content Moderation Report ───────────────────
+// Report 10: Moderation with status filter
 const moderationReport = (req, res) => {
-    const query = `
+    const { status } = req.query;
+
+    let query = `
         SELECT r.Reason, r.Status, r.ReportedAt,
                v.Title AS VideoTitle,
                u.FirstName, u.LastName
         FROM report r
         JOIN video v ON r.VideoId    = v.Id
         JOIN user u  ON r.ReportedBy = u.Id
-        ORDER BY r.ReportedAt DESC
+        WHERE 1=1
     `;
-    db.query(query, (err, rows) => {
-        if (err) return res.status(500).send('Report error');
+    const params = [];
+    if (status) { query += ` AND r.Status = ?`; params.push(status); }
+    query += ` ORDER BY r.ReportedAt DESC`;
 
+    db.query(query, params, (err, rows) => {
+        if (err) return res.status(500).send('Report error');
         const doc = new PDFDocument({ margin: 40, size: 'A4' });
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', 'inline; filename="moderation_report.pdf"');
         doc.pipe(res);
-
         const y = pageHeader(doc, 'Content Moderation Report', `Generated on ${new Date().toLocaleDateString()}`);
         const headers = ['Video', 'Reported By', 'Reason', 'Status', 'Date'];
         const data = rows.map(r => [

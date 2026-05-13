@@ -241,5 +241,101 @@ const addComment = (req, res) => {
     );
 };
 
-module.exports = { home, watchVideo, likeVideo, subscribe, addComment };
+const subscriptions = (req, res) => {
+    if (!req.session.user) return res.redirect('/auth/login');
+
+    const userId = req.session.user.id;
+
+    const query = `
+        SELECT c.Id, c.ChannelName, c.TotalSubscribers, c.TotalViews,
+               COUNT(DISTINCT v.Id) AS TotalVideos,
+               s.SubscribedAt
+        FROM subscription s
+        JOIN creator c ON s.CreatorId = c.Id
+        LEFT JOIN video v ON v.CreatorId = c.Id AND v.Status = 'Published'
+        WHERE s.ViewerId = ?
+        GROUP BY c.Id, c.ChannelName, c.TotalSubscribers, c.TotalViews, s.SubscribedAt
+        ORDER BY s.SubscribedAt DESC
+    `;
+
+    db.query(query, [userId], (err, creators) => {
+        if (err) {
+            logger.logError('subscriptions', err.message);
+            creators = [];
+        }
+        res.render('viewer/subscriptions', { user: req.session.user, creators });
+    });
+};
+
+const history = (req, res) => {
+    if (!req.session.user) return res.redirect('/auth/login');
+
+    const userId = req.session.user.id;
+
+    const query = `
+        SELECT wh.WatchedAt, wh.CompletionPercent,
+               v.Id AS VideoId, v.Title, v.Duration, v.Views,
+               c.ChannelName, cat.Name AS Category
+        FROM watchhistory wh
+        JOIN video v      ON wh.VideoId    = v.Id
+        JOIN creator c    ON v.CreatorId   = c.Id
+        JOIN category cat ON v.CategoryId  = cat.Id
+        WHERE wh.UserId = ?
+        ORDER BY wh.WatchedAt DESC
+        LIMIT 50
+    `;
+
+    db.query(query, [userId], (err, history) => {
+        if (err) {
+            logger.logError('history', err.message);
+            history = [];
+        }
+        res.render('viewer/history', { user: req.session.user, history });
+    });
+};
+
+const playlists = (req, res) => {
+    if (!req.session.user) return res.redirect('/auth/login');
+
+    const userId = req.session.user.id;
+
+    const query = `
+        SELECT p.*, COUNT(pi.Id) AS TotalVideos
+        FROM playlist p
+        LEFT JOIN playlistitem pi ON pi.PlaylistId = p.Id
+        WHERE p.UserId = ?
+        GROUP BY p.Id
+        ORDER BY p.CreatedAt DESC
+    `;
+
+    db.query(query, [userId], (err, playlists) => {
+        if (err) {
+            logger.logError('playlists', err.message);
+            playlists = [];
+        }
+        res.render('viewer/playlists', { user: req.session.user, playlists });
+    });
+};
+
+const createPlaylist = (req, res) => {
+    if (!req.session.user) return res.redirect('/auth/login');
+
+    const { title, description, visibility } = req.body;
+    const userId = req.session.user.id;
+
+    if (!title || title.trim().length === 0) return res.redirect('/viewer/playlists');
+
+    db.query(
+        'INSERT INTO playlist (UserId, Title, Description, Visibility) VALUES (?, ?, ?, ?)',
+        [userId, title.trim(), description, visibility || 'Public'],
+        (err) => {
+            if (err) logger.logError('createPlaylist', err.message);
+            res.redirect('/viewer/playlists');
+        }
+    );
+};
+
+module.exports = { home, watchVideo, likeVideo, subscribe, addComment, subscriptions, history, playlists, createPlaylist };
+
+
 

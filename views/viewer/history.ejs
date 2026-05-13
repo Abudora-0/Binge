@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Binge — Watch History</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body class="bg-gray-950 text-white min-h-screen flex flex-col">
+
+  <!-- Navbar -->
+  <nav class="bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center gap-4 sticky top-0 z-50">
+    <div class="flex items-center gap-3 w-48 flex-shrink-0">
+      <a href="/viewer/home" class="flex items-center gap-2 text-gray-400 hover:text-white transition">
+        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+      </a>
+      <a href="/viewer/home" class="text-xl font-bold text-red-500">Binge</a>
+    </div>
+    <div class="flex-1"></div>
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center font-bold text-sm">
+        <%= user.firstName.charAt(0).toUpperCase() %>
+      </div>
+      <span class="text-white text-sm font-medium"><%= user.firstName %></span>
+      <a href="/auth/logout" class="flex items-center gap-2 text-red-400 hover:text-red-300 text-sm transition">
+        <i data-lucide="log-out" class="w-4 h-4"></i>
+      </a>
+    </div>
+  </nav>
+
+  <div class="max-w-4xl mx-auto px-6 py-8 w-full">
+
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-8">
+      <div class="w-10 h-10 bg-blue-600/20 rounded-xl flex items-center justify-center">
+        <i data-lucide="history" class="w-5 h-5 text-blue-400"></i>
+      </div>
+      <div>
+        <h2 class="text-2xl font-bold">Watch History</h2>
+        <p class="text-gray-400 text-sm"><%= history.length %> video<%= history.length !== 1 ? 's' : '' %> watched</p>
+      </div>
+    </div>
+
+    <% if (history.length === 0) { %>
+      <div class="text-center mt-24">
+        <div class="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i data-lucide="clock" class="w-10 h-10 text-gray-600"></i>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-300 mb-2">No watch history yet</h3>
+        <p class="text-gray-500 text-sm mb-6">Videos you watch will appear here</p>
+        <a href="/viewer/home" class="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-full text-sm transition">
+          <i data-lucide="play" class="w-4 h-4"></i> Start Watching
+        </a>
+      </div>
+    <% } else { %>
+      <div class="space-y-3">
+        <% history.forEach(item => { %>
+          <a href="/viewer/watch/<%= item.VideoId %>"
+             class="flex gap-4 bg-gray-900 hover:bg-gray-800 rounded-2xl p-4 transition group">
+
+            <!-- Thumbnail -->
+            <div class="w-40 h-24 bg-gray-800 rounded-xl flex items-center justify-center flex-shrink-0 relative overflow-hidden group-hover:brightness-75 transition">
+              <i data-lucide="play-circle" class="w-10 h-10 text-gray-600"></i>
+              <span class="absolute bottom-1.5 right-1.5 bg-black/80 text-white text-xs px-1.5 py-0.5 rounded font-medium">
+                <%= Math.floor(item.Duration/60) %>:<%= String(item.Duration%60).padStart(2,'0') %>
+              </span>
+            </div>
+
+            <!-- Info -->
+            <div class="flex-1 min-w-0">
+              <h3 class="font-semibold text-sm line-clamp-2 mb-1 group-hover:text-red-400 transition"><%= item.Title %></h3>
+              <p class="text-gray-400 text-xs flex items-center gap-1 mb-1">
+                <i data-lucide="user" class="w-3 h-3"></i> <%= item.ChannelName %>
+              </p>
+              <p class="text-gray-500 text-xs flex items-center gap-1 mb-3">
+                <i data-lucide="eye" class="w-3 h-3"></i> <%= item.Views.toLocaleString() %> views
+              </p>
+
+              <!-- Progress bar -->
+              <div class="flex items-center gap-2">
+                <div class="flex-1 bg-gray-700 rounded-full h-1">
+                  <div class="bg-red-500 h-1 rounded-full transition-all" style="width: <%= item.CompletionPercent %>%"></div>
+                </div>
+                <span class="text-gray-500 text-xs w-8 text-right"><%= Math.round(item.CompletionPercent) %>%</span>
+              </div>
+            </div>
+
+            <!-- Date -->
+            <div class="flex-shrink-0 text-right">
+              <p class="text-gray-500 text-xs flex items-center gap-1">
+                <i data-lucide="clock" class="w-3 h-3"></i>
+                <%= new Date(item.WatchedAt).toLocaleDateString() %>
+              </p>
+            </div>
+
+          </a>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>

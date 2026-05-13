@@ -5,95 +5,194 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Binge — Home</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
-<body class="bg-gray-950 text-white min-h-screen">
+<body class="bg-gray-950 text-white min-h-screen flex flex-col">
 
   <!-- Navbar -->
-  <nav class="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
-    <h1 class="text-2xl font-bold text-red-500">Binge</h1>
-    <div class="flex items-center gap-4">
-      <span class="text-gray-400 text-sm">Welcome, <span class="text-white font-medium"><%= user.firstName %></span></span>
-      <a href="/auth/logout" class="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-1.5 rounded-lg transition">Logout</a>
+  <nav class="bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center gap-4 sticky top-0 z-50 w-full">
+    <div class="flex items-center gap-3 w-48 flex-shrink-0">
+      <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-gray-800 transition">
+        <i data-lucide="menu" class="w-5 h-5"></i>
+      </button>
+      <a href="/viewer/home" class="text-xl font-bold text-red-500">Binge</a>
+    </div>
+
+    <div class="flex-1 flex gap-2 max-w-2xl mx-auto">
+      <input type="text" id="searchInput" placeholder="Search videos..."
+        class="flex-1 bg-gray-900 text-white border border-gray-700 rounded-full px-5 py-2 text-sm focus:outline-none focus:border-red-500 transition"/>
+      <button class="bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-full border border-gray-700 transition flex items-center gap-2">
+        <i data-lucide="search" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <div class="w-48 flex-shrink-0 flex justify-end relative">
+      <button onclick="toggleProfile()" class="flex items-center gap-2 hover:bg-gray-800 px-3 py-1.5 rounded-full transition">
+        <div class="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center font-bold text-sm">
+          <%= user.firstName.charAt(0).toUpperCase() %>
+        </div>
+        <span class="text-white text-sm font-medium"><%= user.firstName %></span>
+        <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
+      </button>
+
+      <div id="profileDropdown" class="hidden absolute top-12 right-0 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-56 z-50 overflow-hidden">
+        <div class="px-4 py-3 border-b border-gray-700 flex items-center gap-3">
+          <div class="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center font-bold text-sm">
+            <%= user.firstName.charAt(0).toUpperCase() %>
+          </div>
+          <div>
+            <p class="text-white text-sm font-semibold"><%= user.firstName %> <%= user.lastName %></p>
+            <p class="text-gray-400 text-xs"><%= user.email %></p>
+          </div>
+        </div>
+        <div class="py-1">
+          <a href="/viewer/history" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
+            <i data-lucide="history" class="w-4 h-4"></i> Watch History
+          </a>
+          <a href="/viewer/playlists" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
+            <i data-lucide="list-music" class="w-4 h-4"></i> Playlists
+          </a>
+          <a href="/viewer/subscriptions" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
+            <i data-lucide="bell" class="w-4 h-4"></i> Subscriptions
+          </a>
+          <div class="border-t border-gray-700 my-1"></div>
+          <a href="/auth/logout" class="flex items-center gap-3 px-4 py-2.5 text-red-400 hover:bg-gray-800 text-sm transition">
+            <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out
+          </a>
+        </div>
+      </div>
     </div>
   </nav>
 
-  <!-- Main Content -->
-  <div class="max-w-7xl mx-auto px-6 py-8">
+  <div class="flex flex-1 overflow-hidden">
 
-    <!-- Search & Filter -->
-    <div class="flex gap-3 mb-8">
-      <input
-        type="text"
-        id="searchInput"
-        placeholder="Search videos..."
-        class="flex-1 bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition"
-      />
-      <select id="categoryFilter" class="bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition">
-        <option value="">All Categories</option>
-        <option value="Technology">Technology</option>
-        <option value="Education">Education</option>
-        <option value="Gaming">Gaming</option>
-        <option value="Music">Music</option>
-        <option value="Vlogs">Vlogs</option>
-        <option value="Sports">Sports</option>
-        <option value="Comedy">Comedy</option>
-      </select>
-    </div>
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-52 flex-shrink-0 bg-gray-950 border-r border-gray-900 pt-4 pb-10 overflow-y-auto">
+      <div class="space-y-1 px-2">
+        <a href="/viewer/home" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gray-800 text-white text-sm font-medium">
+          <i data-lucide="home" class="w-4 h-4"></i> Home
+        </a>
+        <a href="/viewer/subscriptions" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition">
+          <i data-lucide="bell" class="w-4 h-4"></i> Subscriptions
+        </a>
+        <a href="/viewer/history" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition">
+          <i data-lucide="history" class="w-4 h-4"></i> History
+        </a>
+        <a href="/viewer/playlists" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition">
+          <i data-lucide="list-music" class="w-4 h-4"></i> Playlists
+        </a>
 
-    <!-- Videos Grid -->
-    <% if (videos.length === 0) { %>
-      <div class="text-center text-gray-500 mt-20">
-        <p class="text-5xl mb-4">🎬</p>
-        <p class="text-xl">No videos yet. Check back later!</p>
+        <div class="border-t border-gray-800 my-3"></div>
+        <p class="text-gray-500 text-xs px-3 mb-2 uppercase tracking-wider">Categories</p>
+
+        <a href="#" onclick="filterCategory(event,'')"           class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition"><i data-lucide="layout-grid" class="w-4 h-4"></i> All</a>
+        <a href="#" onclick="filterCategory(event,'Technology')" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition"><i data-lucide="cpu" class="w-4 h-4"></i> Technology</a>
+        <a href="#" onclick="filterCategory(event,'Gaming')"     class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition"><i data-lucide="gamepad-2" class="w-4 h-4"></i> Gaming</a>
+        <a href="#" onclick="filterCategory(event,'Education')"  class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition"><i data-lucide="book-open" class="w-4 h-4"></i> Education</a>
+        <a href="#" onclick="filterCategory(event,'Music')"      class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition"><i data-lucide="music" class="w-4 h-4"></i> Music</a>
+        <a href="#" onclick="filterCategory(event,'Vlogs')"      class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition"><i data-lucide="video" class="w-4 h-4"></i> Vlogs</a>
+        <a href="#" onclick="filterCategory(event,'Sports')"     class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition"><i data-lucide="trophy" class="w-4 h-4"></i> Sports</a>
+        <a href="#" onclick="filterCategory(event,'Comedy')"     class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition"><i data-lucide="smile" class="w-4 h-4"></i> Comedy</a>
       </div>
-    <% } else { %>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5" id="videoGrid">
-        <% videos.forEach(video => { %>
-          <a href="/viewer/watch/<%= video.Id %>" class="video-card bg-gray-900 rounded-xl overflow-hidden hover:ring-2 hover:ring-red-500 transition cursor-pointer block"
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 overflow-y-auto px-6 py-5">
+
+      <!-- Category Pills -->
+      <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+        <button onclick="filterCategory(event,'')"           class="pill px-4 py-1.5 rounded-full text-sm font-medium bg-white text-black whitespace-nowrap">All</button>
+        <button onclick="filterCategory(event,'Technology')" class="pill px-4 py-1.5 rounded-full text-sm font-medium bg-gray-800 text-gray-300 hover:bg-gray-700 whitespace-nowrap transition">Technology</button>
+        <button onclick="filterCategory(event,'Gaming')"     class="pill px-4 py-1.5 rounded-full text-sm font-medium bg-gray-800 text-gray-300 hover:bg-gray-700 whitespace-nowrap transition">Gaming</button>
+        <button onclick="filterCategory(event,'Education')"  class="pill px-4 py-1.5 rounded-full text-sm font-medium bg-gray-800 text-gray-300 hover:bg-gray-700 whitespace-nowrap transition">Education</button>
+        <button onclick="filterCategory(event,'Music')"      class="pill px-4 py-1.5 rounded-full text-sm font-medium bg-gray-800 text-gray-300 hover:bg-gray-700 whitespace-nowrap transition">Music</button>
+        <button onclick="filterCategory(event,'Vlogs')"      class="pill px-4 py-1.5 rounded-full text-sm font-medium bg-gray-800 text-gray-300 hover:bg-gray-700 whitespace-nowrap transition">Vlogs</button>
+        <button onclick="filterCategory(event,'Sports')"     class="pill px-4 py-1.5 rounded-full text-sm font-medium bg-gray-800 text-gray-300 hover:bg-gray-700 whitespace-nowrap transition">Sports</button>
+        <button onclick="filterCategory(event,'Comedy')"     class="pill px-4 py-1.5 rounded-full text-sm font-medium bg-gray-800 text-gray-300 hover:bg-gray-700 whitespace-nowrap transition">Comedy</button>
+      </div>
+
+      <!-- Videos Grid -->
+      <% if (videos.length === 0) { %>
+        <div class="text-center text-gray-500 mt-20">
+          <i data-lucide="video-off" class="w-16 h-16 mx-auto mb-4 text-gray-700"></i>
+          <p class="text-xl">No videos yet. Check back later!</p>
+        </div>
+      <% } else { %>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8" id="videoGrid">
+          <% videos.forEach(video => { %>
+            <a href="/viewer/watch/<%= video.Id %>"
+               class="video-card block group cursor-pointer"
                data-title="<%= video.Title.toLowerCase() %>"
                data-category="<%= video.Category %>">
 
-            <!-- Thumbnail placeholder -->
-            <div class="bg-gray-800 h-44 flex items-center justify-center">
-              <span class="text-5xl">🎬</span>
-            </div>
-
-            <!-- Info -->
-            <div class="p-3">
-              <h3 class="text-white text-sm font-semibold line-clamp-2 mb-1"><%= video.Title %></h3>
-              <p class="text-gray-400 text-xs"><%= video.ChannelName %></p>
-              <div class="flex items-center justify-between mt-2">
-                <span class="text-gray-500 text-xs"><%= video.Views.toLocaleString() %> views</span>
-                <span class="text-gray-500 text-xs"><%= new Date(video.UploadDate).toLocaleDateString() %></span>
+              <div class="bg-gray-800 rounded-xl overflow-hidden aspect-video flex items-center justify-center mb-3 group-hover:brightness-75 transition relative">
+                <i data-lucide="play-circle" class="w-14 h-14 text-gray-600"></i>
+                <span class="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-1.5 py-0.5 rounded font-medium">
+                  <%= Math.floor(video.Duration/60) %>:<%= String(video.Duration%60).padStart(2,'0') %>
+                </span>
               </div>
-              <span class="inline-block mt-2 bg-red-600/20 text-red-400 text-xs px-2 py-0.5 rounded-full"><%= video.Category %></span>
-            </div>
 
-          </a>
-        <% }) %>
-      </div>
-    <% } %>
+              <div class="flex gap-3">
+                <div class="w-9 h-9 bg-red-600 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 mt-0.5">
+                  <%= video.ChannelName.charAt(0).toUpperCase() %>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h3 class="text-white text-sm font-semibold line-clamp-2 leading-snug mb-1"><%= video.Title %></h3>
+                  <p class="text-gray-400 text-xs"><%= video.ChannelName %></p>
+                  <p class="text-gray-500 text-xs"><%= video.Views.toLocaleString() %> views · <%= new Date(video.UploadDate).toLocaleDateString() %></p>
+                </div>
+              </div>
 
+            </a>
+          <% }) %>
+        </div>
+      <% } %>
+    </main>
   </div>
 
-  <!-- Search & Filter Script -->
   <script>
+    lucide.createIcons();
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('hidden');
+    }
+
+    function toggleProfile() {
+      document.getElementById('profileDropdown').classList.toggle('hidden');
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.relative')) {
+        document.getElementById('profileDropdown').classList.add('hidden');
+      }
+    });
+
     const searchInput = document.getElementById('searchInput');
-    const categoryFilter = document.getElementById('categoryFilter');
-    const cards = document.querySelectorAll('.video-card');
+    searchInput.addEventListener('input', filterVideos);
+    let activeCategory = '';
+
+    function filterCategory(event, cat) {
+      event.preventDefault();
+      activeCategory = cat;
+      document.querySelectorAll('.pill').forEach(p => {
+        p.classList.remove('bg-white', 'text-black');
+        p.classList.add('bg-gray-800', 'text-gray-300');
+      });
+      if (event.target.classList.contains('pill')) {
+        event.target.classList.add('bg-white', 'text-black');
+        event.target.classList.remove('bg-gray-800', 'text-gray-300');
+      }
+      filterVideos();
+    }
 
     function filterVideos() {
       const search = searchInput.value.toLowerCase();
-      const category = categoryFilter.value;
-      cards.forEach(card => {
-        const matchSearch = card.dataset.title.includes(search);
-        const matchCategory = !category || card.dataset.category === category;
-        card.style.display = matchSearch && matchCategory ? 'block' : 'none';
+      document.querySelectorAll('.video-card').forEach(card => {
+        const matchSearch   = card.dataset.title.includes(search);
+        const matchCategory = !activeCategory || card.dataset.category === activeCategory;
+        card.style.display  = matchSearch && matchCategory ? 'block' : 'none';
       });
     }
-
-    searchInput.addEventListener('input', filterVideos);
-    categoryFilter.addEventListener('change', filterVideos);
   </script>
 
 </body>

@@ -3,85 +3,170 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Binge — Login</title>
+  <title>Binge — Sign In</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
-<body class="bg-gray-950 min-h-screen flex items-center justify-center">
+<body class="bg-gray-950 min-h-screen flex">
 
-  <div class="bg-gray-900 p-8 rounded-2xl shadow-2xl w-full max-w-md">
-    
-    <!-- Logo -->
-    <div class="text-center mb-8">
-      <h1 class="text-4xl font-bold text-red-500">Binge</h1>
-      <p class="text-gray-400 mt-1 text-sm">Sign in to continue</p>
+  <!-- Left Panel -->
+  <div class="hidden lg:flex w-1/2 bg-gradient-to-br from-red-900/40 via-gray-900 to-gray-950 flex-col items-center justify-center p-12 relative overflow-hidden">
+    <div class="absolute inset-0 opacity-5">
+      <div class="grid grid-cols-8 gap-2 h-full">
+        <% for(let i=0; i<64; i++) { %>
+          <div class="bg-red-500 rounded"></div>
+        <% } %>
+      </div>
     </div>
-
-    <!-- Error Message -->
-    <% if (typeof error !== 'undefined' && error) { %>
-      <div class="bg-red-500/20 border border-red-500 text-red-400 px-4 py-3 rounded-lg mb-4 text-sm">
-        <%= error %>
-      </div>
-    <% } %>
-
-    <!-- Form -->
-    <form action="/auth/login" method="POST" class="space-y-5">
-      
-      <!-- Email -->
-      <div>
-        <label class="block text-gray-400 text-sm mb-1">Email Address</label>
-        <input 
-          type="email" 
-          name="email" 
-          required
-          placeholder="you@example.com"
-          class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition"
-        />
-      </div>
-
-      <!-- Password -->
-      <div>
-        <label class="block text-gray-400 text-sm mb-1">Password</label>
-        <input 
-          type="password" 
-          name="password" 
-          required
-          placeholder="••••••••"
-          class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition"
-        />
-      </div>
-
-      <!-- Role -->
-      <div>
-        <label class="block text-gray-400 text-sm mb-2">Login As</label>
-        <div class="flex gap-4">
-          <label class="flex items-center gap-2 text-gray-300 text-sm cursor-pointer">
-            <input type="radio" name="role" value="viewer" checked class="accent-red-500"> Viewer
-          </label>
-          <label class="flex items-center gap-2 text-gray-300 text-sm cursor-pointer">
-            <input type="radio" name="role" value="creator" class="accent-red-500"> Creator
-          </label>
-          <label class="flex items-center gap-2 text-gray-300 text-sm cursor-pointer">
-            <input type="radio" name="role" value="admin" class="accent-red-500"> Admin
-          </label>
+    <div class="relative z-10 text-center">
+      <h1 class="text-6xl font-bold text-red-500 mb-4">Binge</h1>
+      <p class="text-gray-300 text-xl mb-2">Watch. Create. Connect.</p>
+      <p class="text-gray-500 text-sm max-w-xs">Join millions of viewers and creators on Pakistan's fastest growing video platform.</p>
+      <div class="flex justify-center gap-8 mt-10">
+        <div class="text-center">
+          <p class="text-2xl font-bold text-white">70+</p>
+          <p class="text-gray-400 text-xs">Videos</p>
+        </div>
+        <div class="text-center">
+          <p class="text-2xl font-bold text-white">14</p>
+          <p class="text-gray-400 text-xs">Creators</p>
+        </div>
+        <div class="text-center">
+          <p class="text-2xl font-bold text-white">7</p>
+          <p class="text-gray-400 text-xs">Categories</p>
         </div>
       </div>
-
-      <!-- Submit -->
-      <button 
-        type="submit"
-        class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded-lg transition text-sm mt-2">
-        Sign In
-      </button>
-
-    </form>
-
-    <!-- Register Link -->
-    <p class="text-center text-gray-500 text-sm mt-6">
-      Don't have an account? 
-      <a href="/auth/register" class="text-red-400 hover:text-red-300 transition">Register here</a>
-    </p>
-
+    </div>
   </div>
 
+  <!-- Right Panel -->
+  <div class="flex-1 flex items-center justify-center p-6 bg-gray-950">
+    <div class="w-full max-w-md">
+
+      <!-- Logo for mobile -->
+      <div class="lg:hidden text-center mb-8">
+        <h1 class="text-4xl font-bold text-red-500">Binge</h1>
+      </div>
+
+      <div class="bg-gray-900 rounded-2xl p-8 shadow-2xl border border-gray-800">
+
+        <h2 class="text-2xl font-bold mb-1">Welcome back</h2>
+        <p class="text-gray-400 text-sm mb-6">Sign in to continue watching</p>
+
+        <!-- Error -->
+        <% if (typeof error !== 'undefined' && error) { %>
+          <div class="flex items-center gap-2 bg-red-500/20 border border-red-500/50 text-red-400 px-4 py-3 rounded-xl mb-5 text-sm">
+            <i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0"></i>
+            <%= error %>
+          </div>
+        <% } %>
+
+        <form action="/auth/login" method="POST" class="space-y-4">
+
+          <!-- Email -->
+          <div>
+            <label class="block text-gray-400 text-sm mb-1.5">Email Address</label>
+            <div class="relative">
+              <i data-lucide="mail" class="w-4 h-4 absolute left-3.5 top-3 text-gray-500"></i>
+              <input type="email" name="email" required placeholder="you@example.com"
+                class="w-full bg-gray-800 text-white border border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition"/>
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div>
+            <label class="block text-gray-400 text-sm mb-1.5">Password</label>
+            <div class="relative">
+              <i data-lucide="lock" class="w-4 h-4 absolute left-3.5 top-3 text-gray-500"></i>
+              <input type="password" name="password" id="loginPassword" required placeholder="••••••••"
+                class="w-full bg-gray-800 text-white border border-gray-700 rounded-xl pl-10 pr-11 py-2.5 text-sm focus:outline-none focus:border-red-500 transition"/>
+              <button type="button" onclick="togglePassword('loginPassword', 'loginEye')"
+                class="absolute right-3.5 top-3 text-gray-500 hover:text-gray-300 transition">
+                <i data-lucide="eye" id="loginEye" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Login As -->
+          <div>
+            <label class="block text-gray-400 text-sm mb-2">Login As</label>
+            <div class="grid grid-cols-3 gap-2">
+              <label class="cursor-pointer">
+                <input type="radio" name="role" value="viewer" checked class="peer hidden">
+                <div class="flex flex-col items-center gap-1 px-3 py-2.5 rounded-xl border border-gray-700 peer-checked:border-red-500 peer-checked:bg-red-500/10 hover:border-gray-500 transition text-center">
+                  <i data-lucide="user" class="w-4 h-4 text-gray-400 peer-checked:text-red-400"></i>
+                  <span class="text-xs text-gray-400">Viewer</span>
+                </div>
+              </label>
+              <label class="cursor-pointer">
+                <input type="radio" name="role" value="creator" class="peer hidden">
+                <div class="flex flex-col items-center gap-1 px-3 py-2.5 rounded-xl border border-gray-700 peer-checked:border-red-500 peer-checked:bg-red-500/10 hover:border-gray-500 transition text-center">
+                  <i data-lucide="video" class="w-4 h-4 text-gray-400"></i>
+                  <span class="text-xs text-gray-400">Creator</span>
+                </div>
+              </label>
+              <label class="cursor-pointer">
+                <input type="radio" name="role" value="admin" class="peer hidden">
+                <div class="flex flex-col items-center gap-1 px-3 py-2.5 rounded-xl border border-gray-700 peer-checked:border-red-500 peer-checked:bg-red-500/10 hover:border-gray-500 transition text-center">
+                  <i data-lucide="shield" class="w-4 h-4 text-gray-400"></i>
+                  <span class="text-xs text-gray-400">Admin</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Submit -->
+          <button type="submit"
+            class="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-xl transition mt-2">
+            <i data-lucide="log-in" class="w-4 h-4"></i> Sign In
+          </button>
+
+        </form>
+
+        <p class="text-center text-gray-500 text-sm mt-5">
+          Don't have an account?
+          <a href="/auth/register" class="text-red-400 hover:text-red-300 transition font-medium">Create one</a>
+        </p>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    function togglePassword(inputId, iconId) {
+      const input = document.getElementById(inputId);
+      const icon  = document.getElementById(iconId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        input.type = 'password';
+        icon.setAttribute('data-lucide', 'eye');
+      }
+      lucide.createIcons();
+    }
+
+    // Radio button visual update
+    document.querySelectorAll('input[name="role"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        document.querySelectorAll('input[name="role"]').forEach(r => {
+          const div = r.nextElementSibling;
+          const icon = div.querySelector('i');
+          div.classList.remove('border-red-500', 'bg-red-500/10');
+          div.classList.add('border-gray-700');
+          icon.classList.remove('text-red-400');
+          icon.classList.add('text-gray-400');
+        });
+        const div  = radio.nextElementSibling;
+        const icon = div.querySelector('i');
+        div.classList.add('border-red-500', 'bg-red-500/10');
+        div.classList.remove('border-gray-700');
+        icon.classList.add('text-red-400');
+        icon.classList.remove('text-gray-400');
+      });
+    });
+  </script>
 </body>
 </html>

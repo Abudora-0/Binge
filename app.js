@@ -14,6 +14,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
+app.use('/uploads', express.static('public/uploads'));
+
 // Session
 app.use(session({
     secret: 'binge_secret_key',

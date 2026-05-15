@@ -3,63 +3,94 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Binge — <%= video.Title %></title>
+  <title><%= video.Title %></title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
-<body class="bg-gray-950 text-white min-h-screen">
+<body class="bg-gray-950 text-white min-h-screen flex flex-col">
 
   <!-- Navbar -->
-  <nav class="bg-gray-950 border-b border-gray-800 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
-    <a href="/viewer/home" class="text-xl font-bold text-red-500">Binge</a>
-    <div class="flex items-center gap-3">
-      <span class="text-gray-400 text-sm">Hi, <span class="text-white font-medium"><%= user.firstName %></span></span>
-      <a href="/auth/logout" class="flex items-center gap-2 text-red-400 hover:text-red-300 text-sm transition">
-        <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out
+  <nav class="bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center gap-4 sticky top-0 z-50">
+    <div class="flex items-center gap-3 w-48 flex-shrink-0">
+      <a href="/viewer/home" class="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-gray-800 transition">
+        <i data-lucide="menu" class="w-5 h-5"></i>
+      </a>
+      <a href="/viewer/home" class="text-xl font-bold text-red-500">Binge</a>
+    </div>
+    <div class="flex-1 flex gap-2 max-w-2xl mx-auto">
+      <input type="text" placeholder="Search videos..."
+        class="flex-1 bg-gray-900 text-white border border-gray-700 rounded-full px-5 py-2 text-sm focus:outline-none focus:border-red-500 transition"/>
+      <button class="bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-full border border-gray-700 transition">
+        <i data-lucide="search" class="w-4 h-4"></i>
+      </button>
+    </div>
+    <div class="w-48 flex-shrink-0 flex justify-end items-center gap-3">
+      <div class="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center font-bold text-sm">
+        <%= user.firstName.charAt(0).toUpperCase() %>
+      </div>
+      <span class="text-white text-sm font-medium"><%= user.firstName %></span>
+      <a href="/auth/logout" class="text-red-400 hover:text-red-300 transition">
+        <i data-lucide="log-out" class="w-4 h-4"></i>
       </a>
     </div>
   </nav>
 
-  <div class="max-w-6xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <!-- Main Layout -->
+  <div class="flex flex-1 gap-6 px-6 py-5 max-w-screen-2xl mx-auto w-full">
 
     <!-- Left: Video + Info -->
-    <div class="lg:col-span-2">
+    <div class="flex-1 min-w-0">
 
       <!-- Video Player -->
-      <div class="bg-black rounded-xl overflow-hidden aspect-video mb-4">
+      <div class="bg-black rounded-xl overflow-hidden w-full aspect-video mb-4">
         <iframe src="<%= embedUrl %>" class="w-full h-full" frameborder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowfullscreen></iframe>
       </div>
 
       <!-- Title -->
-      <h1 class="text-xl font-bold mb-3"><%= video.Title %></h1>
+      <h1 class="text-lg font-bold mb-3 leading-snug"><%= video.Title %></h1>
 
-      <!-- Stats + Like -->
-      <div class="flex items-center justify-between mb-5">
-        <div class="flex items-center gap-4 text-gray-400 text-sm">
-          <span class="flex items-center gap-1"><i data-lucide="eye" class="w-4 h-4"></i> <%= video.Views.toLocaleString() %></span>
-          <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-4 h-4"></i> <%= new Date(video.UploadDate).toLocaleDateString() %></span>
-          <span class="bg-red-600/20 text-red-400 px-2 py-0.5 rounded-full text-xs"><%= video.Category %></span>
+      <!-- Actions Row -->
+      <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+        <div class="flex items-center gap-3 text-gray-400 text-sm">
+          <span class="flex items-center gap-1.5">
+            <i data-lucide="eye" class="w-4 h-4"></i>
+            <%= video.Views.toLocaleString() %> views
+          </span>
+          <span class="text-gray-600">•</span>
+          <span><%= new Date(video.UploadDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></span>
+          <span class="bg-red-600/20 text-red-400 px-2 py-0.5 rounded-full text-xs font-medium"><%= video.Category %></span>
         </div>
-        <form action="/viewer/like/<%= video.Id %>" method="POST">
-          <button type="submit"
-            class="flex items-center gap-2 <%= liked ? 'bg-red-600 text-white' : 'bg-gray-800 text-gray-300' %> hover:bg-red-600 hover:text-white px-4 py-2 rounded-full text-sm transition">
-            <i data-lucide="heart" class="w-4 h-4"></i>
-            <%= liked ? 'Liked' : 'Like' %> · <%= video.LikeCount %>
+        <div class="flex items-center gap-2">
+          <form action="/viewer/like/<%= video.Id %>" method="POST" class="inline">
+            <button type="submit"
+              class="flex items-center gap-2 <%= liked ? 'bg-red-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700' %> px-4 py-2 rounded-full text-sm transition">
+              <i data-lucide="heart" class="w-4 h-4"></i>
+              <%= liked ? 'Liked' : 'Like' %> · <%= video.LikeCount %>
+            </button>
+          </form>
+          <button class="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-full text-sm transition">
+            <i data-lucide="share-2" class="w-4 h-4"></i> Share
           </button>
-        </form>
+          <form action="/viewer/report/<%= video.Id %>" method="POST" class="inline">
+            <button type="submit"
+              class="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-full text-sm transition">
+              <i data-lucide="flag" class="w-4 h-4"></i> Report
+            </button>
+          </form>
+        </div>
       </div>
 
       <!-- Channel + Subscribe -->
-      <div class="bg-gray-900 rounded-xl p-4 flex items-center justify-between mb-5">
+      <div class="bg-gray-900 rounded-2xl p-4 flex items-center justify-between mb-5">
         <div class="flex items-center gap-3">
-          <div class="w-11 h-11 bg-red-600 rounded-full flex items-center justify-center font-bold">
+          <div class="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0">
             <%= video.ChannelName.charAt(0).toUpperCase() %>
           </div>
           <div>
-            <p class="font-semibold"><%= video.ChannelName %></p>
-            <p class="text-gray-400 text-xs flex items-center gap-1">
+            <a href="/viewer/channel/<%= video.CreatorId %>" class="font-semibold hover:text-red-400 transition"><%= video.ChannelName %></a>
+            <p class="text-gray-400 text-xs flex items-center gap-1 mt-0.5">
               <i data-lucide="users" class="w-3 h-3"></i>
               <%= video.TotalSubscribers.toLocaleString() %> subscribers
             </p>
@@ -67,7 +98,7 @@
         </div>
         <form action="/viewer/subscribe/<%= video.CreatorId %>" method="POST">
           <button type="submit"
-            class="flex items-center gap-2 <%= subscribed ? 'bg-gray-700 text-gray-300' : 'bg-red-600 text-white' %> hover:opacity-80 px-4 py-2 rounded-full text-sm font-semibold transition">
+            class="flex items-center gap-2 <%= subscribed ? 'bg-gray-700 text-gray-300' : 'bg-red-600 text-white' %> hover:opacity-80 px-5 py-2.5 rounded-full text-sm font-semibold transition">
             <i data-lucide="<%= subscribed ? 'bell-off' : 'bell' %>" class="w-4 h-4"></i>
             <%= subscribed ? 'Subscribed' : 'Subscribe' %>
           </button>
@@ -76,42 +107,50 @@
 
       <!-- Description -->
       <% if (video.Description) { %>
-        <div class="bg-gray-900 rounded-xl p-4 mb-5">
+        <div class="bg-gray-900 rounded-2xl p-4 mb-5">
           <p class="text-gray-300 text-sm leading-relaxed"><%= video.Description %></p>
         </div>
       <% } %>
 
       <!-- Comments -->
-      <div class="bg-gray-900 rounded-xl p-5">
-        <h3 class="font-bold mb-4 flex items-center gap-2">
-          <i data-lucide="message-circle" class="w-5 h-5"></i>
+      <div class="bg-gray-900 rounded-2xl p-5">
+        <h3 class="font-bold mb-5 flex items-center gap-2 text-base">
+          <i data-lucide="message-circle" class="w-5 h-5 text-gray-400"></i>
           <%= comments.length %> Comments
         </h3>
-
-        <form action="/viewer/comment/<%= video.Id %>" method="POST" class="mb-6">
-          <textarea name="content" rows="2" required placeholder="Add a comment..."
-            class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition resize-none mb-2"></textarea>
-          <button type="submit"
-            class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded-lg transition">
-            <i data-lucide="send" class="w-4 h-4"></i> Post Comment
-          </button>
+        <form action="/viewer/comment/<%= video.Id %>" method="POST" class="flex gap-3 mb-6">
+          <div class="w-9 h-9 bg-red-600 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">
+            <%= user.firstName.charAt(0).toUpperCase() %>
+          </div>
+          <div class="flex-1">
+            <textarea name="content" rows="2" required placeholder="Add a comment..."
+              class="w-full bg-gray-800 text-white border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition resize-none mb-2"></textarea>
+            <div class="flex justify-end">
+              <button type="submit"
+                class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded-full transition">
+                <i data-lucide="send" class="w-3 h-3"></i> Comment
+              </button>
+            </div>
+          </div>
         </form>
-
         <% if (comments.length === 0) { %>
-          <p class="text-gray-500 text-sm">No comments yet. Be the first!</p>
+          <div class="text-center py-8">
+            <i data-lucide="message-circle" class="w-10 h-10 text-gray-700 mx-auto mb-2"></i>
+            <p class="text-gray-500 text-sm">No comments yet. Be the first!</p>
+          </div>
         <% } else { %>
-          <div class="space-y-4">
+          <div class="space-y-5">
             <% comments.forEach(comment => { %>
               <div class="flex gap-3">
-                <div class="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+                <div class="w-9 h-9 bg-gray-700 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
                   <%= comment.FirstName.charAt(0).toUpperCase() %>
                 </div>
-                <div>
-                  <p class="text-sm font-semibold">
-                    <%= comment.FirstName %> <%= comment.LastName %>
-                    <span class="text-gray-500 font-normal text-xs ml-2"><%= new Date(comment.CommentDate).toLocaleDateString() %></span>
-                  </p>
-                  <p class="text-gray-300 text-sm mt-1"><%= comment.Content %></p>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="text-sm font-semibold"><%= comment.FirstName %> <%= comment.LastName %></span>
+                    <span class="text-gray-500 text-xs"><%= new Date(comment.CommentDate).toLocaleDateString() %></span>
+                  </div>
+                  <p class="text-gray-300 text-sm leading-relaxed"><%= comment.Content %></p>
                 </div>
               </div>
             <% }) %>
@@ -121,24 +160,41 @@
     </div>
 
     <!-- Right: Related Videos -->
-    <div>
-      <h3 class="font-bold mb-4 text-gray-300 flex items-center gap-2">
-        <i data-lucide="play-circle" class="w-5 h-5"></i> Related Videos
+    <div class="w-80 flex-shrink-0">
+      <h3 class="font-semibold mb-4 text-sm text-gray-300 flex items-center gap-2">
+        <i data-lucide="list-video" class="w-4 h-4"></i> Up Next
       </h3>
       <% if (related.length === 0) { %>
-        <p class="text-gray-500 text-sm">No related videos found.</p>
+        <div class="text-center text-gray-600 mt-10">
+          <i data-lucide="video-off" class="w-10 h-10 mx-auto mb-2"></i>
+          <p class="text-sm">No related videos</p>
+        </div>
       <% } else { %>
         <div class="space-y-3">
           <% related.forEach(v => { %>
-            <a href="/viewer/watch/<%= v.Id %>" class="flex gap-3 bg-gray-900 rounded-xl p-3 hover:bg-gray-800 transition">
-              <div class="w-24 h-16 bg-gray-800 rounded-lg flex items-center justify-center flex-shrink-0">
-                <i data-lucide="play-circle" class="w-8 h-8 text-gray-600"></i>
+            <a href="/viewer/watch/<%= v.Id %>" class="flex gap-3 hover:bg-gray-900 rounded-xl p-2 transition group">
+              <!-- Thumbnail -->
+              <div class="w-40 h-24 rounded-lg overflow-hidden flex-shrink-0 relative bg-gray-800">
+                <% if (v.thumbnail) { %>
+                  <img src="<%= v.thumbnail %>" alt="<%= v.Title %>"
+                       class="w-full h-full object-cover group-hover:brightness-75 transition"
+                       onerror="this.style.display='none'">
+                <% } else { %>
+                  <div class="w-full h-full flex items-center justify-center">
+                    <i data-lucide="play-circle" class="w-8 h-8 text-gray-600"></i>
+                  </div>
+                <% } %>
+                <span class="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1 py-0.5 rounded">
+                  <%= Math.floor(v.Duration/60) %>:<%= String(v.Duration%60).padStart(2,'0') %>
+                </span>
               </div>
+              <!-- Info -->
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium line-clamp-2"><%= v.Title %></p>
-                <p class="text-gray-400 text-xs mt-1"><%= v.ChannelName %></p>
-                <p class="text-gray-500 text-xs flex items-center gap-1 mt-0.5">
-                  <i data-lucide="eye" class="w-3 h-3"></i> <%= v.Views.toLocaleString() %>
+                <p class="text-sm font-medium line-clamp-2 leading-snug mb-1 group-hover:text-red-400 transition"><%= v.Title %></p>
+                <p class="text-gray-400 text-xs"><%= v.ChannelName %></p>
+                <p class="text-gray-500 text-xs flex items-center gap-1 mt-1">
+                  <i data-lucide="eye" class="w-3 h-3"></i>
+                  <%= v.Views.toLocaleString() %> views
                 </p>
               </div>
             </a>

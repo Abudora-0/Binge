@@ -1,11 +1,27 @@
 const db = require('../config/db');
 const logger = require('../config/logger');
 
+// Extract YouTube thumbnail from URL
+function getYoutubeThumbnail(url) {
+    try {
+        let videoId = '';
+        if (url.includes('youtube.com/watch?v=')) {
+            videoId = url.split('v=')[1].split('&')[0];
+        } else if (url.includes('youtu.be/')) {
+            videoId = url.split('youtu.be/')[1].split('?')[0];
+        }
+        if (videoId) {
+            return `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+        }
+    } catch (e) { }
+    return null;
+}
+
 const home = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
 
     const query = `
-        SELECT v.Id, v.Title, v.Views, v.UploadDate, v.Duration,
+        SELECT v.Id, v.Title, v.Views, v.UploadDate, v.Duration, v.VideoUrl,
                c.ChannelName, cat.Name AS Category
         FROM video v
         JOIN creator c    ON v.CreatorId  = c.Id
@@ -16,9 +32,14 @@ const home = (req, res) => {
 
     db.query(query, (err, videos) => {
         if (err) {
-            logger.logError('viewerController', err.message);
-            return res.render('viewer/home', { user: req.session.user, videos: [] });
+            logger.logError('home', err.message);
+            videos = [];
         }
+        // Add thumbnail to each video
+        videos = videos.map(v => ({
+            ...v,
+            thumbnail: getYoutubeThumbnail(v.VideoUrl)
+        }));
         res.render('viewer/home', { user: req.session.user, videos });
     });
 };
@@ -27,7 +48,7 @@ const watchVideo = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
 
     const videoId = req.params.id;
-    const userId  = req.session.user.id;
+    const userId = req.session.user.id;
 
     // Get video details
     const videoQuery = `
@@ -65,10 +86,10 @@ const watchVideo = (req, res) => {
             // Check if subscribed
             db.query('SELECT Id FROM subscription WHERE ViewerId = ? AND CreatorId = ?',
                 [userId, video.CreatorId], (err, subResult) => {
-                const subscribed = subResult && subResult.length > 0;
+                    const subscribed = subResult && subResult.length > 0;
 
-                // Get comments
-                const commentQuery = `
+                    // Get comments
+                    const commentQuery = `
                     SELECT cm.*, u.FirstName, u.LastName
                     FROM comment cm
                     JOIN user u ON cm.UserId = u.Id
@@ -76,39 +97,43 @@ const watchVideo = (req, res) => {
                     ORDER BY cm.CommentDate DESC
                 `;
 
-                db.query(commentQuery, [videoId], (err, comments) => {
-                    if (err) comments = [];
+                    db.query(commentQuery, [videoId], (err, comments) => {
+                        if (err) comments = [];
 
-                    // Get related videos
-                    const relatedQuery = `
-                        SELECT v.Id, v.Title, v.Views, c.ChannelName
+                        // Get related videos
+                        const relatedQuery = `
+                        SELECT v.Id, v.Title, v.Views, v.Duration, c.ChannelName
                         FROM video v
                         JOIN creator c ON v.CreatorId = c.Id
                         WHERE v.CategoryId = ? AND v.Id != ? AND v.Status = 'Published'
-                        LIMIT 6
-                    `;
+                        LIMIT 8
+                        `;
 
-                    db.query(relatedQuery, [video.CategoryId, videoId], (err, related) => {
-                        if (err) related = [];
+                        db.query(relatedQuery, [video.CategoryId, videoId], (err, related) => {
+                            if (err) related = [];
+                            related = related.map(v => ({
+                                ...v,
+                                thumbnail: getYoutubeThumbnail(v.VideoUrl)
+                            }));
 
-                        // Log watch history
-                        db.query(
-                            'INSERT INTO watchhistory (UserId, VideoId, WatchDuration, CompletionPercent) VALUES (?, ?, 0, 0)',
-                            [userId, videoId]
-                        );
+                            // Log watch history
+                            db.query(
+                                'INSERT INTO watchhistory (UserId, VideoId, WatchDuration, CompletionPercent) VALUES (?, ?, 0, 0)',
+                                [userId, videoId]
+                            );
 
-                        res.render('viewer/watch', {
-                            user: req.session.user,
-                            video,
-                            embedUrl,
-                            liked,
-                            subscribed,
-                            comments,
-                            related
+                            res.render('viewer/watch', {
+                                user: req.session.user,
+                                video,
+                                embedUrl,
+                                liked,
+                                subscribed,
+                                comments,
+                                related
+                            });
                         });
                     });
                 });
-            });
         });
     });
 };
@@ -117,7 +142,7 @@ const likeVideo = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
 
     const videoId = req.params.id;
-    const userId  = req.session.user.id;
+    const userId = req.session.user.id;
 
     // Check if already liked — toggle
     db.query('SELECT Id FROM likes WHERE VideoId = ? AND UserId = ?', [videoId, userId], (err, result) => {
@@ -134,7 +159,7 @@ const subscribe = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
 
     const creatorId = req.params.id;
-    const userId    = req.session.user.id;
+    const userId = req.session.user.id;
 
     // Use transaction — subscribe + update count must both succeed or both fail
     db.beginTransaction((err) => {
@@ -145,78 +170,78 @@ const subscribe = (req, res) => {
 
         db.query('SELECT Id FROM subscription WHERE ViewerId = ? AND CreatorId = ?',
             [userId, creatorId], (err, result) => {
-            if (err) {
-                return db.rollback(() => {
-                    logger.logError('subscribe - check', err.message);
-                    res.redirect('back');
-                });
-            }
+                if (err) {
+                    return db.rollback(() => {
+                        logger.logError('subscribe - check', err.message);
+                        res.redirect('back');
+                    });
+                }
 
-            if (result.length > 0) {
-                // Unsubscribe
-                db.query('DELETE FROM subscription WHERE ViewerId = ? AND CreatorId = ?',
-                    [userId, creatorId], (err) => {
-                    if (err) {
-                        return db.rollback(() => {
-                            logger.logError('subscribe - delete', err.message);
-                            res.redirect('back');
-                        });
-                    }
-
-                    db.query('UPDATE creator SET TotalSubscribers = TotalSubscribers - 1 WHERE Id = ?',
-                        [creatorId], (err) => {
-                        if (err) {
-                            return db.rollback(() => {
-                                logger.logError('subscribe - update count', err.message);
-                                res.redirect('back');
-                            });
-                        }
-
-                        db.commit((err) => {
+                if (result.length > 0) {
+                    // Unsubscribe
+                    db.query('DELETE FROM subscription WHERE ViewerId = ? AND CreatorId = ?',
+                        [userId, creatorId], (err) => {
                             if (err) {
                                 return db.rollback(() => {
-                                    logger.logError('subscribe - commit', err.message);
+                                    logger.logError('subscribe - delete', err.message);
                                     res.redirect('back');
                                 });
                             }
-                            res.redirect('back');
+
+                            db.query('UPDATE creator SET TotalSubscribers = TotalSubscribers - 1 WHERE Id = ?',
+                                [creatorId], (err) => {
+                                    if (err) {
+                                        return db.rollback(() => {
+                                            logger.logError('subscribe - update count', err.message);
+                                            res.redirect('back');
+                                        });
+                                    }
+
+                                    db.commit((err) => {
+                                        if (err) {
+                                            return db.rollback(() => {
+                                                logger.logError('subscribe - commit', err.message);
+                                                res.redirect('back');
+                                            });
+                                        }
+                                        res.redirect('back');
+                                    });
+                                });
                         });
-                    });
-                });
 
-            } else {
-                // Subscribe
-                db.query('INSERT INTO subscription (ViewerId, CreatorId) VALUES (?, ?)',
-                    [userId, creatorId], (err) => {
-                    if (err) {
-                        return db.rollback(() => {
-                            logger.logError('subscribe - insert', err.message);
-                            res.redirect('back');
-                        });
-                    }
-
-                    db.query('UPDATE creator SET TotalSubscribers = TotalSubscribers + 1 WHERE Id = ?',
-                        [creatorId], (err) => {
-                        if (err) {
-                            return db.rollback(() => {
-                                logger.logError('subscribe - update count', err.message);
-                                res.redirect('back');
-                            });
-                        }
-
-                        db.commit((err) => {
+                } else {
+                    // Subscribe
+                    db.query('INSERT INTO subscription (ViewerId, CreatorId) VALUES (?, ?)',
+                        [userId, creatorId], (err) => {
                             if (err) {
                                 return db.rollback(() => {
-                                    logger.logError('subscribe - commit', err.message);
+                                    logger.logError('subscribe - insert', err.message);
                                     res.redirect('back');
                                 });
                             }
-                            res.redirect('back');
+
+                            db.query('UPDATE creator SET TotalSubscribers = TotalSubscribers + 1 WHERE Id = ?',
+                                [creatorId], (err) => {
+                                    if (err) {
+                                        return db.rollback(() => {
+                                            logger.logError('subscribe - update count', err.message);
+                                            res.redirect('back');
+                                        });
+                                    }
+
+                                    db.commit((err) => {
+                                        if (err) {
+                                            return db.rollback(() => {
+                                                logger.logError('subscribe - commit', err.message);
+                                                res.redirect('back');
+                                            });
+                                        }
+                                        res.redirect('back');
+                                    });
+                                });
                         });
-                    });
-                });
-            }
-        });
+                }
+            });
     });
 };
 
@@ -224,7 +249,7 @@ const addComment = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
 
     const videoId = req.params.id;
-    const userId  = req.session.user.id;
+    const userId = req.session.user.id;
     const { content } = req.body;
 
     if (!content || content.trim().length === 0) {
@@ -335,7 +360,113 @@ const createPlaylist = (req, res) => {
     );
 };
 
-module.exports = { home, watchVideo, likeVideo, subscribe, addComment, subscriptions, history, playlists, createPlaylist };
+const reportVideo = (req, res) => {
+    if (!req.session.user) return res.redirect('/auth/login');
+    const videoId = req.params.id;
+    const userId = req.session.user.id;
+
+    db.query(
+        'INSERT INTO report (ReportedBy, VideoId, Reason, Status) VALUES (?, ?, ?, ?)',
+        [userId, videoId, 'Inappropriate Content', 'Pending'],
+        (err) => {
+            if (err) logger.logError('reportVideo', err.message);
+            res.redirect('/viewer/watch/' + videoId);
+        }
+    );
+};
+
+const upload = require('../config/upload');
+
+const showProfile = (req, res) => {
+    if (!req.session.user) return res.redirect('/auth/login');
+    const userId = req.session.user.id;
+
+    db.query('SELECT * FROM user WHERE Id = ?', [userId], (err, result) => {
+        if (err || result.length === 0) return res.redirect('/viewer/home');
+        const userData = result[0];
+
+        // Sync session with latest DB data
+        req.session.user.firstName = userData.FirstName;
+        req.session.user.lastName  = userData.LastName;
+        req.session.user.avatar    = userData.Avatar;
+
+        res.render('viewer/profile', {
+            user: req.session.user,
+            userData,
+            success: null,
+            error: null
+        });
+    });
+};
+
+const updateAvatar = (req, res) => {
+    if (!req.session.user) return res.redirect('/auth/login');
+    if (!req.file) return res.redirect('/viewer/profile');
+
+    const userId = req.session.user.id;
+
+    db.query('UPDATE user SET Avatar = ? WHERE Id = ?', [req.file.filename, userId], (err) => {
+        if (err) {
+            logger.logError('updateAvatar', err.message);
+            return res.redirect('/viewer/profile');
+        }
+        // Update session with new avatar
+        req.session.user.avatar = req.file.filename;
+        req.session.save(() => {
+            res.redirect('/viewer/profile');
+        });
+    });
+};
+
+const updateProfile = (req, res) => {
+    if (!req.session.user) return res.redirect('/auth/login');
+    const { firstName, lastName, country } = req.body;
+    const userId = req.session.user.id;
+    db.query('UPDATE user SET FirstName = ?, LastName = ?, Country = ? WHERE Id = ?',
+        [firstName, lastName, country, userId], (err) => {
+            if (err) logger.logError('updateProfile', err.message);
+            req.session.user.firstName = firstName;
+            req.session.user.lastName  = lastName;
+            res.redirect('/viewer/profile');
+        }
+    );
+};
+
+const channelPage = (req, res) => {
+    if (!req.session.user) return res.redirect('/auth/login');
+    const creatorId = req.params.id;
+    const userId    = req.session.user.id;
+
+    db.query('SELECT c.*, u.Avatar FROM creator c JOIN user u ON c.UserId = u.Id WHERE c.Id = ?',
+        [creatorId], (err, creatorResult) => {
+        if (err || creatorResult.length === 0) return res.redirect('/viewer/home');
+        const creator = creatorResult[0];
+
+        db.query('SELECT Id FROM subscription WHERE ViewerId = ? AND CreatorId = ?',
+            [userId, creatorId], (err, subResult) => {
+            const subscribed = subResult && subResult.length > 0;
+
+            db.query(`SELECT * FROM video WHERE CreatorId = ? AND Status = 'Published' ORDER BY UploadDate DESC`,
+                [creatorId], (err, videos) => {
+                if (err) videos = [];
+                videos = videos.map(v => ({ ...v, thumbnail: getYoutubeThumbnail(v.VideoUrl) }));
+                res.render('viewer/channel', {
+                    user: req.session.user,
+                    creator, videos, subscribed
+                });
+            });
+        });
+    });
+};
+
+
+
+module.exports = {
+    home, watchVideo, likeVideo, subscribe, addComment,
+    subscriptions, history, playlists, createPlaylist,
+    reportVideo, showProfile, updateAvatar, updateProfile, channelPage
+};
+
 
 
 

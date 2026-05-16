@@ -159,13 +159,13 @@ const subscribe = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
 
     const creatorId = req.params.id;
-    const userId = req.session.user.id;
+    const userId    = req.session.user.id;
+    const referer   = req.headers.referer || '/viewer/home';
 
-    // Use transaction — subscribe + update count must both succeed or both fail
     db.beginTransaction((err) => {
         if (err) {
             logger.logError('subscribe - beginTransaction', err.message);
-            return res.redirect('back');
+            return res.redirect(referer);
         }
 
         db.query('SELECT Id FROM subscription WHERE ViewerId = ? AND CreatorId = ?',
@@ -173,7 +173,7 @@ const subscribe = (req, res) => {
                 if (err) {
                     return db.rollback(() => {
                         logger.logError('subscribe - check', err.message);
-                        res.redirect('back');
+                        res.redirect(referer);
                     });
                 }
 
@@ -184,7 +184,7 @@ const subscribe = (req, res) => {
                             if (err) {
                                 return db.rollback(() => {
                                     logger.logError('subscribe - delete', err.message);
-                                    res.redirect('back');
+                                    res.redirect(referer);
                                 });
                             }
 
@@ -193,7 +193,7 @@ const subscribe = (req, res) => {
                                     if (err) {
                                         return db.rollback(() => {
                                             logger.logError('subscribe - update count', err.message);
-                                            res.redirect('back');
+                                            res.redirect(referer);
                                         });
                                     }
 
@@ -201,10 +201,10 @@ const subscribe = (req, res) => {
                                         if (err) {
                                             return db.rollback(() => {
                                                 logger.logError('subscribe - commit', err.message);
-                                                res.redirect('back');
+                                                res.redirect(referer);
                                             });
                                         }
-                                        res.redirect('back');
+                                        res.redirect(referer);
                                     });
                                 });
                         });
@@ -216,7 +216,7 @@ const subscribe = (req, res) => {
                             if (err) {
                                 return db.rollback(() => {
                                     logger.logError('subscribe - insert', err.message);
-                                    res.redirect('back');
+                                    res.redirect(referer);
                                 });
                             }
 
@@ -225,7 +225,7 @@ const subscribe = (req, res) => {
                                     if (err) {
                                         return db.rollback(() => {
                                             logger.logError('subscribe - update count', err.message);
-                                            res.redirect('back');
+                                            res.redirect(referer);
                                         });
                                     }
 
@@ -233,10 +233,10 @@ const subscribe = (req, res) => {
                                         if (err) {
                                             return db.rollback(() => {
                                                 logger.logError('subscribe - commit', err.message);
-                                                res.redirect('back');
+                                                res.redirect(referer);
                                             });
                                         }
-                                        res.redirect('back');
+                                        res.redirect(referer);
                                     });
                                 });
                         });
@@ -268,27 +268,53 @@ const addComment = (req, res) => {
 
 const subscriptions = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
-
     const userId = req.session.user.id;
 
-    const query = `
+    // Get subscribed creators
+    const creatorsQuery = `
         SELECT c.Id, c.ChannelName, c.TotalSubscribers, c.TotalViews,
                COUNT(DISTINCT v.Id) AS TotalVideos,
-               s.SubscribedAt
+               s.SubscribedAt, u.Avatar
         FROM subscription s
         JOIN creator c ON s.CreatorId = c.Id
+        JOIN user u ON c.UserId = u.Id
         LEFT JOIN video v ON v.CreatorId = c.Id AND v.Status = 'Published'
         WHERE s.ViewerId = ?
-        GROUP BY c.Id, c.ChannelName, c.TotalSubscribers, c.TotalViews, s.SubscribedAt
+        GROUP BY c.Id, c.ChannelName, c.TotalSubscribers, c.TotalViews, s.SubscribedAt, u.Avatar
         ORDER BY s.SubscribedAt DESC
     `;
 
-    db.query(query, [userId], (err, creators) => {
+    db.query(creatorsQuery, [userId], (err, creators) => {
         if (err) {
             logger.logError('subscriptions', err.message);
             creators = [];
         }
-        res.render('viewer/subscriptions', { user: req.session.user, creators });
+
+        // Get recent videos from subscribed creators
+        const videosQuery = `
+            SELECT v.Id, v.Title, v.Views, v.Duration, v.UploadDate, v.VideoUrl,
+                   c.Id AS CreatorId, c.ChannelName, u.Avatar AS CreatorAvatar
+            FROM video v
+            JOIN creator c ON v.CreatorId = c.Id
+            JOIN user u ON c.UserId = u.Id
+            JOIN subscription s ON s.CreatorId = c.Id
+            WHERE s.ViewerId = ? AND v.Status = 'Published'
+            ORDER BY v.UploadDate DESC
+            LIMIT 30
+        `;
+
+        db.query(videosQuery, [userId], (err, videos) => {
+            if (err) videos = [];
+            videos = videos.map(v => ({
+                ...v,
+                thumbnail: getYoutubeThumbnail(v.VideoUrl)
+            }));
+            res.render('viewer/subscriptions', {
+                user: req.session.user,
+                creators,
+                videos
+            });
+        });
     });
 };
 
@@ -387,8 +413,8 @@ const showProfile = (req, res) => {
 
         // Sync session with latest DB data
         req.session.user.firstName = userData.FirstName;
-        req.session.user.lastName  = userData.LastName;
-        req.session.user.avatar    = userData.Avatar;
+        req.session.user.lastName = userData.LastName;
+        req.session.user.avatar = userData.Avatar;
 
         res.render('viewer/profile', {
             user: req.session.user,
@@ -426,7 +452,7 @@ const updateProfile = (req, res) => {
         [firstName, lastName, country, userId], (err) => {
             if (err) logger.logError('updateProfile', err.message);
             req.session.user.firstName = firstName;
-            req.session.user.lastName  = lastName;
+            req.session.user.lastName = lastName;
             res.redirect('/viewer/profile');
         }
     );
@@ -435,28 +461,28 @@ const updateProfile = (req, res) => {
 const channelPage = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
     const creatorId = req.params.id;
-    const userId    = req.session.user.id;
+    const userId = req.session.user.id;
 
     db.query('SELECT c.*, u.Avatar FROM creator c JOIN user u ON c.UserId = u.Id WHERE c.Id = ?',
         [creatorId], (err, creatorResult) => {
-        if (err || creatorResult.length === 0) return res.redirect('/viewer/home');
-        const creator = creatorResult[0];
+            if (err || creatorResult.length === 0) return res.redirect('/viewer/home');
+            const creator = creatorResult[0];
 
-        db.query('SELECT Id FROM subscription WHERE ViewerId = ? AND CreatorId = ?',
-            [userId, creatorId], (err, subResult) => {
-            const subscribed = subResult && subResult.length > 0;
+            db.query('SELECT Id FROM subscription WHERE ViewerId = ? AND CreatorId = ?',
+                [userId, creatorId], (err, subResult) => {
+                    const subscribed = subResult && subResult.length > 0;
 
-            db.query(`SELECT * FROM video WHERE CreatorId = ? AND Status = 'Published' ORDER BY UploadDate DESC`,
-                [creatorId], (err, videos) => {
-                if (err) videos = [];
-                videos = videos.map(v => ({ ...v, thumbnail: getYoutubeThumbnail(v.VideoUrl) }));
-                res.render('viewer/channel', {
-                    user: req.session.user,
-                    creator, videos, subscribed
+                    db.query(`SELECT * FROM video WHERE CreatorId = ? AND Status = 'Published' ORDER BY UploadDate DESC`,
+                        [creatorId], (err, videos) => {
+                            if (err) videos = [];
+                            videos = videos.map(v => ({ ...v, thumbnail: getYoutubeThumbnail(v.VideoUrl) }));
+                            res.render('viewer/channel', {
+                                user: req.session.user,
+                                creator, videos, subscribed
+                            });
+                        });
                 });
-            });
         });
-    });
 };
 
 

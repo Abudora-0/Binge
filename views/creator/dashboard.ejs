@@ -1,151 +1,282 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Binge — Creator Dashboard</title>
+  <title>Binge — Creator Studio</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
-
-<body class="bg-gray-950 text-white min-h-screen">
+<body class="bg-gray-950 text-white min-h-screen flex flex-col">
 
   <!-- Navbar -->
-  <nav class="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
-    <div class="flex items-center gap-2">
+  <nav class="bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center gap-4 sticky top-0 z-50">
+    <div class="flex items-center gap-3 flex-shrink-0">
       <i data-lucide="video" class="w-5 h-5 text-red-500"></i>
-      <h1 class="text-xl font-bold text-red-500">Binge <span class="text-gray-400 text-sm font-normal ml-1">Creator
-          Studio</span></h1>
+      <span class="text-xl font-bold text-red-500">Binge</span>
+      <span class="text-gray-500 text-sm hidden sm:block">Creator Studio</span>
     </div>
-    <div class="flex items-center gap-4">
-      <span class="text-gray-400 text-sm">Welcome, <span class="text-white font-medium">
-          <%= user.firstName %>
-        </span></span>
-      <a href="/auth/logout" class="flex items-center gap-2 text-red-400 hover:text-red-300 text-sm transition">
-        <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out
-      </a>
+    <div class="flex-1"></div>
+    <div class="flex items-center gap-3">
+      <!-- Profile dropdown -->
+      <div class="relative">
+        <button onclick="toggleProfile()" class="flex items-center gap-2 hover:bg-gray-800 px-3 py-1.5 rounded-full transition">
+          <div class="w-8 h-8 rounded-full overflow-hidden bg-red-600 flex items-center justify-center font-bold text-sm flex-shrink-0">
+            <% if (user.avatar) { %>
+              <img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover">
+            <% } else { %>
+              <%= user.firstName.charAt(0).toUpperCase() %>
+            <% } %>
+          </div>
+          <span class="text-white text-sm font-medium hidden sm:block"><%= user.firstName %></span>
+          <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
+        </button>
+
+        <!-- Dropdown -->
+        <div id="profileDropdown" class="hidden absolute top-12 right-0 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-56 z-50 overflow-hidden">
+          <div class="px-4 py-3 border-b border-gray-700 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full overflow-hidden bg-red-600 flex items-center justify-center font-bold text-sm flex-shrink-0">
+              <% if (user.avatar) { %>
+                <img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover">
+              <% } else { %>
+                <%= user.firstName.charAt(0).toUpperCase() %>
+              <% } %>
+            </div>
+            <div>
+              <p class="text-white text-sm font-semibold"><%= user.firstName %> <%= user.lastName %></p>
+              <p class="text-gray-400 text-xs"><%= creator.ChannelName %></p>
+            </div>
+          </div>
+          <div class="py-1">
+            <a href="/creator/profile" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
+              <i data-lucide="user-circle" class="w-4 h-4"></i> My Profile
+            </a>
+            <a href="/creator/upload" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
+              <i data-lucide="upload" class="w-4 h-4"></i> Upload Video
+            </a>
+            <div class="border-t border-gray-700 my-1"></div>
+            <a href="/auth/logout" class="flex items-center gap-3 px-4 py-2.5 text-red-400 hover:bg-gray-800 text-sm transition">
+              <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
   </nav>
 
-  <div class="max-w-7xl mx-auto px-6 py-8">
+  <div class="flex flex-1">
 
-    <!-- Channel Info -->
-    <div class="bg-gray-900 rounded-2xl p-6 mb-8 flex items-center gap-6">
-      <div class="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center text-2xl font-bold">
-        <%= creator.ChannelName.charAt(0).toUpperCase() %>
-      </div>
-      <div>
-        <h2 class="text-xl font-bold">
-          <%= creator.ChannelName %>
-        </h2>
-        <p class="text-gray-400 text-sm mt-1">
-          <%= creator.Bio || 'No bio yet' %>
-        </p>
-      </div>
-    </div>
-
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-      <div class="bg-gray-900 rounded-xl p-5 text-center">
-        <p class="text-3xl font-bold text-red-500">
-          <%= stats.totalVideos %>
-        </p>
-        <p class="text-gray-400 text-sm mt-1">Total Videos</p>
-      </div>
-      <div class="bg-gray-900 rounded-xl p-5 text-center">
-        <p class="text-3xl font-bold text-red-500">
-          <%= stats.totalViews.toLocaleString() %>
-        </p>
-        <p class="text-gray-400 text-sm mt-1">Total Views</p>
-      </div>
-      <div class="bg-gray-900 rounded-xl p-5 text-center">
-        <p class="text-3xl font-bold text-red-500">
-          <%= stats.subscribers.toLocaleString() %>
-        </p>
-        <p class="text-gray-400 text-sm mt-1">Subscribers</p>
-      </div>
-      <div class="bg-gray-900 rounded-xl p-5 text-center">
-        <p class="text-3xl font-bold text-red-500">
-          <%= stats.published %>
-        </p>
-        <p class="text-gray-400 text-sm mt-1">Published</p>
-      </div>
-    </div>
-
-    <!-- Videos Table -->
-    <div class="bg-gray-900 rounded-2xl p-6">
-      <div class="flex items-center justify-between mb-6">
-        <h3 class="text-lg font-bold">My Videos</h3>
-        <a href="/creator/upload"
-          class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded-lg transition">
+    <!-- Sidebar -->
+    <aside class="w-52 flex-shrink-0 bg-gray-950 border-r border-gray-900 pt-4 pb-10 hidden md:block">
+      <div class="space-y-1 px-2">
+        <a href="/creator/dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gray-800 text-white text-sm font-medium">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
+        </a>
+        <a href="/creator/upload" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition">
           <i data-lucide="upload" class="w-4 h-4"></i> Upload Video
         </a>
+        <a href="/creator/profile" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition">
+          <i data-lucide="user-circle" class="w-4 h-4"></i> My Profile
+        </a>
+        <div class="border-t border-gray-800 my-3"></div>
+        <a href="/viewer/home" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition">
+          <i data-lucide="tv-2" class="w-4 h-4"></i> View as Viewer
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto">
+
+      <!-- Channel Banner -->
+      <div class="relative h-36 bg-gradient-to-r from-red-900/50 via-gray-900 to-gray-950 overflow-hidden">
+        <div class="absolute inset-0 opacity-10">
+          <div class="absolute top-2 left-20 w-32 h-32 bg-red-500 rounded-full blur-3xl"></div>
+          <div class="absolute bottom-2 right-40 w-48 h-48 bg-red-700 rounded-full blur-3xl"></div>
+        </div>
       </div>
 
-      <% if (videos.length===0) { %>
-        <div class="text-center text-gray-500 py-12">
-          <p class="text-4xl mb-3">🎬</p>
-          <p>No videos yet. Upload your first video!</p>
-        </div>
-        <% } else { %>
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead>
-                <tr class="text-gray-400 border-b border-gray-800">
-                  <th class="text-left pb-3">Title</th>
-                  <th class="text-left pb-3">Category</th>
-                  <th class="text-left pb-3">Views</th>
-                  <th class="text-left pb-3">Status</th>
-                  <th class="text-left pb-3">Date</th>
-                  <th class="text-left pb-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% videos.forEach(video=> { %>
-                  <tr class="border-b border-gray-800 hover:bg-gray-800 transition">
-                    <td class="py-3 pr-4 font-medium">
-                      <%= video.Title %>
-                    </td>
-                    <td class="py-3 pr-4 text-gray-400">
-                      <%= video.Category %>
-                    </td>
-                    <td class="py-3 pr-4 text-gray-400">
-                      <%= video.Views.toLocaleString() %>
-                    </td>
-                    <td class="py-3 pr-4">
-                      <span class="px-2 py-1 rounded-full text-xs
-                      <%= video.Status === 'Published' ? 'bg-green-500/20 text-green-400' :
-                          video.Status === 'Private'   ? 'bg-yellow-500/20 text-yellow-400' :
-                          'bg-gray-500/20 text-gray-400' %>">
-                        <%= video.Status %>
-                      </span>
-                    </td>
-                    <td class="py-3 pr-4 text-gray-400">
-                      <%= new Date(video.UploadDate).toLocaleDateString() %>
-                    </td>
-                    <td class="py-3 flex gap-2">
-                      <a href="/creator/video/edit/<%= video.Id %>"
-                        class="flex items-center gap-1 bg-blue-600/20 text-blue-400 hover:bg-blue-600/40 text-xs px-3 py-1 rounded-lg transition">
-                        <i data-lucide="edit" class="w-3 h-3"></i> Edit
-                      </a>
-                      <a href="/creator/video/delete/<%= video.Id %>" onclick="return confirm('Delete this video?')"
-                        class="flex items-center gap-1 bg-red-600/20 text-red-400 hover:bg-red-600/40 text-xs px-3 py-1 rounded-lg transition">
-                        <i data-lucide="trash-2" class="w-3 h-3"></i> Delete
-                      </a>
-                    </td>
-                  </tr>
-                  <% }) %>
-              </tbody>
-            </table>
+      <div class="px-6 -mt-10 mb-6 flex items-end gap-4">
+        <!-- Avatar -->
+        <div class="relative flex-shrink-0">
+          <div class="w-20 h-20 rounded-full border-4 border-gray-950 overflow-hidden bg-red-600 flex items-center justify-center text-2xl font-bold shadow-xl">
+            <% if (user.avatar) { %>
+              <img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover">
+            <% } else { %>
+              <%= user.firstName.charAt(0).toUpperCase() %>
+            <% } %>
           </div>
-          <% } %>
-    </div>
+        </div>
+        <div class="pb-2 flex-1">
+          <h1 class="text-xl font-bold"><%= creator.ChannelName %></h1>
+          <p class="text-gray-400 text-sm"><%= creator.Bio || 'No bio yet — add one in My Profile' %></p>
+        </div>
+        <div class="pb-2">
+          <a href="/creator/upload"
+            class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm px-5 py-2.5 rounded-full transition font-medium">
+            <i data-lucide="plus" class="w-4 h-4"></i> Upload Video
+          </a>
+        </div>
+      </div>
 
+      <div class="px-6 pb-10">
+
+        <!-- Stats -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div class="bg-gray-900 rounded-2xl p-5 border border-gray-800 hover:border-red-500/30 transition">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-gray-400 text-sm">Total Videos</span>
+              <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                <i data-lucide="video" class="w-4 h-4 text-blue-400"></i>
+              </div>
+            </div>
+            <p class="text-3xl font-bold"><%= stats.totalVideos %></p>
+            <p class="text-gray-500 text-xs mt-1"><%= stats.published %> published</p>
+          </div>
+
+          <div class="bg-gray-900 rounded-2xl p-5 border border-gray-800 hover:border-red-500/30 transition">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-gray-400 text-sm">Total Views</span>
+              <div class="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center">
+                <i data-lucide="eye" class="w-4 h-4 text-red-400"></i>
+              </div>
+            </div>
+            <p class="text-3xl font-bold"><%= stats.totalViews.toLocaleString() %></p>
+            <p class="text-gray-500 text-xs mt-1">across all videos</p>
+          </div>
+
+          <div class="bg-gray-900 rounded-2xl p-5 border border-gray-800 hover:border-red-500/30 transition">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-gray-400 text-sm">Subscribers</span>
+              <div class="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+                <i data-lucide="users" class="w-4 h-4 text-green-400"></i>
+              </div>
+            </div>
+            <p class="text-3xl font-bold"><%= stats.subscribers.toLocaleString() %></p>
+            <p class="text-gray-500 text-xs mt-1">total subscribers</p>
+          </div>
+
+          <div class="bg-gray-900 rounded-2xl p-5 border border-gray-800 hover:border-red-500/30 transition">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-gray-400 text-sm">Published</span>
+              <div class="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                <i data-lucide="check-circle" class="w-4 h-4 text-purple-400"></i>
+              </div>
+            </div>
+            <p class="text-3xl font-bold"><%= stats.published %></p>
+            <p class="text-gray-500 text-xs mt-1"><%= stats.totalVideos - stats.published %> drafts/private</p>
+          </div>
+        </div>
+
+        <!-- Videos Table -->
+        <div class="bg-gray-900 rounded-2xl border border-gray-800">
+          <div class="flex items-center justify-between px-6 py-4 border-b border-gray-800">
+            <h3 class="font-bold flex items-center gap-2">
+              <i data-lucide="play-square" class="w-5 h-5 text-red-500"></i> My Videos
+            </h3>
+            <a href="/creator/upload"
+              class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-xs px-4 py-2 rounded-lg transition">
+              <i data-lucide="plus" class="w-3 h-3"></i> Upload
+            </a>
+          </div>
+
+          <% if (videos.length === 0) { %>
+            <div class="text-center py-16">
+              <div class="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="video-off" class="w-8 h-8 text-gray-600"></i>
+              </div>
+              <p class="text-gray-400 font-medium mb-1">No videos yet</p>
+              <p class="text-gray-500 text-sm mb-4">Upload your first video to get started</p>
+              <a href="/creator/upload" class="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm px-5 py-2.5 rounded-full transition">
+                <i data-lucide="upload" class="w-4 h-4"></i> Upload Video
+              </a>
+            </div>
+          <% } else { %>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-gray-500 text-xs uppercase tracking-wider border-b border-gray-800">
+                    <th class="text-left px-6 py-3">Video</th>
+                    <th class="text-left px-4 py-3">Category</th>
+                    <th class="text-left px-4 py-3">Views</th>
+                    <th class="text-left px-4 py-3">Status</th>
+                    <th class="text-left px-4 py-3">Date</th>
+                    <th class="text-left px-4 py-3">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% videos.forEach(video => { %>
+                    <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition">
+                      <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                          <div class="w-16 h-10 bg-gray-800 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center">
+                            <% const thumb = video.VideoUrl && video.VideoUrl.includes('youtube.com') ?
+                              'https://img.youtube.com/vi/' + video.VideoUrl.split('v=')[1] + '/default.jpg' : null; %>
+                            <% if (thumb) { %>
+                              <img src="<%= thumb %>" class="w-full h-full object-cover" onerror="this.style.display='none'">
+                            <% } else { %>
+                              <i data-lucide="play" class="w-4 h-4 text-gray-600"></i>
+                            <% } %>
+                          </div>
+                          <p class="font-medium line-clamp-1 max-w-xs"><%= video.Title %></p>
+                        </div>
+                      </td>
+                      <td class="px-4 py-4 text-gray-400"><%= video.Category %></td>
+                      <td class="px-4 py-4 text-gray-400">
+                        <span class="flex items-center gap-1">
+                          <i data-lucide="eye" class="w-3 h-3"></i>
+                          <%= video.Views.toLocaleString() %>
+                        </span>
+                      </td>
+                      <td class="px-4 py-4">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-medium
+                          <%= video.Status === 'Published' ? 'bg-green-500/20 text-green-400' :
+                              video.Status === 'Private'   ? 'bg-yellow-500/20 text-yellow-400' :
+                              'bg-gray-500/20 text-gray-400' %>">
+                          <%= video.Status %>
+                        </span>
+                      </td>
+                      <td class="px-4 py-4 text-gray-400 text-xs">
+                        <%= new Date(video.UploadDate).toLocaleDateString() %>
+                      </td>
+                      <td class="px-4 py-4">
+                        <div class="flex items-center gap-2">
+                          <a href="/creator/video/edit/<%= video.Id %>"
+                            class="flex items-center gap-1 bg-blue-600/20 text-blue-400 hover:bg-blue-600/40 text-xs px-3 py-1.5 rounded-lg transition">
+                            <i data-lucide="edit" class="w-3 h-3"></i> Edit
+                          </a>
+                          <a href="/creator/video/delete/<%= video.Id %>"
+                            onclick="return confirm('Delete this video permanently?')"
+                            class="flex items-center gap-1 bg-red-600/20 text-red-400 hover:bg-red-600/40 text-xs px-3 py-1.5 rounded-lg transition">
+                            <i data-lucide="trash-2" class="w-3 h-3"></i> Delete
+                          </a>
+                        </div>
+                      </td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          <% } %>
+        </div>
+
+      </div>
+    </main>
   </div>
 
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script>lucide.createIcons();</script>
+  <script>
+    lucide.createIcons();
 
+    function toggleProfile() {
+      document.getElementById('profileDropdown').classList.toggle('hidden');
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.relative')) {
+        const dd = document.getElementById('profileDropdown');
+        if (dd) dd.classList.add('hidden');
+      }
+    });
+  </script>
 </body>
-
 </html>

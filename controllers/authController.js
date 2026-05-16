@@ -1,6 +1,6 @@
-const db      = require('../config/db');
-const bcrypt  = require('bcryptjs');
-const logger  = require('../config/logger');
+const db = require('../config/db');
+const bcrypt = require('bcryptjs');
+const logger = require('../config/logger');
 
 // Show login page
 const showLogin = (req, res) => {
@@ -173,7 +173,8 @@ const login = (req, res) => {
             firstName: user.FirstName,
             lastName: user.LastName,
             email: user.Email,
-            role: role
+            role: role,
+            avatar: user.Avatar || null
         };
 
         // ── Redirect based on role ──

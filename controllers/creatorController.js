@@ -1,5 +1,7 @@
 const db = require('../config/db');
 const logger = require('../config/logger');
+const upload = require('../config/upload');
+
 
 const dashboard = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
@@ -292,6 +294,69 @@ const deleteVideo = (req, res) => {
     });
 };
 
-module.exports = { dashboard, showUpload, uploadVideo, showEdit, editVideo, deleteVideo };
+
+const showProfile = (req, res) => {
+    if (!req.session.user) return res.redirect('/auth/login');
+    const userId = req.session.user.id;
+
+    db.query('SELECT * FROM user WHERE Id = ?', [userId], (err, userResult) => {
+        if (err || userResult.length === 0) return res.redirect('/creator/dashboard');
+
+        db.query('SELECT * FROM creator WHERE UserId = ?', [userId], (err, creatorResult) => {
+            if (err || creatorResult.length === 0) return res.redirect('/creator/dashboard');
+
+            req.session.user.avatar = userResult[0].Avatar;
+
+            res.render('creator/profile', {
+                user: req.session.user,
+                userData: userResult[0],
+                creatorData: creatorResult[0],
+                success: null, error: null
+            });
+        });
+    });
+};
+
+const updateCreatorAvatar = (req, res) => {
+    if (!req.session.user) return res.redirect('/auth/login');
+    if (!req.file) return res.redirect('/creator/profile');
+    const userId = req.session.user.id;
+
+    db.query('UPDATE user SET Avatar = ? WHERE Id = ?', [req.file.filename, userId], (err) => {
+        if (err) logger.logError('updateCreatorAvatar', err.message);
+        req.session.user.avatar = req.file.filename;
+        req.session.save(() => res.redirect('/creator/profile'));
+    });
+};
+
+const updateCreatorProfile = (req, res) => {
+    if (!req.session.user) return res.redirect('/auth/login');
+    const { firstName, lastName, country } = req.body;
+    const userId = req.session.user.id;
+
+    db.query('UPDATE user SET FirstName = ?, LastName = ?, Country = ? WHERE Id = ?',
+        [firstName, lastName, country, userId], (err) => {
+            if (err) logger.logError('updateCreatorProfile', err.message);
+            req.session.user.firstName = firstName;
+            req.session.user.lastName  = lastName;
+            res.redirect('/creator/profile');
+        }
+    );
+};
+
+const updateChannel = (req, res) => {
+    if (!req.session.user) return res.redirect('/auth/login');
+    const { channelName, bio } = req.body;
+    const userId = req.session.user.id;
+
+    db.query('UPDATE creator SET ChannelName = ?, Bio = ? WHERE UserId = ?',
+        [channelName, bio, userId], (err) => {
+            if (err) logger.logError('updateChannel', err.message);
+            res.redirect('/creator/profile');
+        }
+    );
+};
+
+module.exports = { dashboard, showUpload, uploadVideo, showEdit, editVideo, deleteVideo, showProfile, updateCreatorAvatar, updateCreatorProfile, updateChannel };
 
 

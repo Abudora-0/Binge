@@ -1,280 +1,411 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Binge — Admin Panel</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
-
-<body class="bg-gray-950 text-white min-h-screen">
+<body class="bg-gray-950 text-white min-h-screen flex flex-col">
 
   <!-- Navbar -->
-  <nav class="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
-    <div class="flex items-center gap-2">
+  <nav class="bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center gap-4 sticky top-0 z-50">
+    <div class="flex items-center gap-3 flex-shrink-0">
       <i data-lucide="shield" class="w-5 h-5 text-red-500"></i>
-      <h1 class="text-xl font-bold text-red-500">Binge <span class="text-gray-400 text-sm font-normal ml-1">Admin
-          Panel</span></h1>
+      <span class="text-xl font-bold text-red-500">Binge</span>
+      <span class="text-gray-500 text-sm hidden sm:block">Admin Panel</span>
     </div>
+    <div class="flex-1"></div>
     <div class="flex items-center gap-4">
       <a href="/admin/reports" class="flex items-center gap-2 text-gray-400 hover:text-white text-sm transition">
-        <i data-lucide="bar-chart-2" class="w-4 h-4"></i> Reports
+        <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+        <span class="hidden sm:block">Reports</span>
       </a>
-      <span class="text-gray-400 text-sm">Welcome, <span class="text-white font-medium">
-          <%= user.firstName %>
-        </span></span>
+      <div class="flex items-center gap-2 bg-gray-900 px-3 py-1.5 rounded-full border border-gray-800">
+        <div class="w-7 h-7 bg-red-600 rounded-full flex items-center justify-center font-bold text-xs">
+          A
+        </div>
+        <span class="text-white text-sm font-medium hidden sm:block"><%= user.firstName %></span>
+      </div>
       <a href="/auth/logout" class="flex items-center gap-2 text-red-400 hover:text-red-300 text-sm transition">
-        <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out
+        <i data-lucide="log-out" class="w-4 h-4"></i>
+        <span class="hidden sm:block">Sign Out</span>
       </a>
     </div>
   </nav>
-  <div class="max-w-7xl mx-auto px-6 py-8">
 
-    <!-- Stats -->
-    <div class="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
-      <div class="bg-gray-900 rounded-xl p-4 text-center">
-        <p class="text-2xl font-bold text-red-500">
-          <%= stats.users %>
-        </p>
-        <p class="text-gray-400 text-xs mt-1">Users</p>
-      </div>
-      <div class="bg-gray-900 rounded-xl p-4 text-center">
-        <p class="text-2xl font-bold text-red-500">
-          <%= stats.creators %>
-        </p>
-        <p class="text-gray-400 text-xs mt-1">Creators</p>
-      </div>
-      <div class="bg-gray-900 rounded-xl p-4 text-center">
-        <p class="text-2xl font-bold text-red-500">
-          <%= stats.videos %>
-        </p>
-        <p class="text-gray-400 text-xs mt-1">Videos</p>
-      </div>
-      <div class="bg-gray-900 rounded-xl p-4 text-center">
-        <p class="text-2xl font-bold text-red-500">
-          <%= stats.comments %>
-        </p>
-        <p class="text-gray-400 text-xs mt-1">Comments</p>
-      </div>
-      <div class="bg-gray-900 rounded-xl p-4 text-center">
-        <p class="text-2xl font-bold text-red-500">
-          <%= stats.views.toLocaleString() %>
-        </p>
-        <p class="text-gray-400 text-xs mt-1">Total Views</p>
-      </div>
-      <div class="bg-gray-900 rounded-xl p-4 text-center">
-        <p class="text-2xl font-bold text-yellow-500">
-          <%= stats.reports %>
-        </p>
-        <p class="text-gray-400 text-xs mt-1">Pending Reports</p>
-      </div>
-    </div>
+  <div class="flex flex-1">
 
-    <!-- Tabs -->
-    <div class="flex gap-2 mb-6" id="tabs">
-      <button onclick="showTab('users')" id="tab-users"
-        class="tab-btn bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium">Users</button>
-      <button onclick="showTab('videos')" id="tab-videos"
-        class="tab-btn bg-gray-800 text-gray-300 px-4 py-2 rounded-lg text-sm font-medium">Videos</button>
-      <button onclick="showTab('reports')" id="tab-reports"
-        class="tab-btn bg-gray-800 text-gray-300 px-4 py-2 rounded-lg text-sm font-medium">
-        Reports <% if(stats.reports> 0) { %><span
-            class="bg-yellow-500 text-black text-xs px-1.5 py-0.5 rounded-full ml-1">
-            <%= stats.reports %>
-          </span>
+    <!-- Sidebar -->
+    <aside class="w-52 flex-shrink-0 bg-gray-950 border-r border-gray-900 pt-4 pb-10 hidden md:block">
+      <div class="space-y-1 px-2">
+        <div class="px-3 py-2 mb-2">
+          <p class="text-gray-500 text-xs uppercase tracking-wider">Management</p>
+        </div>
+        <button onclick="showTab('users')" id="sidebar-users"
+          class="sidebar-btn active-sidebar w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gray-800 text-white text-sm font-medium text-left">
+          <i data-lucide="users" class="w-4 h-4"></i> Users
+          <span class="ml-auto bg-red-600 text-white text-xs px-2 py-0.5 rounded-full"><%= stats.users %></span>
+        </button>
+        <button onclick="showTab('videos')" id="sidebar-videos"
+          class="sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition text-left">
+          <i data-lucide="video" class="w-4 h-4"></i> Videos
+          <span class="ml-auto text-gray-500 text-xs"><%= stats.videos %></span>
+        </button>
+        <button onclick="showTab('reports')" id="sidebar-reports"
+          class="sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition text-left">
+          <i data-lucide="flag" class="w-4 h-4"></i> Reports
+          <% if(stats.reports > 0) { %>
+            <span class="ml-auto bg-yellow-500 text-black text-xs px-2 py-0.5 rounded-full font-bold"><%= stats.reports %></span>
           <% } %>
-      </button>
-    </div>
+        </button>
+        <div class="border-t border-gray-800 my-3"></div>
+        <div class="px-3 py-2">
+          <p class="text-gray-500 text-xs uppercase tracking-wider">Quick Actions</p>
+        </div>
+        <a href="/admin/reports" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition">
+          <i data-lucide="file-text" class="w-4 h-4"></i> PDF Reports
+        </a>
+        <a href="/viewer/home" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition">
+          <i data-lucide="tv-2" class="w-4 h-4"></i> View Platform
+        </a>
+      </div>
+    </aside>
 
-    <!-- Users Tab -->
-    <div id="tab-content-users" class="tab-content">
-      <div class="bg-gray-900 rounded-2xl p-6">
-        <h3 class="font-bold mb-4">All Users</h3>
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="text-gray-400 border-b border-gray-800">
-                <th class="text-left pb-3">Name</th>
-                <th class="text-left pb-3">Email</th>
-                <th class="text-left pb-3">Role</th>
-                <th class="text-left pb-3">Country</th>
-                <th class="text-left pb-3">Status</th>
-                <th class="text-left pb-3">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% allUsers.forEach(u=> { %>
-                <tr class="border-b border-gray-800 hover:bg-gray-800 transition">
-                  <td class="py-3 pr-4 font-medium">
-                    <%= u.FirstName %>
-                      <%= u.LastName %>
-                  </td>
-                  <td class="py-3 pr-4 text-gray-400">
-                    <%= u.Email %>
-                  </td>
-                  <td class="py-3 pr-4">
-                    <span
-                      class="px-2 py-1 rounded-full text-xs <%= u.Role === 'Creator' ? 'bg-blue-500/20 text-blue-400' : 'bg-gray-500/20 text-gray-400' %>">
-                      <%= u.Role %>
-                    </span>
-                  </td>
-                  <td class="py-3 pr-4 text-gray-400">
-                    <%= u.Country %>
-                  </td>
-                  <td class="py-3 pr-4">
-                    <span
-                      class="px-2 py-1 rounded-full text-xs <%= u.Status === 'Active' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400' %>">
-                      <%= u.Status %>
-                    </span>
-                  </td>
-                  <td class="py-3">
-                    <form action="/admin/user/status" method="POST" class="inline">
-                      <input type="hidden" name="userId" value="<%= u.Id %>">
-                      <input type="hidden" name="status" value="<%= u.Status === 'Active' ? 'Suspended' : 'Active' %>">
-                      <button type="submit"
-                        class="text-xs px-3 py-1 rounded-lg transition
-                        <%= u.Status === 'Active' ? 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/40' : 'bg-green-500/20 text-green-400 hover:bg-green-500/40' %>">
-                        <%= u.Status==='Active' ? 'Suspend' : 'Activate' %>
-                      </button>
-                    </form>
-                  </td>
-                </tr>
-                <% }) %>
-            </tbody>
-          </table>
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto p-6">
+
+      <!-- Page Header -->
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold">Dashboard Overview</h1>
+        <p class="text-gray-400 text-sm mt-1">Monitor and manage your platform</p>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
+        <div class="bg-gray-900 rounded-2xl p-4 border border-gray-800 hover:border-blue-500/30 transition">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-gray-400 text-xs">Users</span>
+            <div class="w-7 h-7 bg-blue-500/20 rounded-lg flex items-center justify-center">
+              <i data-lucide="users" class="w-3.5 h-3.5 text-blue-400"></i>
+            </div>
+          </div>
+          <p class="text-2xl font-bold"><%= stats.users %></p>
+        </div>
+
+        <div class="bg-gray-900 rounded-2xl p-4 border border-gray-800 hover:border-purple-500/30 transition">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-gray-400 text-xs">Creators</span>
+            <div class="w-7 h-7 bg-purple-500/20 rounded-lg flex items-center justify-center">
+              <i data-lucide="video" class="w-3.5 h-3.5 text-purple-400"></i>
+            </div>
+          </div>
+          <p class="text-2xl font-bold"><%= stats.creators %></p>
+        </div>
+
+        <div class="bg-gray-900 rounded-2xl p-4 border border-gray-800 hover:border-red-500/30 transition">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-gray-400 text-xs">Videos</span>
+            <div class="w-7 h-7 bg-red-500/20 rounded-lg flex items-center justify-center">
+              <i data-lucide="play-circle" class="w-3.5 h-3.5 text-red-400"></i>
+            </div>
+          </div>
+          <p class="text-2xl font-bold"><%= stats.videos %></p>
+        </div>
+
+        <div class="bg-gray-900 rounded-2xl p-4 border border-gray-800 hover:border-green-500/30 transition">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-gray-400 text-xs">Comments</span>
+            <div class="w-7 h-7 bg-green-500/20 rounded-lg flex items-center justify-center">
+              <i data-lucide="message-circle" class="w-3.5 h-3.5 text-green-400"></i>
+            </div>
+          </div>
+          <p class="text-2xl font-bold"><%= stats.comments %></p>
+        </div>
+
+        <div class="bg-gray-900 rounded-2xl p-4 border border-gray-800 hover:border-cyan-500/30 transition">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-gray-400 text-xs">Total Views</span>
+            <div class="w-7 h-7 bg-cyan-500/20 rounded-lg flex items-center justify-center">
+              <i data-lucide="eye" class="w-3.5 h-3.5 text-cyan-400"></i>
+            </div>
+          </div>
+          <p class="text-2xl font-bold"><%= (stats.views/1000000).toFixed(1) %>M</p>
+        </div>
+
+        <div class="bg-gray-900 rounded-2xl p-4 border border-gray-800 hover:border-yellow-500/30 transition">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-gray-400 text-xs">Reports</span>
+            <div class="w-7 h-7 bg-yellow-500/20 rounded-lg flex items-center justify-center">
+              <i data-lucide="flag" class="w-3.5 h-3.5 text-yellow-400"></i>
+            </div>
+          </div>
+          <p class="text-2xl font-bold <%= stats.reports > 0 ? 'text-yellow-400' : '' %>"><%= stats.reports %></p>
         </div>
       </div>
-    </div>
 
-    <!-- Videos Tab -->
-    <div id="tab-content-videos" class="tab-content hidden">
-      <div class="bg-gray-900 rounded-2xl p-6">
-        <h3 class="font-bold mb-4">All Videos</h3>
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="text-gray-400 border-b border-gray-800">
-                <th class="text-left pb-3">Title</th>
-                <th class="text-left pb-3">Creator</th>
-                <th class="text-left pb-3">Category</th>
-                <th class="text-left pb-3">Views</th>
-                <th class="text-left pb-3">Status</th>
-                <th class="text-left pb-3">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% allVideos.forEach(v=> { %>
-                <tr class="border-b border-gray-800 hover:bg-gray-800 transition">
-                  <td class="py-3 pr-4 font-medium">
-                    <%= v.Title %>
-                  </td>
-                  <td class="py-3 pr-4 text-gray-400">
-                    <%= v.ChannelName %>
-                  </td>
-                  <td class="py-3 pr-4 text-gray-400">
-                    <%= v.Category %>
-                  </td>
-                  <td class="py-3 pr-4 text-gray-400">
-                    <%= v.Views.toLocaleString() %>
-                  </td>
-                  <td class="py-3 pr-4">
-                    <span
-                      class="px-2 py-1 rounded-full text-xs
-                      <%= v.Status === 'Published' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400' %>">
-                      <%= v.Status %>
-                    </span>
-                  </td>
-                  <td class="py-3">
-                    <a href="/admin/video/delete/<%= v.Id %>" onclick="return confirm('Delete this video permanently?')"
-                      class="bg-red-600/20 text-red-400 hover:bg-red-600/40 text-xs px-3 py-1 rounded-lg transition">
-                      Delete
-                    </a>
-                  </td>
+      <!-- Tab Buttons (mobile) -->
+      <div class="flex gap-2 mb-6 md:hidden">
+        <button onclick="showTab('users')" id="tab-users"
+          class="tab-btn flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
+          <i data-lucide="users" class="w-4 h-4"></i> Users
+        </button>
+        <button onclick="showTab('videos')" id="tab-videos"
+          class="tab-btn flex items-center gap-2 bg-gray-800 text-gray-300 px-4 py-2 rounded-lg text-sm font-medium">
+          <i data-lucide="video" class="w-4 h-4"></i> Videos
+        </button>
+        <button onclick="showTab('reports')" id="tab-reports"
+          class="tab-btn flex items-center gap-2 bg-gray-800 text-gray-300 px-4 py-2 rounded-lg text-sm font-medium">
+          <i data-lucide="flag" class="w-4 h-4"></i> Reports
+        </button>
+      </div>
+
+      <!-- Users Tab -->
+      <div id="tab-content-users" class="tab-content">
+        <div class="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-800 flex items-center justify-between">
+            <h3 class="font-bold flex items-center gap-2">
+              <i data-lucide="users" class="w-5 h-5 text-red-500"></i> All Users
+            </h3>
+            <span class="text-gray-400 text-sm"><%= allUsers.length %> total</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="bg-red-600 text-white text-xs uppercase tracking-wider">
+                  <th class="text-left px-6 py-3">User</th>
+                  <th class="text-left px-4 py-3">Email</th>
+                  <th class="text-left px-4 py-3">Role</th>
+                  <th class="text-left px-4 py-3">Country</th>
+                  <th class="text-left px-4 py-3">Status</th>
+                  <th class="text-left px-4 py-3">Action</th>
                 </tr>
+              </thead>
+              <tbody>
+                <% allUsers.forEach((u, i) => { %>
+                  <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition <%= i % 2 === 0 ? '' : 'bg-gray-900/50' %>">
+                    <td class="px-6 py-3">
+                      <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full overflow-hidden bg-red-600 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                          <% if (u.Avatar) { %>
+                            <img src="/uploads/<%= u.Avatar %>" class="w-full h-full object-cover">
+                          <% } else { %>
+                            <%= u.FirstName.charAt(0).toUpperCase() %>
+                          <% } %>
+                        </div>
+                        <span class="font-medium"><%= u.FirstName %> <%= u.LastName %></span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3 text-gray-400"><%= u.Email %></td>
+                    <td class="px-4 py-3">
+                      <span class="flex items-center gap-1.5 w-fit px-2.5 py-1 rounded-full text-xs font-medium
+                        <%= u.Role === 'Creator' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400' %>">
+                        <i data-lucide="<%= u.Role === 'Creator' ? 'video' : 'user' %>" class="w-3 h-3"></i>
+                        <%= u.Role %>
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-gray-400 text-xs"><%= u.Country %></td>
+                    <td class="px-4 py-3">
+                      <span class="flex items-center gap-1 w-fit px-2.5 py-1 rounded-full text-xs font-medium
+                        <%= u.Status === 'Active' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400' %>">
+                        <i data-lucide="<%= u.Status === 'Active' ? 'check-circle' : 'x-circle' %>" class="w-3 h-3"></i>
+                        <%= u.Status %>
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <form action="/admin/user/status" method="POST">
+                        <input type="hidden" name="userId" value="<%= u.Id %>">
+                        <input type="hidden" name="status" value="<%= u.Status === 'Active' ? 'Suspended' : 'Active' %>">
+                        <button type="submit"
+                          class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition font-medium
+                          <%= u.Status === 'Active' ? 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/40' : 'bg-green-500/20 text-green-400 hover:bg-green-500/40' %>">
+                          <i data-lucide="<%= u.Status === 'Active' ? 'user-x' : 'user-check' %>" class="w-3 h-3"></i>
+                          <%= u.Status === 'Active' ? 'Suspend' : 'Activate' %>
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
                 <% }) %>
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Reports Tab -->
-    <div id="tab-content-reports" class="tab-content hidden">
-      <div class="bg-gray-900 rounded-2xl p-6">
-        <h3 class="font-bold mb-4">Pending Reports</h3>
-        <% if (pendingReports.length===0) { %>
-          <p class="text-gray-500 text-sm">No pending reports. Platform is clean! ✅</p>
+      <!-- Videos Tab -->
+      <div id="tab-content-videos" class="tab-content hidden">
+        <div class="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-800 flex items-center justify-between">
+            <h3 class="font-bold flex items-center gap-2">
+              <i data-lucide="video" class="w-5 h-5 text-red-500"></i> All Videos
+            </h3>
+            <span class="text-gray-400 text-sm"><%= allVideos.length %> total</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="bg-red-600 text-white text-xs uppercase tracking-wider">
+                  <th class="text-left px-6 py-3">Video</th>
+                  <th class="text-left px-4 py-3">Creator</th>
+                  <th class="text-left px-4 py-3">Category</th>
+                  <th class="text-left px-4 py-3">Views</th>
+                  <th class="text-left px-4 py-3">Status</th>
+                  <th class="text-left px-4 py-3">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% allVideos.forEach((v, i) => { %>
+                  <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition <%= i % 2 === 0 ? '' : 'bg-gray-900/50' %>">
+                    <td class="px-6 py-3">
+                      <div class="flex items-center gap-3">
+                        <div class="w-16 h-10 bg-gray-800 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center">
+                          <% const thumb = v.VideoUrl && v.VideoUrl.includes('v=') ?
+                            'https://img.youtube.com/vi/' + v.VideoUrl.split('v=')[1].split('&')[0] + '/default.jpg' : null %>
+                          <% if (thumb) { %>
+                            <img src="<%= thumb %>" class="w-full h-full object-cover" onerror="this.style.display='none'">
+                          <% } else { %>
+                            <i data-lucide="play" class="w-4 h-4 text-gray-600"></i>
+                          <% } %>
+                        </div>
+                        <span class="font-medium line-clamp-1 max-w-xs"><%= v.Title %></span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3 text-gray-400 text-xs"><%= v.ChannelName %></td>
+                    <td class="px-4 py-3">
+                      <span class="bg-gray-800 text-gray-300 text-xs px-2 py-1 rounded-lg"><%= v.Category %></span>
+                    </td>
+                    <td class="px-4 py-3 text-gray-400">
+                      <span class="flex items-center gap-1 text-xs">
+                        <i data-lucide="eye" class="w-3 h-3"></i>
+                        <%= v.Views.toLocaleString() %>
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="px-2.5 py-1 rounded-full text-xs font-medium
+                        <%= v.Status === 'Published' ? 'bg-green-500/20 text-green-400' :
+                            v.Status === 'Private'   ? 'bg-yellow-500/20 text-yellow-400' :
+                            'bg-gray-500/20 text-gray-400' %>">
+                        <%= v.Status %>
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <a href="/admin/video/delete/<%= v.Id %>"
+                         onclick="return confirm('Delete this video permanently?')"
+                         class="flex items-center gap-1.5 bg-red-600/20 text-red-400 hover:bg-red-600/40 text-xs px-3 py-1.5 rounded-lg transition font-medium w-fit">
+                        <i data-lucide="trash-2" class="w-3 h-3"></i> Delete
+                      </a>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reports Tab -->
+      <div id="tab-content-reports" class="tab-content hidden">
+        <div class="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-800 flex items-center justify-between">
+            <h3 class="font-bold flex items-center gap-2">
+              <i data-lucide="flag" class="w-5 h-5 text-red-500"></i> Pending Reports
+            </h3>
+            <% if (stats.reports > 0) { %>
+              <span class="bg-yellow-500 text-black text-xs px-2.5 py-1 rounded-full font-bold"><%= stats.reports %> pending</span>
+            <% } %>
+          </div>
+          <% if (pendingReports.length === 0) { %>
+            <div class="text-center py-16">
+              <div class="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="check-circle" class="w-8 h-8 text-green-500"></i>
+              </div>
+              <p class="text-gray-300 font-medium mb-1">No pending reports</p>
+              <p class="text-gray-500 text-sm">Platform is clean ✅</p>
+            </div>
           <% } else { %>
             <div class="overflow-x-auto">
               <table class="w-full text-sm">
                 <thead>
-                  <tr class="text-gray-400 border-b border-gray-800">
-                    <th class="text-left pb-3">Video</th>
-                    <th class="text-left pb-3">Reported By</th>
-                    <th class="text-left pb-3">Reason</th>
-                    <th class="text-left pb-3">Date</th>
-                    <th class="text-left pb-3">Action</th>
+                  <tr class="bg-red-600 text-white text-xs uppercase tracking-wider">
+                    <th class="text-left px-6 py-3">Video</th>
+                    <th class="text-left px-4 py-3">Reported By</th>
+                    <th class="text-left px-4 py-3">Reason</th>
+                    <th class="text-left px-4 py-3">Date</th>
+                    <th class="text-left px-4 py-3">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <% pendingReports.forEach(r=> { %>
-                    <tr class="border-b border-gray-800 hover:bg-gray-800 transition">
-                      <td class="py-3 pr-4 font-medium">
-                        <%= r.VideoTitle %>
-                      </td>
-                      <td class="py-3 pr-4 text-gray-400">
-                        <%= r.FirstName %>
-                          <%= r.LastName %>
-                      </td>
-                      <td class="py-3 pr-4 text-gray-400">
-                        <%= r.Reason %>
-                      </td>
-                      <td class="py-3 pr-4 text-gray-400">
-                        <%= new Date(r.ReportedAt).toLocaleDateString() %>
-                      </td>
-                      <td class="py-3 flex gap-2">
-                        <form action="/admin/report/resolve" method="POST" class="inline">
-                          <input type="hidden" name="reportId" value="<%= r.Id %>">
-                          <input type="hidden" name="status" value="Dismissed">
-                          <button type="submit"
-                            class="bg-gray-500/20 text-gray-400 hover:bg-gray-500/40 text-xs px-3 py-1 rounded-lg transition">Dismiss</button>
-                        </form>
-                        <form action="/admin/report/resolve" method="POST" class="inline">
-                          <input type="hidden" name="reportId" value="<%= r.Id %>">
-                          <input type="hidden" name="status" value="ActionTaken">
-                          <button type="submit"
-                            class="bg-red-600/20 text-red-400 hover:bg-red-600/40 text-xs px-3 py-1 rounded-lg transition">Take
-                            Action</button>
-                        </form>
+                  <% pendingReports.forEach((r, i) => { %>
+                    <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition <%= i % 2 === 0 ? '' : 'bg-gray-900/50' %>">
+                      <td class="px-6 py-3 font-medium"><%= r.VideoTitle %></td>
+                      <td class="px-4 py-3 text-gray-400"><%= r.FirstName %> <%= r.LastName %></td>
+                      <td class="px-4 py-3 text-gray-400 text-xs"><%= r.Reason %></td>
+                      <td class="px-4 py-3 text-gray-500 text-xs"><%= new Date(r.ReportedAt).toLocaleDateString() %></td>
+                      <td class="px-4 py-3">
+                        <div class="flex gap-2">
+                          <form action="/admin/report/resolve" method="POST" class="inline">
+                            <input type="hidden" name="reportId" value="<%= r.Id %>">
+                            <input type="hidden" name="status" value="Dismissed">
+                            <button type="submit"
+                              class="flex items-center gap-1 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs px-3 py-1.5 rounded-lg transition">
+                              <i data-lucide="x" class="w-3 h-3"></i> Dismiss
+                            </button>
+                          </form>
+                          <form action="/admin/report/resolve" method="POST" class="inline">
+                            <input type="hidden" name="reportId" value="<%= r.Id %>">
+                            <input type="hidden" name="status" value="ActionTaken">
+                            <button type="submit"
+                              class="flex items-center gap-1 bg-red-600/20 text-red-400 hover:bg-red-600/40 text-xs px-3 py-1.5 rounded-lg transition">
+                              <i data-lucide="shield-alert" class="w-3 h-3"></i> Take Action
+                            </button>
+                          </form>
+                        </div>
                       </td>
                     </tr>
-                    <% }) %>
+                  <% }) %>
                 </tbody>
               </table>
             </div>
-            <% } %>
+          <% } %>
+        </div>
       </div>
-    </div>
 
+    </main>
   </div>
 
   <script>
+    lucide.createIcons();
+
     function showTab(name) {
+      // Hide all content
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      // Show selected
+      document.getElementById('tab-content-' + name).classList.remove('hidden');
+
+      // Update mobile tabs
       document.querySelectorAll('.tab-btn').forEach(el => {
         el.classList.remove('bg-red-600', 'text-white');
         el.classList.add('bg-gray-800', 'text-gray-300');
       });
-      document.getElementById('tab-content-' + name).classList.remove('hidden');
-      document.getElementById('tab-' + name).classList.add('bg-red-600', 'text-white');
-      document.getElementById('tab-' + name).classList.remove('bg-gray-800', 'text-gray-300');
+      const mobileBtn = document.getElementById('tab-' + name);
+      if (mobileBtn) {
+        mobileBtn.classList.add('bg-red-600', 'text-white');
+        mobileBtn.classList.remove('bg-gray-800', 'text-gray-300');
+      }
+
+      // Update sidebar buttons
+      document.querySelectorAll('.sidebar-btn').forEach(el => {
+        el.classList.remove('bg-gray-800', 'text-white');
+        el.classList.add('text-gray-300');
+      });
+      const sidebarBtn = document.getElementById('sidebar-' + name);
+      if (sidebarBtn) {
+        sidebarBtn.classList.add('bg-gray-800', 'text-white');
+        sidebarBtn.classList.remove('text-gray-300');
+      }
     }
   </script>
 
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script>lucide.createIcons();</script>
-
 </body>
-
 </html>

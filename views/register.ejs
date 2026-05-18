@@ -11,6 +11,13 @@
 
   <!-- Left Panel -->
   <div class="hidden lg:flex w-1/2 bg-gradient-to-br from-red-900/40 via-gray-900 to-gray-950 flex-col items-center justify-center p-12 relative overflow-hidden">
+    <div class="absolute inset-0 opacity-5">
+      <div class="grid grid-cols-8 gap-2 h-full">
+        <% for(let i=0; i<64; i++) { %>
+          <div class="bg-red-500 rounded"></div>
+        <% } %>
+      </div>
+    </div>
     <div class="relative z-10 text-center">
       <h1 class="text-6xl font-bold text-red-500 mb-4">Binge</h1>
       <p class="text-gray-300 text-xl mb-2">Start Your Journey</p>
@@ -57,7 +64,7 @@
 
       <div class="bg-gray-900 rounded-2xl p-8 shadow-2xl border border-gray-800">
 
-        <h2 class="text-2xl font-bold mb-1">Create Account</h2>
+        <h2 class="text-2xl text-red-500 font-bold mb-1">Create Account</h2>
         <p class="text-gray-400 text-sm mb-6">Join Binge today — it's free</p>
 
         <!-- Error -->

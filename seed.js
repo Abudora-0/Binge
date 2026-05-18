@@ -2,120 +2,99 @@ const db = require('./config/db');
 const bcrypt = require('bcryptjs');
 
 const creators = [
-  { first: 'Ahmed',   last: 'Khan',     email: 'ahmed@binge.com',   channel: 'AhmedTech',         bio: 'Tech reviews and tutorials',              country: 'Pakistan' },
-  { first: 'Sara',    last: 'Ali',      email: 'sara@binge.com',    channel: 'SaraVlogs',         bio: 'Daily vlogs, food and travel',            country: 'Pakistan' },
-  { first: 'Bilal',   last: 'Raza',     email: 'bilal@binge.com',   channel: 'BilalPlays',        bio: 'Gaming walkthroughs and reviews',         country: 'Pakistan' },
-  { first: 'Ayesha',  last: 'Malik',    email: 'ayesha@binge.com',  channel: 'AyeshaLearn',       bio: 'Education and tech careers',              country: 'Pakistan' },
-  { first: 'Usman',   last: 'Sheikh',   email: 'usman@binge.com',   channel: 'UsmanSports',       bio: 'Cricket and football analysis',           country: 'Pakistan' },
-  { first: 'James',   last: 'Carter',   email: 'james@binge.com',   channel: 'JamesTechWorld',    bio: 'Gadgets, AI and software reviews',        country: 'USA' },
-  { first: 'Emily',   last: 'Brooks',   email: 'emily@binge.com',   channel: 'EmilyLifestyle',    bio: 'Lifestyle, wellness and travel',          country: 'UK' },
-  { first: 'Marcus',  last: 'Williams', email: 'marcus@binge.com',  channel: 'MarcusGaming',      bio: 'Pro gaming tips and reviews',             country: 'USA' },
-  { first: 'Priya',   last: 'Sharma',   email: 'priya@binge.com',   channel: 'PriyaEducates',     bio: 'Programming and data science',            country: 'India' },
-  { first: 'Carlos',  last: 'Mendez',   email: 'carlos@binge.com',  channel: 'CarlosSports',      bio: 'Football and NBA analysis',               country: 'USA' },
-  { first: 'Zara',    last: 'Hassan',   email: 'zara@binge.com',    channel: 'ZaraMusicOfficial', bio: 'Original music and covers',               country: 'Pakistan' },
-  { first: 'Tyler',   last: 'Johnson',  email: 'tyler@binge.com',   channel: 'TylerComedy',       bio: 'Skits and stand up comedy',               country: 'USA' },
-  { first: 'Amir',    last: 'Siddiqui', email: 'amir@binge.com',    channel: 'AmirFunny',         bio: 'Pakistani comedy and roasts',             country: 'Pakistan' },
-  { first: 'Sofia',   last: 'Martinez', email: 'sofia@binge.com',   channel: 'SofiaMusic',        bio: 'Pop covers and original songs',           country: 'USA' },
+    { first: 'Arun', last: 'Maini', email: 'mrwtb@binge.com', channel: 'Mrwhosetheboss', bio: 'Making the most fun and useful tech videos on the planet', country: 'UK' },
+    { first: 'Cory', last: 'Williams', email: 'cory@binge.com', channel: 'CoryxKenshin', bio: 'Gaming videos with the biggest smile on YouTube', country: 'USA' },
+    { first: 'Kendrick', last: 'Lamar', email: 'kendrick@binge.com', channel: 'KendrickLamarVEVO', bio: 'Official Kendrick Lamar music videos and content', country: 'USA' },
+    { first: 'Mooro', last: 'Tampad', email: 'tampad@binge.com', channel: 'Tampad', bio: 'Best sports moments and football highlights', country: 'UK' },
+    { first: 'Ajey', last: 'Nagar', email: 'carry@binge.com', channel: 'CarryMinati', bio: 'Roasts, gaming and entertainment from India', country: 'India' },
+    { first: 'Hassan', last: 'Junejo', email: 'junejo@binge.com', channel: 'Hassan Junejo', bio: 'Pakistani lifestyle vlogs and travel content', country: 'Pakistan' },
+    { first: 'Harry', last: 'Bhai', email: 'harry@binge.com', channel: 'CodeWithHarry', bio: 'Programming tutorials in Hindi and English', country: 'India' },
 ];
 
 const videoData = [
-  // AhmedTech — Technology (cat 1)
-  { title: 'iPhone 16 Pro Full Review',                           url: 'https://www.youtube.com/watch?v=q2GBsaJBBFQ', duration: 847,  category: 1, views: 45200  },
-  { title: 'Top 10 Laptops of 2024',                             url: 'https://www.youtube.com/watch?v=V3fFpHIBMGI', duration: 1203, category: 1, views: 32100  },
-  { title: 'How to Build a Gaming PC',                           url: 'https://www.youtube.com/watch?v=PXex-mb_17w', duration: 2340, category: 1, views: 28900  },
-  { title: 'Samsung S24 vs iPhone 16',                           url: 'https://www.youtube.com/watch?v=pBnxmDmqPXg', duration: 956,  category: 1, views: 61000  },
-  { title: 'Best Budget Phones 2024',                            url: 'https://www.youtube.com/watch?v=CHkp_sJMOe4', duration: 734,  category: 1, views: 19800  },
+    // Mrwhosetheboss — Technology (cat 1)
+    { title: 'The Mr.Beast MEGA-STUDIO Tour.', url: 'https://www.youtube.com/watch?v=lUzpK0tGFcE', duration: 1456, category: 1, views: 12000000 },
+    { title: 'I bought the Smallest Tech in the World.', url: 'https://www.youtube.com/watch?v=syB1ezRvKpU', duration: 743, category: 1, views: 9800000 },
+    { title: 'I bought every Playstation ever.', url: 'https://www.youtube.com/watch?v=0rCbfsuKdYw', duration: 987, category: 1, views: 7600000 },
+    { title: 'I bought the THINNEST Tech of the world', url: 'https://www.youtube.com/watch?v=nmY2kgWYwyQ', duration: 1102, category: 1, views: 14000000 },
+    { title: 'How this wallpaper Kills your Phone', url: 'https://www.youtube.com/watch?v=iXKvwPjCGnY', duration: 1345, category: 1, views: 11000000 },
+    { title: 'Turn your Smartphone into a 3D Hologram', url: 'https://www.youtube.com/watch?v=7YWTtCsvgvg', duration: 876, category: 1, views: 8900000 },
+    { title: 'I bought the most FUTURISTIC Tech of the world', url: 'https://www.youtube.com/watch?v=b0HfmY64eSE', duration: 1234, category: 1, views: 16000000 },
+    { title: '21 Horrific Tech Failures they want you to Forget.', url: 'https://www.youtube.com/watch?v=QMWlRWnAZH8', duration: 1567, category: 1, views: 13000000 },
+    { title: 'I bought the most Satisfying Tech of the world', url: 'https://www.youtube.com/watch?v=0BR-HgA3mlo', duration: 923, category: 1, views: 10000000 },
+    { title: 'I bought the Biggest Tech of the world', url: 'https://www.youtube.com/watch?v=VuG4BcghOSg', duration: 834, category: 1, views: 6700000 },
 
-  // SaraVlogs — Vlogs (cat 5)
-  { title: 'Day in My Life Vlog',                                url: 'https://www.youtube.com/watch?v=7HKoqNJtMTQ', duration: 1456, category: 5, views: 23400  },
-  { title: 'Best Street Food Tour',                              url: 'https://www.youtube.com/watch?v=KDpzONB2Hf4', duration: 1823, category: 5, views: 41200  },
-  { title: 'Mountain Trip Travel Vlog',                          url: 'https://www.youtube.com/watch?v=7MoYYWNBNQg', duration: 2100, category: 5, views: 17600  },
-  { title: 'My Productive Morning Routine',                      url: 'https://www.youtube.com/watch?v=b9440SFsxkU', duration: 892,  category: 5, views: 29800  },
-  { title: 'Healthy Meal Prep for the Week',                     url: 'https://www.youtube.com/watch?v=iNFHGvPGiPw', duration: 743,  category: 5, views: 15300  },
+    // CoryxKenshin — Gaming (cat 3)
+    { title: 'THIS MAN IS FOLLOWING ME - CLOSING SHIFT', url: 'https://www.youtube.com/watch?v=7KAcyc9aEvg', duration: 1823, category: 3, views: 18000000 },
+    { title: 'SCREAMING AT A SCARY TOY FACTORY - POPPY PLAYTIME', url: 'https://www.youtube.com/watch?v=8J_zM1zYsHg', duration: 1456, category: 3, views: 9800000 },
+    { title: 'WORST JUMPSCARE IN YEARS - FEARS TO FATHOM', url: 'https://www.youtube.com/watch?v=fgMqIlgXlyI&pp=0gcJCQQLAYcqIYzv', duration: 2100, category: 3, views: 21000000 },
+    { title: 'THIS GAME IS FOR KIDS?? - AMANDA THE ADVENTURE', url: 'https://www.youtube.com/watch?v=tiOrbqx62O4', duration: 2341, category: 3, views: 14000000 },
+    { title: 'I GOT JUMP BY THE JOY GANG - DARK DECEPTION', url: 'https://www.youtube.com/watch?v=VP6BESB8ZAQ', duration: 1678, category: 3, views: 11000000 },
+    { title: 'MY PYSCHO EX-GIRLFRIEND WANTS ME DEAD - CRIMSON SNOW', url: 'https://www.youtube.com/watch?v=Cd7HxTIZHy8', duration: 1234, category: 3, views: 16000000 },
+    { title: 'SCARIED SUMMER JOB EVER - THE BATHHOUSE', url: 'https://www.youtube.com/watch?v=7st6VbU7PoY', duration: 3456, category: 3, views: 8900000 },
+    { title: 'CHOO-CHOO CHARLES WHY DID I DOWNLOAD THIS GAME', url: 'https://www.youtube.com/watch?v=oxDhb6q9qmM', duration: 2890, category: 3, views: 12000000 },
+    { title: 'THE MOST DISRESPECTFUL JUMPSCARE EVER', url: 'https://www.youtube.com/watch?v=KZHmKPpWg2E', duration: 1876, category: 3, views: 7600000 },
+    { title: 'CRAB GAME HAVE ME IN TEARS', url: 'https://www.youtube.com/watch?v=tq5QOPi-v1U', duration: 2567, category: 3, views: 9200000 },
 
-  // BilalPlays — Gaming (cat 3)
-  { title: 'GTA 5 Epic Moments Compilation',                     url: 'https://www.youtube.com/watch?v=QdBZExpgErs', duration: 1823, category: 3, views: 98400  },
-  { title: 'Valorant Ace Highlights',                            url: 'https://www.youtube.com/watch?v=e_E9W2vsRbQ', duration: 1241, category: 3, views: 54300  },
-  { title: 'Best Gaming Setup Tour 2024',                        url: 'https://www.youtube.com/watch?v=oaAeAhi-0-M', duration: 1102, category: 3, views: 38700  },
-  { title: 'FIFA 25 Ultimate Team Guide',                        url: 'https://www.youtube.com/watch?v=qlOAbrvjMBo', duration: 1890, category: 3, views: 27600  },
-  { title: 'Top 10 PC Games of 2024',                            url: 'https://www.youtube.com/watch?v=kkPNgxmAnNE', duration: 876,  category: 3, views: 44100  },
+    // KendrickLamarVEVO — Music (cat 4)
+    { title: 'Kendrick Lamar — HUMBLE (Official Video)', url: 'https://www.youtube.com/watch?v=tvTRZJ-4EyI', duration: 214, category: 4, views: 800000000 },
+    { title: 'Kendrick Lamar — DNA (Official Video)', url: 'https://www.youtube.com/watch?v=NLZRYQMLDW4&pp=0gcJCQQLAYcqIYzv', duration: 205, category: 4, views: 450000000 },
+    { title: 'Kendrick Lamar — Not Like Us (Official Video)', url: 'https://www.youtube.com/watch?v=T6eK-2OQtew', duration: 274, category: 4, views: 350000000 },
+    { title: 'Kendrick Lamar — Swimming Pools Drank', url: 'https://www.youtube.com/watch?v=B5YNiCfWC3A', duration: 321, category: 4, views: 280000000 },
+    { title: 'Kendrick Lamar — Alright (Official Video)', url: 'https://www.youtube.com/watch?v=Z-48u_uWMHY', duration: 248, category: 4, views: 190000000 },
+    { title: 'Kendrick Lamar — LOYALTY ft Rihanna', url: 'https://www.youtube.com/watch?v=Dlh-dzB2U4Y', duration: 223, category: 4, views: 520000000 },
+    { title: 'Kendrick Lamar — King Kunta', url: 'https://www.youtube.com/watch?v=hRK7PVJFbS8', duration: 234, category: 4, views: 180000000 },
+    { title: 'Kendrick Lamar — LOVE ft Zacari', url: 'https://www.youtube.com/watch?v=ox7RsX1Ee34&pp=0gcJCQQLAYcqIYzv', duration: 215, category: 4, views: 310000000 },
+    { title: 'Kendrick Lamar, SZA — All the Stars', url: 'https://www.youtube.com/watch?v=JQbjS0_ZfJ0', duration: 267, category: 4, views: 120000000 },
+    { title: 'Kendrick Lamar — N95 (Official Video)', url: 'https://www.youtube.com/watch?v=zI383uEwA6Q', duration: 256, category: 4, views: 95000000 },
 
-  // AyeshaLearn — Education (cat 2)
-  { title: 'How to Start Freelancing',                           url: 'https://www.youtube.com/watch?v=_uQrJ0TkZlc', duration: 2145, category: 2, views: 71400  },
-  { title: 'Python for Beginners Full Course',                   url: 'https://www.youtube.com/watch?v=rfscVS0vtbw', duration: 3456, category: 2, views: 56800  },
-  { title: 'SQL Database Full Course',                           url: 'https://www.youtube.com/watch?v=HXV3zeQKqGY', duration: 5400, category: 2, views: 48900  },
-  { title: 'How to Get Your First Tech Job',                     url: 'https://www.youtube.com/watch?v=Reh734gzyk8', duration: 1876, category: 2, views: 39200  },
-  { title: 'Web Development Roadmap 2024',                       url: 'https://www.youtube.com/watch?v=ysEN5RaKOlA', duration: 2341, category: 2, views: 33200  },
+    // Tampad — Sports (cat 6)
+    { title: 'AUSTRALIA VS PAKISTAN | 3rd ODI', url: 'https://www.youtube.com/watch?v=QmbuF1-j0wQ', duration: 1876, category: 6, views: 8900000 },
+    { title: 'AUSTRALIA VS PAKISTAN | 2nd ODI', url: 'https://www.youtube.com/watch?v=-RdOEjdH3g8', duration: 2341, category: 6, views: 12000000 },
+    { title: 'WEST INDIES VS PAKISTAN | 1st ODI', url: 'https://www.youtube.com/watch?v=pE0QwBgl-LM', duration: 1456, category: 6, views: 14000000 },
+    { title: 'INDIA VS ENGLAND | 5th T20i', url: 'https://www.youtube.com/watch?v=r1VgelUBUiE', duration: 1234, category: 6, views: 7600000 },
+    { title: 'WEST INDIES VS PAKISTAN | 3rd T20i', url: 'https://www.youtube.com/watch?v=o46Tk47_O40', duration: 987, category: 6, views: 9800000 },
+    { title: 'INDIA VS SOUTH AFRICA | 2nd ODI', url: 'https://www.youtube.com/watch?v=bGz-L9D4oaE', duration: 1678, category: 6, views: 11000000 },
+    { title: 'NEW ZEALAND VS INDIA | 3rd ODI', url: 'https://www.youtube.com/watch?v=KNRQCSriq8o', duration: 2100, category: 6, views: 16000000 },
+    { title: 'BANGLADESH VS WEST INDIES | 1st ODI', url: 'https://www.youtube.com/watch?v=oxokic7ihEY', duration: 1345, category: 6, views: 6700000 },
+    { title: 'AUSTRALIA VS INDIA | 2nd T20i', url: 'https://www.youtube.com/watch?v=MkismjsCSp8', duration: 1102, category: 6, views: 8100000 },
+    { title: 'BANGLADESH VS PAKISTAN | 1st T20i', url: 'https://www.youtube.com/watch?v=NF_PG6xI8RA', duration: 1567, category: 6, views: 5600000 },
 
-  // UsmanSports — Sports (cat 6)
-  { title: 'Pakistan Cricket Best Moments',                      url: 'https://www.youtube.com/watch?v=2pjxPR36qpU', duration: 1456, category: 6, views: 187000 },
-  { title: 'Babar Azam Best Centuries',                          url: 'https://www.youtube.com/watch?v=vE0dOlFGeU4', duration: 923,  category: 6, views: 93400  },
-  { title: 'Champions League Best Goals',                        url: 'https://www.youtube.com/watch?v=zeBRIZfNVKU', duration: 1678, category: 6, views: 145000 },
-  { title: 'Top 10 Cricket Catches Ever',                        url: 'https://www.youtube.com/watch?v=QRbMCNqtMVg', duration: 1234, category: 6, views: 67800  },
-  { title: 'Fastest Centuries in Cricket History',               url: 'https://www.youtube.com/watch?v=Rz4JCNYHNIY', duration: 2100, category: 6, views: 112000 },
+    // CarryMinati — Comedy (cat 7)
+    { title: 'MR BEAST PARODY', url: 'https://www.youtube.com/watch?v=m9s1NQG3TNY', duration: 1234, category: 7, views: 160000000 },
+    { title: 'DAILY VOLGERS PARODY', url: 'https://www.youtube.com/watch?v=5XVoRGhrhZk', duration: 267, category: 7, views: 130000000 },
+    { title: 'BIG BOSS BIG BOSS BIG BOSS | ROAST ', url: 'https://www.youtube.com/watch?v=9DAKh_XCk6g', duration: 987, category: 7, views: 45000000 },
+    { title: 'THARA BHAIIIIIIIII', url: 'https://www.youtube.com/watch?v=0jUj3rfO7eM', duration: 654, category: 7, views: 38000000 },
+    { title: 'VADA PAV AUR CHAI', url: 'https://www.youtube.com/watch?v=WX7DBPcsiEs', duration: 1102, category: 7, views: 52000000 },
+    { title: 'FLIM THE FLARE', url: 'https://www.youtube.com/watch?v=GOFQN8otiYs', duration: 876, category: 7, views: 29000000 },
+    { title: 'INDIAN FOOD MAGIC', url: 'https://www.youtube.com/watch?v=-LIMVVfRp6Q', duration: 1345, category: 7, views: 34000000 },
+    { title: 'MOTIVATIONAL SPEAKER PARODY', url: 'https://www.youtube.com/watch?v=P8P_S1Fjl_Q', duration: 923, category: 7, views: 41000000 },
+    { title: 'LADIKYON KE BEST FRIEND', url: 'https://www.youtube.com/watch?v=l6BChpns5w8', duration: 1456, category: 7, views: 27000000 },
+    { title: 'MAGGIE KHAO BODY BANAO', url: 'https://www.youtube.com/watch?v=IoTL9xZOdP0&pp=0gcJCQQLAYcqIYzv', duration: 1678, category: 7, views: 33000000 },
 
-  // JamesTechWorld — Technology (cat 1)
-  { title: 'Every AI Tool Ranked in 2024',                       url: 'https://www.youtube.com/watch?v=bSXFyFT9Jgs', duration: 1876, category: 1, views: 234000 },
-  { title: 'Apple Vision Pro Honest Review',                     url: 'https://www.youtube.com/watch?v=TX9qSaGXFyg', duration: 1234, category: 1, views: 189000 },
-  { title: 'Best Tech of 2024 So Far',                           url: 'https://www.youtube.com/watch?v=1ZdlAg3j8nI', duration: 2341, category: 1, views: 312000 },
-  { title: 'Tesla Full Self Driving Review',                     url: 'https://www.youtube.com/watch?v=L4Gt8qIAByI', duration: 987,  category: 1, views: 445000 },
-  { title: 'MacBook Pro M3 Max Review',                          url: 'https://www.youtube.com/watch?v=OAd2Al_yBkQ', duration: 1543, category: 1, views: 267000 },
+    // Hassan Junejo — Vlogs (cat 5)
+    { title: 'WHY I SOLD MY R1 AND GOT A CAR', url: 'https://www.youtube.com/watch?v=xahHKydYlO4', duration: 2341, category: 5, views: 8900000 },
+    { title: 'MY NEW car... is not A CAR!', url: 'https://www.youtube.com/watch?v=rnBMXZbg6Qc', duration: 1876, category: 5, views: 6700000 },
+    { title: 'MISSION BABY BULL', url: 'https://www.youtube.com/watch?v=_GUu4ZWw8mg', duration: 2100, category: 5, views: 5400000 },
+    { title: 'CHEAT DAY in Broadway', url: 'https://www.youtube.com/watch?v=Vjf5FsjiL70', duration: 3241, category: 5, views: 7800000 },
+    { title: 'BABAR AZAM in BIRMINGHAM', url: 'https://www.youtube.com/watch?v=1eaWkcvlaaE', duration: 1456, category: 5, views: 4300000 },
+    { title: 'THE STORY OF KARACHI BURGER', url: 'https://www.youtube.com/watch?v=XDSdyeenSgw', duration: 1823, category: 5, views: 5100000 },
+    { title: 'LONDON KE SHER', url: 'https://www.youtube.com/watch?v=L0C9zh9k5yM', duration: 1987, category: 5, views: 3800000 },
+    { title: '21 DAYS without SUGAR', url: 'https://www.youtube.com/watch?v=Zu-_UdbkXUU&pp=0gcJCQQLAYcqIYzv', duration: 1234, category: 5, views: 4600000 },
+    { title: 'SMART DIRECTOR BOY', url: 'https://www.youtube.com/watch?v=l5kzn4Fs0x4', duration: 2567, category: 5, views: 6200000 },
+    { title: 'WHEN TO ACT ON IDEAS', url: 'https://www.youtube.com/watch?v=TFij6In-6MU', duration: 1678, category: 5, views: 9100000 },
 
-  // EmilyLifestyle — Vlogs (cat 5)
-  { title: 'Week in New York City Vlog',                         url: 'https://www.youtube.com/watch?v=ZP2sOFCdAkk', duration: 1823, category: 5, views: 156000 },
-  { title: 'Solo Trip to Japan Full Vlog',                       url: 'https://www.youtube.com/watch?v=0u3Zd9TUiS4', duration: 3241, category: 5, views: 298000 },
-  { title: 'London Apartment Tour',                              url: 'https://www.youtube.com/watch?v=VNaGCsiF4Cs', duration: 1102, category: 5, views: 87000  },
-  { title: '48 Hours in Paris Vlog',                             url: 'https://www.youtube.com/watch?v=RQgBRfXhIoQ', duration: 2100, category: 5, views: 203000 },
-  { title: '30 Day Digital Detox Results',                       url: 'https://www.youtube.com/watch?v=K3RuMiZGj0Q', duration: 1456, category: 5, views: 134000 },
-
-  // MarcusGaming — Gaming (cat 3)
-  { title: 'Overwatch 2 Top 500 Guide',                          url: 'https://www.youtube.com/watch?v=crln-p6M-Y4', duration: 2890, category: 3, views: 178000 },
-  { title: 'Minecraft Survival Tips 2024',                       url: 'https://www.youtube.com/watch?v=w8Aa8HTJFAQ', duration: 1654, category: 3, views: 312000 },
-  { title: 'Best Games of 2024 Ranked',                          url: 'https://www.youtube.com/watch?v=_n9iSFE3DnQ', duration: 1234, category: 3, views: 567000 },
-  { title: 'Ultimate Gaming PC Build Guide',                     url: 'https://www.youtube.com/watch?v=K-HMIB_KAK0', duration: 1876, category: 3, views: 234000 },
-  { title: 'Call of Duty All Games Ranked',                      url: 'https://www.youtube.com/watch?v=eBGIQ7ZuuiU', duration: 2400, category: 3, views: 189000 },
-
-  // PriyaEducates — Education (cat 2)
-  { title: 'How I Got Hired at Google',                          url: 'https://www.youtube.com/watch?v=hsSK94kB9ak', duration: 2341, category: 2, views: 445000 },
-  { title: 'Machine Learning Full Course',                       url: 'https://www.youtube.com/watch?v=GwIo3gDZCVQ', duration: 7200, category: 2, views: 567000 },
-  { title: 'React vs Next.js — Which to Learn',                  url: 'https://www.youtube.com/watch?v=T2uKprwHHXU', duration: 1456, category: 2, views: 234000 },
-  { title: 'I Studied 12 Hours Daily for 30 Days',               url: 'https://www.youtube.com/watch?v=E5uYOdSfHts', duration: 1102, category: 2, views: 312000 },
-  { title: 'Highest Paying Tech Jobs 2024',                      url: 'https://www.youtube.com/watch?v=9GXMVTzFjp4', duration: 987,  category: 2, views: 389000 },
-
-  // CarlosSports — Sports (cat 6)
-  { title: 'World Cup 2026 Best Goals',                          url: 'https://www.youtube.com/watch?v=KXa_Os7STeA', duration: 3456, category: 6, views: 789000 },
-  { title: 'LeBron vs Jordan GOAT Debate',                       url: 'https://www.youtube.com/watch?v=JNNzKwDGIAI', duration: 1876, category: 6, views: 456000 },
-  { title: 'Messi Career Best Goals',                            url: 'https://www.youtube.com/watch?v=yDFTcjP3lMo', duration: 2341, category: 6, views: 623000 },
-  { title: 'NBA Finals 2024 Best Plays',                         url: 'https://www.youtube.com/watch?v=sZmvMpFzrZg', duration: 1654, category: 6, views: 891000 },
-  { title: 'Craziest Sports Moments 2024',                       url: 'https://www.youtube.com/watch?v=KzJHHMm6mVo', duration: 2890, category: 6, views: 534000 },
-
-  // ZaraMusicOfficial — Music (cat 4)
-  { title: 'Tum Hi Ho — Cover Song',                             url: 'https://www.youtube.com/watch?v=Umqb9KENgmk', duration: 312,  category: 4, views: 234000 },
-  { title: 'Pakistani OST Medley 2024',                          url: 'https://www.youtube.com/watch?v=3AtDnEC4zak', duration: 1823, category: 4, views: 189000 },
-  { title: 'How I Make Music at Home Studio',                    url: 'https://www.youtube.com/watch?v=GtzTM4WTVOQ', duration: 1456, category: 4, views: 98000  },
-  { title: 'Acoustic Live Session — 5 Songs',                    url: 'https://www.youtube.com/watch?v=450p7goxZqg', duration: 2341, category: 4, views: 145000 },
-  { title: 'Best Pakistani Songs 2024',                          url: 'https://www.youtube.com/watch?v=aBkTkxKDduc', duration: 987,  category: 4, views: 312000 },
-
-  // TylerComedy — Comedy (cat 7)
-  { title: 'Types of People at the Airport',                     url: 'https://www.youtube.com/watch?v=FqkqAFKJDOc', duration: 743,  category: 7, views: 456000 },
-  { title: 'Asking Strangers Random Questions',                  url: 'https://www.youtube.com/watch?v=BKAbQjKNMFI', duration: 623,  category: 7, views: 789000 },
-  { title: 'Stand Up Comedy Special 2024',                       url: 'https://www.youtube.com/watch?v=3HRcTukMkMk', duration: 3600, category: 7, views: 234000 },
-  { title: 'Roasting Social Media Trends',                       url: 'https://www.youtube.com/watch?v=Gg3DOW7aFgE', duration: 912,  category: 7, views: 567000 },
-  { title: 'Growing Up in the 2000s — Comedy',                   url: 'https://www.youtube.com/watch?v=F87pTnECRs0', duration: 834,  category: 7, views: 891000 },
-
-  // AmirFunny — Comedy (cat 7)
-  { title: 'Roasting Desi Drama Clichés',                        url: 'https://www.youtube.com/watch?v=p17An7FvqbQ', duration: 1102, category: 7, views: 312000 },
-  { title: 'Types of Students in Every University',              url: 'https://www.youtube.com/watch?v=lOfZLb33uCg', duration: 876,  category: 7, views: 445000 },
-  { title: 'Desi Parents vs Western Parents',                    url: 'https://www.youtube.com/watch?v=yJQ1A2PBbGw', duration: 743,  category: 7, views: 678000 },
-  { title: 'Pakistani Student Life Abroad',                      url: 'https://www.youtube.com/watch?v=ZAeNqSFJFyI', duration: 1234, category: 7, views: 234000 },
-  { title: 'Things Every Desi Can Relate To',                    url: 'https://www.youtube.com/watch?v=fA3TQNB3q0w', duration: 923,  category: 7, views: 567000 },
-
-  // SofiaMusic — Music (cat 4)
-  { title: 'Adele Hello — Piano Cover',                          url: 'https://www.youtube.com/watch?v=YQHsXMglC9A', duration: 287,  category: 4, views: 1200000 },
-  { title: 'How to Improve Your Voice in 30 Days',               url: 'https://www.youtube.com/watch?v=7PCkvCPvDXk', duration: 1456, category: 4, views: 345000  },
-  { title: 'Writing My First Original Song',                     url: 'https://www.youtube.com/watch?v=OPf0YbXqDm0', duration: 1823, category: 4, views: 234000  },
-  { title: 'Reacting to My Old Covers',                          url: 'https://www.youtube.com/watch?v=hT_nvWreIhg', duration: 1102, category: 4, views: 189000  },
-  { title: 'Best Pop Songs of 2024 — My Ranking',               url: 'https://www.youtube.com/watch?v=kJQP7kiw5Fk', duration: 1234, category: 4, views: 456000  },
+    // CodeWithHarry — Education (cat 2)
+    { title: 'Python tutorial for beginners in Hindi', url: 'https://www.youtube.com/watch?v=gfDE2a7MKjA', duration: 14400, category: 2, views: 12000000 },
+    { title: 'Web development full course — Hindi', url: 'https://www.youtube.com/watch?v=6mbwJ2xhgzM', duration: 18000, category: 2, views: 8900000 },
+    { title: 'Java tutorial for beginners — Complete course', url: 'https://www.youtube.com/watch?v=ntLJmHOJ0ME', duration: 16200, category: 2, views: 6700000 },
+    { title: 'How to become a full stack developer in 2024', url: 'https://www.youtube.com/watch?v=ysEN5RaKOlA', duration: 2341, category: 2, views: 5400000 },
+    { title: 'Django tutorial for beginners — Build a website', url: 'https://www.youtube.com/watch?v=T1intZyhXDU', duration: 7200, category: 2, views: 4300000 },
+    { title: 'C++ full course for beginners — Hindi', url: 'https://www.youtube.com/watch?v=j8nAHeVKL08', duration: 21600, category: 2, views: 7800000 },
+    { title: 'JavaScript course in Hindi — Sigma batch', url: 'https://www.youtube.com/watch?v=chx9Rs41W6g', duration: 10800, category: 2, views: 9200000 },
+    { title: 'Data structures and algorithms in Python', url: 'https://www.youtube.com/watch?v=pkYVOmU3MgA', duration: 9000, category: 2, views: 3800000 },
+    { title: 'Learing Coding and Getting a JOB in 2026', url: 'https://www.youtube.com/watch?v=YBB3GbluHjA', duration: 1876, category: 2, views: 2900000 },
+    { title: 'MySQL complete tutorial for beginners', url: 'https://www.youtube.com/watch?v=HXV3zeQKqGY', duration: 3600, category: 2, views: 5100000 },
 ];
 
 async function seed() {
@@ -144,7 +123,7 @@ async function seed() {
             db.query(
                 `INSERT IGNORE INTO creator (UserId, ChannelName, Bio, TotalSubscribers, TotalViews)
                  VALUES (?, ?, ?, ?, 0)`,
-                [userRow.Id, c.channel, c.bio, Math.floor(Math.random() * 500000) + 10000],
+                [userRow.Id, c.channel, c.bio, Math.floor(Math.random() * 20000000) + 1000000],
                 (err, result) => err ? reject(err) : resolve(result)
             );
         });
@@ -155,19 +134,17 @@ async function seed() {
             );
         });
 
-        const myVideos = videoData.slice(i * 5, i * 5 + 5);
+        const myVideos = videoData.slice(i * 10, i * 10 + 10);
         for (const v of myVideos) {
             const videoResult = await new Promise((resolve, reject) => {
                 db.query(
                     `INSERT INTO video (CreatorId, CategoryId, Title, VideoUrl, Duration, Views, Status, UploadDate)
                      VALUES (?, ?, ?, ?, ?, ?, 'Published', DATE_SUB(NOW(), INTERVAL ? DAY))`,
                     [creatorRow.Id, v.category, v.title, v.url, v.duration, v.views,
-                     Math.floor(Math.random() * 90) + 1],
+                    Math.floor(Math.random() * 365) + 1],
                     (err, result) => err ? reject(err) : resolve(result)
                 );
             });
-
-            const videoId = videoResult.insertId;
 
             await new Promise((resolve) => {
                 db.query('UPDATE creator SET TotalViews = TotalViews + ? WHERE Id = ?',
@@ -175,11 +152,10 @@ async function seed() {
                 );
             });
         }
-
-        console.log(`✅ ${c.channel} (${c.country}) — 5 videos added`);
+        console.log(`✅ ${c.channel} — 10 videos added`);
     }
 
-    console.log('\n🎉 Seed complete! 14 creators and 70 videos added.');
+    console.log('\n🎉 Done! 7 creators and 70 videos added.');
     process.exit();
 }
 

@@ -1,148 +1,348 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Binge — Watch History</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="shortcut icon" href="/favicon.ico">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="/binge.css">
+  <style>
+    body.light { background-color: #f0f4f8; color: #334155; }
+    body.light .bg-gray-950 { background-color: #ffffff !important; }
+    body.light .bg-gray-900 { background-color: #f8fafc !important; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    body.light .bg-gray-800 { background-color: #e8edf5 !important; }
+    body.light .bg-gray-700 { background-color: #d5dcea !important; }
+    body.light .text-white  { color: #0f172a !important; }
+    body.light .text-gray-100 { color: #0f172a !important; }
+    body.light .text-gray-200 { color: #1e293b !important; }
+    body.light .text-gray-300 { color: #334155 !important; }
+    body.light .text-gray-400 { color: #475569 !important; }
+    body.light .text-gray-500 { color: #64748b !important; }
+    body.light .text-gray-600 { color: #8896aa !important; }
+    body.light .border-gray-700 { border-color: #d1dce9 !important; }
+    body.light .border-gray-800 { border-color: #e2eaf3 !important; }
+    body.light .border-gray-900 { border-color: #f0f4f8 !important; }
+    body.light .hover\:bg-gray-800:hover { background-color: #e8edf5 !important; }
+    body.light .hover\:bg-gray-700:hover { background-color: #d5dcea !important; }
+    body.light .hover\:text-white:hover  { color: #0f172a !important; }
+    body.light nav.sticky { box-shadow: 0 1px 8px rgba(0,0,0,0.09); }
+    body.light #sidebar { background-color: #f8fafc !important; border-right-color: #e2eaf3 !important; }
+    body.light #profileDropdown { box-shadow: 0 8px 32px rgba(0,0,0,0.14) !important; }
+    body.light input::placeholder { color: #94a3b8 !important; }
+    /* History card hover to reveal remove btn */
+    .history-card .remove-btn { opacity: 0; transition: opacity 0.15s; }
+    .history-card:hover .remove-btn { opacity: 1; }
+  </style>
 </head>
-<body class="bg-gray-950 text-white min-h-screen flex flex-col">
+<body class="bg-gray-950 text-white h-full flex flex-col overflow-hidden">
 
   <!-- Navbar -->
-  <nav class="bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center justify-between sticky top-0 z-50">
-    <div class="flex items-center gap-3">
-      <a href="/viewer/home" class="flex items-center gap-2 text-gray-400 hover:text-white transition">
-        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+  <nav class="sticky bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center gap-4 z-50 w-full flex-shrink-0">
+    <div class="flex items-center gap-3 w-52 flex-shrink-0">
+      <button onclick="toggleSidebar()"
+              class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-800 text-gray-400 hover:text-white transition flex-shrink-0">
+        <i data-lucide="menu" class="w-5 h-5"></i>
+      </button>
+      <a href="/viewer/home" class="flex items-center flex-shrink-0">
+        <img src="/logo.png" alt="Binge" class="h-7 w-auto object-contain"
+             onerror="this.onerror=null;this.src='/logo.svg'">
       </a>
-      <a href="/viewer/home" class="text-xl font-bold text-red-500">Binge</a>
     </div>
-    <div class="relative">
-      <button onclick="toggleProfile()"
-        class="flex items-center gap-2 hover:bg-gray-800 px-3 py-1.5 rounded-full transition">
+    <div class="flex-1 flex gap-2 max-w-2xl mx-auto">
+      <input type="text" id="histSearch" placeholder="Search history..."
+        class="flex-1 bg-gray-900 text-white border border-gray-700 rounded-full px-5 py-2 text-sm focus:outline-none focus:border-red-500 transition"
+        oninput="filterHistory(this.value)"/>
+      <button class="bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-full border border-gray-700 transition flex items-center text-gray-400 hover:text-white">
+        <i data-lucide="search" class="w-4 h-4"></i>
+      </button>
+    </div>
+    <div class="w-52 flex-shrink-0 flex justify-end relative">
+      <button onclick="toggleProfile()" class="flex items-center gap-2 hover:bg-gray-800 px-3 py-1.5 rounded-full transition">
         <div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-red-600 flex items-center justify-center font-bold text-sm">
-          <% if (user.avatar) { %>
-            <img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover">
-          <% } else { %>
-            <%= user.firstName.charAt(0).toUpperCase() %>
-          <% } %>
+          <% if (user.avatar) { %><img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover"><% } else { %><%= user.firstName.charAt(0).toUpperCase() %><% } %>
         </div>
-        <span class="text-white text-sm font-medium hidden sm:block"><%= user.firstName %></span>
+        <span class="text-sm font-medium hidden sm:block"><%= user.firstName %></span>
         <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
       </button>
-      <div id="profileDropdown"
-        class="hidden absolute top-12 right-0 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-56 z-50 overflow-hidden">
+      <div id="profileDropdown" class="hidden absolute top-12 right-0 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-56 z-50 overflow-hidden">
         <div class="px-4 py-3 border-b border-gray-700 flex items-center gap-3">
           <div class="w-10 h-10 rounded-full overflow-hidden bg-red-600 flex items-center justify-center font-bold text-sm">
-            <% if (user.avatar) { %>
-              <img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover">
-            <% } else { %>
-              <%= user.firstName.charAt(0).toUpperCase() %>
-            <% } %>
+            <% if (user.avatar) { %><img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover"><% } else { %><%= user.firstName.charAt(0).toUpperCase() %><% } %>
           </div>
           <div>
-            <p class="text-white text-sm font-semibold"><%= user.firstName %> <%= user.lastName %></p>
+            <p class="text-sm font-semibold"><%= user.firstName %> <%= user.lastName %></p>
             <p class="text-gray-400 text-xs"><%= user.email %></p>
           </div>
         </div>
         <div class="py-1">
-          <a href="/viewer/profile"
-            class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="user-circle" class="w-4 h-4"></i> My Profile
-          </a>
-          <a href="/viewer/history"
-            class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="history" class="w-4 h-4"></i> Watch History
-          </a>
-          <a href="/viewer/playlists"
-            class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="list-music" class="w-4 h-4"></i> Playlists
-          </a>
-          <a href="/viewer/subscriptions"
-            class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="bell" class="w-4 h-4"></i> Subscriptions
-          </a>
+          <a href="/viewer/profile" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition"><i data-lucide="user-circle" class="w-4 h-4"></i> My Profile</a>
+          <a href="/viewer/history" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition"><i data-lucide="history" class="w-4 h-4"></i> Watch History</a>
+          <a href="/viewer/playlists" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition"><i data-lucide="list-music" class="w-4 h-4"></i> Playlists</a>
+          <a href="/viewer/subscriptions" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition"><i data-lucide="bell" class="w-4 h-4"></i> Subscriptions</a>
+          <button onclick="toggleTheme()" class="w-full flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition text-left">
+            <i data-lucide="sun" class="w-4 h-4" id="themeIcon"></i><span id="themeLabel">Light Mode</span>
+          </button>
           <div class="border-t border-gray-700 my-1"></div>
-          <a href="/auth/logout"
-            class="flex items-center gap-3 px-4 py-2.5 text-red-400 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out
-          </a>
+          <a href="/auth/logout" class="flex items-center gap-3 px-4 py-2.5 text-red-400 hover:bg-gray-800 text-sm transition"><i data-lucide="log-out" class="w-4 h-4"></i> Sign Out</a>
         </div>
       </div>
     </div>
   </nav>
 
-  <div class="max-w-4xl mx-auto px-6 py-8 w-full">
+  <div class="flex flex-1 min-h-0">
 
-    <!-- Header -->
-    <div class="flex items-center gap-3 mb-8">
-      <div class="w-10 h-10 bg-blue-600/20 rounded-xl flex items-center justify-center">
-        <i data-lucide="history" class="w-5 h-5 text-blue-400"></i>
-      </div>
-      <div>
-        <h2 class="text-2xl font-bold">Watch History</h2>
-        <p class="text-gray-400 text-sm"><%= history.length %> video<%= history.length !== 1 ? 's' : '' %> watched</p>
-      </div>
-    </div>
-
-    <% if (history.length === 0) { %>
-      <div class="text-center mt-24">
-        <div class="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-          <i data-lucide="clock" class="w-10 h-10 text-gray-600"></i>
-        </div>
-        <h3 class="text-xl font-semibold text-gray-300 mb-2">No watch history yet</h3>
-        <p class="text-gray-500 text-sm mb-6">Videos you watch will appear here</p>
-        <a href="/viewer/home" class="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-full text-sm transition">
-          <i data-lucide="play" class="w-4 h-4"></i> Start Watching
+    <!-- Left nav sidebar -->
+    <aside id="sidebar" class="w-52 flex-shrink-0 bg-gray-950 border-r border-gray-900 overflow-y-auto">
+      <div class="space-y-0.5 px-2 py-4">
+        <a href="/viewer/home"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-800 text-gray-400 hover:text-white text-sm transition">
+          <i data-lucide="home" class="w-4 h-4"></i> Home
         </a>
+        <a href="/viewer/subscriptions"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-800 text-gray-400 hover:text-white text-sm transition">
+          <i data-lucide="bell" class="w-4 h-4"></i> Subscriptions
+        </a>
+        <a href="/viewer/history"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gray-800 text-white text-sm font-semibold">
+          <i data-lucide="history" class="w-4 h-4 text-red-500"></i> History
+        </a>
+        <a href="/viewer/playlists"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-800 text-gray-400 hover:text-white text-sm transition">
+          <i data-lucide="list-music" class="w-4 h-4"></i> Playlists
+        </a>
+
+        <% if (history.length > 0) { %>
+          <div class="border-t border-gray-800 my-3 mx-1"></div>
+          <p class="text-gray-500 text-xs px-3 pt-1 pb-2 uppercase tracking-wider font-medium">Stats</p>
+          <div class="px-3 space-y-2.5 text-xs">
+            <div class="flex justify-between items-center">
+              <span class="text-gray-500">Videos</span>
+              <span class="font-semibold text-white"><%= history.length %></span>
+            </div>
+            <%
+              const totalSecs = history.reduce((acc, v) => acc + (v.Duration * v.CompletionPercent / 100), 0);
+              const hrs  = Math.floor(totalSecs / 3600);
+              const mins = Math.floor((totalSecs % 3600) / 60);
+            %>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-500">Watched</span>
+              <span class="font-semibold text-white"><% if (hrs > 0) { %><%= hrs %>h <%= mins %>m<% } else { %><%= mins %>m<% } %></span>
+            </div>
+            <%
+              const avgC = history.length > 0
+                ? Math.round(history.reduce((a, v) => a + v.CompletionPercent, 0) / history.length)
+                : 0;
+            %>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-500">Avg. done</span>
+              <span class="font-semibold text-white"><%= avgC %>%</span>
+            </div>
+          </div>
+          <div class="px-3 pt-4">
+            <form action="/viewer/history/clear" method="POST"
+                  onsubmit="return confirm('Clear your entire watch history? This cannot be undone.')">
+              <button type="submit"
+                class="w-full flex items-center justify-center gap-2 bg-gray-900 hover:bg-red-900/30 border border-gray-800 hover:border-red-700/50 text-gray-500 hover:text-red-400 py-2.5 rounded-xl text-xs transition">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Clear All
+              </button>
+            </form>
+          </div>
+        <% } %>
       </div>
-    <% } else { %>
-      <div class="space-y-3">
-        <% history.forEach(item => { %>
-          <a href="/viewer/watch/<%= item.VideoId %>"
-             class="flex gap-4 bg-gray-900 hover:bg-gray-800 rounded-2xl p-4 transition group">
+    </aside>
 
-            <!-- Thumbnail -->
-            <div class="w-40 h-24 bg-gray-800 rounded-xl flex items-center justify-center flex-shrink-0 relative overflow-hidden group-hover:brightness-75 transition">
-              <i data-lucide="play-circle" class="w-10 h-10 text-gray-600"></i>
-              <span class="absolute bottom-1.5 right-1.5 bg-black/80 text-white text-xs px-1.5 py-0.5 rounded font-medium">
-                <%= Math.floor(item.Duration/60) %>:<%= String(item.Duration%60).padStart(2,'0') %>
-              </span>
+    <!-- Main content -->
+    <main class="flex-1 overflow-y-auto">
+      <div class="max-w-4xl mx-auto px-6 py-7">
+
+        <!-- Header -->
+        <div class="flex items-center gap-4 mb-7">
+          <div class="w-11 h-11 bg-blue-600/15 rounded-2xl flex items-center justify-center flex-shrink-0">
+            <i data-lucide="history" class="w-5 h-5 text-blue-400"></i>
+          </div>
+          <div>
+            <h1 class="text-xl font-bold">Watch History</h1>
+            <p class="text-gray-500 text-sm mt-0.5">
+              <% if (history.length === 0) { %>Nothing here yet<% } else { %><%= history.length %> video<%= history.length !== 1 ? 's' : '' %><% } %>
+            </p>
+          </div>
+        </div>
+
+        <% if (history.length === 0) { %>
+          <div class="text-center py-24">
+            <div class="w-24 h-24 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-5 border border-gray-800">
+              <i data-lucide="clock" class="w-12 h-12 text-gray-700"></i>
             </div>
+            <h3 class="text-xl font-semibold text-gray-300 mb-2">Nothing here yet</h3>
+            <p class="text-gray-500 text-sm mb-6 max-w-xs mx-auto">Videos you watch will appear here so you can pick up where you left off.</p>
+            <a href="/viewer/home"
+               class="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-full text-sm font-semibold transition">
+              <i data-lucide="play" class="w-4 h-4"></i> Start Watching
+            </a>
+          </div>
 
-            <!-- Info -->
-            <div class="flex-1 min-w-0">
-              <h3 class="font-semibold text-sm line-clamp-2 mb-1 group-hover:text-red-400 transition"><%= item.Title %></h3>
-              <p class="text-gray-400 text-xs flex items-center gap-1 mb-1">
-                <i data-lucide="user" class="w-3 h-3"></i> <%= item.ChannelName %>
-              </p>
-              <p class="text-gray-500 text-xs flex items-center gap-1 mb-3">
-                <i data-lucide="eye" class="w-3 h-3"></i> <%= item.Views.toLocaleString() %> views
-              </p>
+        <% } else { %>
+          <%
+            const groups = {};
+            const ORDER  = ['Today', 'Yesterday', 'This Week', 'Older'];
+            history.forEach(item => {
+              const d         = new Date(item.WatchedAt);
+              const now       = new Date();
+              const today     = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+              const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+              const weekAgo   = new Date(today); weekAgo.setDate(weekAgo.getDate() - 7);
+              const itemDay   = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+              let label = 'Older';
+              if (itemDay.getTime() === today.getTime())         label = 'Today';
+              else if (itemDay.getTime() === yesterday.getTime()) label = 'Yesterday';
+              else if (itemDay >= weekAgo)                        label = 'This Week';
+              if (!groups[label]) groups[label] = [];
+              groups[label].push(item);
+            });
+          %>
 
-              <!-- Progress bar -->
-              <div class="flex items-center gap-2">
-                <div class="flex-1 bg-gray-700 rounded-full h-1">
-                  <div class="bg-red-500 h-1 rounded-full transition-all" style="width: <%= item.CompletionPercent %>%"></div>
-                </div>
-                <span class="text-gray-500 text-xs w-8 text-right"><%= Math.round(item.CompletionPercent) %>%</span>
-              </div>
-            </div>
+          <div id="historyList" class="space-y-8">
+            <% ORDER.forEach(label => { %>
+              <% if (groups[label] && groups[label].length > 0) { %>
+                <section>
+                  <div class="flex items-center gap-3 mb-4">
+                    <span class="text-xs font-bold uppercase tracking-widest text-gray-500"><%= label %></span>
+                    <div class="flex-1 h-px bg-gray-800"></div>
+                    <span class="text-xs text-gray-600"><%= groups[label].length %> video<%= groups[label].length !== 1 ? 's' : '' %></span>
+                  </div>
+                  <div class="space-y-2">
+                    <% groups[label].forEach(item => { %>
+                      <div class="history-card flex gap-4 bg-gray-900 hover:bg-gray-800/80 rounded-2xl p-3 group border border-transparent hover:border-gray-700/50 transition"
+                           data-title="<%= item.Title.toLowerCase() %>">
 
-            <!-- Date -->
-            <div class="flex-shrink-0 text-right">
-              <p class="text-gray-500 text-xs flex items-center gap-1">
-                <i data-lucide="clock" class="w-3 h-3"></i>
-                <%= new Date(item.WatchedAt).toLocaleDateString() %>
-              </p>
-            </div>
+                        <!-- Thumbnail -->
+                        <a href="/viewer/watch/<%= item.VideoId %>"
+                           class="w-44 flex-shrink-0 relative rounded-xl overflow-hidden block" style="height:6.5rem">
+                          <% if (item.thumbnail) { %>
+                            <img src="<%= item.thumbnail %>" alt="<%= item.Title %>"
+                                 class="w-full h-full object-cover group-hover:brightness-90 transition duration-300"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="absolute inset-0 items-center justify-center bg-gray-800" style="display:none">
+                              <i data-lucide="play-circle" class="w-10 h-10 text-gray-600"></i>
+                            </div>
+                          <% } else { %>
+                            <div class="w-full h-full flex items-center justify-center bg-gray-800">
+                              <i data-lucide="play-circle" class="w-10 h-10 text-gray-600"></i>
+                            </div>
+                          <% } %>
+                          <span class="absolute bottom-1.5 right-1.5 bg-black/80 text-white text-xs px-1.5 py-0.5 rounded font-medium">
+                            <%= Math.floor(item.Duration/60) %>:<%= String(item.Duration%60).padStart(2,'0') %>
+                          </span>
+                          <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-700">
+                            <div class="h-full bg-red-500 rounded-full" style="width:<%= Math.min(item.CompletionPercent,100) %>%"></div>
+                          </div>
+                          <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                            <div class="w-10 h-10 bg-red-600/90 rounded-full flex items-center justify-center scale-90 group-hover:scale-100 transition">
+                              <i data-lucide="play" class="w-4 h-4 text-white ml-0.5"></i>
+                            </div>
+                          </div>
+                        </a>
 
-          </a>
-        <% }) %>
+                        <!-- Info -->
+                        <a href="/viewer/watch/<%= item.VideoId %>" class="flex-1 min-w-0 py-0.5">
+                          <h3 class="font-semibold text-sm line-clamp-2 leading-snug mb-1.5 group-hover:text-red-400 transition">
+                            <%= item.Title %>
+                          </h3>
+                          <p class="text-gray-400 text-xs flex items-center gap-1.5 mb-1">
+                            <i data-lucide="user" class="w-3 h-3 flex-shrink-0"></i>
+                            <span class="truncate"><%= item.ChannelName %></span>
+                          </p>
+                          <p class="text-gray-500 text-xs flex items-center gap-1.5 mb-2.5">
+                            <i data-lucide="eye" class="w-3 h-3 flex-shrink-0"></i>
+                            <%= formatViews(item.Views) %> views
+                          </p>
+                          <div class="flex items-center gap-2">
+                            <div class="w-20 bg-gray-700 rounded-full h-1">
+                              <div class="bg-red-500 h-1 rounded-full" style="width:<%= Math.min(item.CompletionPercent,100) %>%"></div>
+                            </div>
+                            <span class="text-gray-500 text-xs"><%= Math.round(item.CompletionPercent) %>%</span>
+                            <% if (item.CompletionPercent < 95) { %>
+                              <span class="text-blue-400 text-xs">· <%= Math.ceil(item.Duration*(1-item.CompletionPercent/100)/60) %> min left</span>
+                            <% } else { %>
+                              <span class="text-green-400 text-xs">· Completed</span>
+                            <% } %>
+                          </div>
+                        </a>
+
+                        <!-- Date + remove -->
+                        <div class="flex flex-col items-end justify-between flex-shrink-0 py-0.5">
+                          <form action="/viewer/history/delete" method="POST">
+                            <input type="hidden" name="videoId" value="<%= item.VideoId %>">
+                            <button type="submit" title="Remove from history"
+                              class="remove-btn p-1.5 text-gray-600 hover:text-red-400 hover:bg-gray-700 rounded-lg transition">
+                              <i data-lucide="x" class="w-4 h-4"></i>
+                            </button>
+                          </form>
+                          <p class="text-gray-600 text-xs">
+                            <%= timeAgo(item.WatchedAt) %>
+                          </p>
+                        </div>
+
+                      </div>
+                    <% }) %>
+                  </div>
+                </section>
+              <% } %>
+            <% }) %>
+          </div>
+        <% } %>
       </div>
-    <% } %>
+    </main>
   </div>
 
-  <script>lucide.createIcons();</script>
+  <script>
+    lucide.createIcons();
+
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('hidden'); }
+    function toggleProfile()  { document.getElementById('profileDropdown').classList.toggle('hidden'); }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#profileDropdown') && !e.target.closest('[onclick="toggleProfile()"]')) {
+        document.getElementById('profileDropdown')?.classList.add('hidden');
+      }
+    });
+
+    function filterHistory(query) {
+      const q = query.toLowerCase().trim();
+      document.querySelectorAll('.history-card').forEach(card => {
+        card.style.display = (!q || card.dataset.title.includes(q)) ? '' : 'none';
+      });
+      document.querySelectorAll('#historyList section').forEach(section => {
+        const visible = [...section.querySelectorAll('.history-card')].some(c => c.style.display !== 'none');
+        section.style.display = visible ? '' : 'none';
+      });
+    }
+
+    function applyTheme(t) {
+      const icon  = document.getElementById('themeIcon');
+      const label = document.getElementById('themeLabel');
+      if (t === 'light') {
+        document.body.classList.add('light');
+        if (icon)  icon.setAttribute('data-lucide', 'moon');
+        if (label) label.textContent = 'Dark Mode';
+      } else {
+        document.body.classList.remove('light');
+        if (icon)  icon.setAttribute('data-lucide', 'sun');
+        if (label) label.textContent = 'Light Mode';
+      }
+      lucide.createIcons();
+    }
+    function toggleTheme() {
+      const next = localStorage.getItem('binge_theme') === 'light' ? 'dark' : 'light';
+      localStorage.setItem('binge_theme', next);
+      applyTheme(next);
+    }
+    applyTheme(localStorage.getItem('binge_theme') || 'dark');
+  </script>
 </body>
 </html>

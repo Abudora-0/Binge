@@ -27,6 +27,31 @@ app.use(session({
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
 
+// ── Template helpers (available in all EJS views) ─────────────────────────────
+app.locals.formatViews = function(n) {
+  if (!n || isNaN(n)) return '0';
+  n = Number(n);
+  if (n >= 1e9) return (n / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
+  if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+  return n.toString();
+};
+
+app.locals.timeAgo = function(date) {
+  if (!date) return '';
+  const now  = new Date();
+  const d    = new Date(date);
+  const diff = Math.floor((now - d) / 1000);
+  if (diff < 60)       return 'just now';
+  if (diff < 3600)   { const m  = Math.floor(diff / 60);           return m  + ' minute' + (m  > 1 ? 's' : '') + ' ago'; }
+  if (diff < 86400)  { const h  = Math.floor(diff / 3600);         return h  + ' hour'   + (h  > 1 ? 's' : '') + ' ago'; }
+  if (diff < 604800) { const dd = Math.floor(diff / 86400);        return dd + ' day'    + (dd > 1 ? 's' : '') + ' ago'; }
+  if (diff < 2592000){ const w  = Math.floor(diff / 604800);       return w  + ' week'   + (w  > 1 ? 's' : '') + ' ago'; }
+  if (diff < 31536000){ const mo = Math.floor(diff / 2592000);     return mo + ' month'  + (mo > 1 ? 's' : '') + ' ago'; }
+  const yr = Math.floor(diff / 31536000);                           return yr + ' year'   + (yr > 1 ? 's' : '') + ' ago';
+};
+// ──────────────────────────────────────────────────────────────────────────────
+
 // Routes
 const authRoutes = require('./routes/authRoutes');
 app.use('/auth', authRoutes);

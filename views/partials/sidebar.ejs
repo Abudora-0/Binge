@@ -1,0 +1,36 @@
+<aside id="sidebar" class="w-52 flex-shrink-0 bg-gray-950 border-r border-gray-900 pt-4 pb-10 overflow-y-auto sticky top-14 h-screen">
+  <div class="space-y-1 px-2">
+    <a href="/viewer/home"
+       class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition
+              <%= typeof activePage !== 'undefined' && activePage === 'home' ? 'bg-gray-800 text-white font-medium' : 'hover:bg-gray-800 text-gray-300 hover:text-white' %>">
+      <i data-lucide="home" class="w-4 h-4"></i> Home
+    </a>
+    <a href="/viewer/subscriptions"
+       class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition
+              <%= typeof activePage !== 'undefined' && activePage === 'subscriptions' ? 'bg-gray-800 text-white font-medium' : 'hover:bg-gray-800 text-gray-300 hover:text-white' %>">
+      <i data-lucide="bell" class="w-4 h-4"></i> Subscriptions
+    </a>
+    <a href="/viewer/history"
+       class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition
+              <%= typeof activePage !== 'undefined' && activePage === 'history' ? 'bg-gray-800 text-white font-medium' : 'hover:bg-gray-800 text-gray-300 hover:text-white' %>">
+      <i data-lucide="history" class="w-4 h-4"></i> History
+    </a>
+    <a href="/viewer/playlists"
+       class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition
+              <%= typeof activePage !== 'undefined' && activePage === 'playlists' ? 'bg-gray-800 text-white font-medium' : 'hover:bg-gray-800 text-gray-300 hover:text-white' %>">
+      <i data-lucide="list-music" class="w-4 h-4"></i> Playlists
+    </a>
+
+    <div class="border-t border-gray-800 my-3"></div>
+    <p class="text-gray-500 text-xs px-3 mb-2 uppercase tracking-wider">Categories</p>
+
+    <a href="#" onclick="filterCategory(event,'')"           class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition"><i data-lucide="layout-grid" class="w-4 h-4"></i> All</a>
+    <a href="#" onclick="filterCategory(event,'Technology')" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition"><i data-lucide="cpu" class="w-4 h-4"></i> Technology</a>
+    <a href="#" onclick="filterCategory(event,'Gaming')"     class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition"><i data-lucide="gamepad-2" class="w-4 h-4"></i> Gaming</a>
+    <a href="#" onclick="filterCategory(event,'Education')"  class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition"><i data-lucide="book-open" class="w-4 h-4"></i> Education</a>
+    <a href="#" onclick="filterCategory(event,'Music')"      class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition"><i data-lucide="music" class="w-4 h-4"></i> Music</a>
+    <a href="#" onclick="filterCategory(event,'Vlogs')"      class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition"><i data-lucide="video" class="w-4 h-4"></i> Vlogs</a>
+    <a href="#" onclick="filterCategory(event,'Sports')"     class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition"><i data-lucide="trophy" class="w-4 h-4"></i> Sports</a>
+    <a href="#" onclick="filterCategory(event,'Comedy')"     class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition"><i data-lucide="smile" class="w-4 h-4"></i> Comedy</a>
+  </div>
+</aside>

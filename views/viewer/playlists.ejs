@@ -1,202 +1,344 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Binge — Playlists</title>
+  <title>Binge — My Playlists</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="shortcut icon" href="/favicon.ico">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="/binge.css">
+  <style>
+    body.light { background-color: #f0f4f8; color: #334155; }
+    body.light .bg-gray-950 { background-color: #ffffff !important; }
+    body.light .bg-gray-900 { background-color: #f8fafc !important; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    body.light .bg-gray-800 { background-color: #e8edf5 !important; }
+    body.light .bg-gray-700 { background-color: #d5dcea !important; }
+    body.light .text-white  { color: #0f172a !important; }
+    body.light .text-gray-100 { color: #0f172a !important; }
+    body.light .text-gray-200 { color: #1e293b !important; }
+    body.light .text-gray-300 { color: #334155 !important; }
+    body.light .text-gray-400 { color: #475569 !important; }
+    body.light .text-gray-500 { color: #64748b !important; }
+    body.light .text-gray-600 { color: #8896aa !important; }
+    body.light .border-gray-700 { border-color: #d1dce9 !important; }
+    body.light .border-gray-800 { border-color: #e2eaf3 !important; }
+    body.light .border-gray-900 { border-color: #f0f4f8 !important; }
+    body.light .hover\:bg-gray-800:hover { background-color: #e8edf5 !important; }
+    body.light .hover\:bg-gray-700:hover { background-color: #d5dcea !important; }
+    body.light .hover\:text-white:hover  { color: #0f172a !important; }
+    body.light nav.sticky { box-shadow: 0 1px 8px rgba(0,0,0,0.09); }
+    body.light #sidebar { background-color: #f8fafc !important; border-right-color: #e2eaf3 !important; }
+    body.light #profileDropdown { box-shadow: 0 8px 32px rgba(0,0,0,0.14) !important; }
+    body.light input::placeholder { color: #94a3b8 !important; }
+
+    /* Playlist card stack effect */
+    .playlist-stack { position: relative; }
+    .playlist-stack::after {
+      content: '';
+      position: absolute;
+      inset: -4px -4px 4px 4px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.05);
+      z-index: 0;
+    }
+    .playlist-stack > * { position: relative; z-index: 1; }
+  </style>
 </head>
-<body class="bg-gray-950 text-white min-h-screen flex flex-col">
+<body class="bg-gray-950 text-white h-full flex flex-col overflow-hidden">
 
   <!-- Navbar -->
-  <nav class="bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center justify-between sticky top-0 z-50">
-    <div class="flex items-center gap-3">
-      <a href="/viewer/home" class="flex items-center gap-2 text-gray-400 hover:text-white transition">
-        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+  <nav class="sticky bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center gap-4 z-50 w-full flex-shrink-0">
+    <div class="flex items-center gap-3 w-52 flex-shrink-0">
+      <button onclick="toggleSidebar()"
+              class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-800 text-gray-400 hover:text-white transition flex-shrink-0">
+        <i data-lucide="menu" class="w-5 h-5"></i>
+      </button>
+      <a href="/viewer/home" class="flex items-center flex-shrink-0">
+        <img src="/logo.png" alt="Binge" class="h-7 w-auto object-contain"
+             onerror="this.onerror=null;this.src='/logo.svg'">
       </a>
-      <a href="/viewer/home" class="text-xl font-bold text-red-500">Binge</a>
     </div>
-    <div class="relative">
-      <button onclick="toggleProfile()"
-        class="flex items-center gap-2 hover:bg-gray-800 px-3 py-1.5 rounded-full transition">
+    <div class="flex-1 flex gap-2 max-w-2xl mx-auto">
+      <input type="text" id="searchInput" placeholder="Search videos..."
+        class="flex-1 bg-gray-900 text-white border border-gray-700 rounded-full px-5 py-2 text-sm focus:outline-none focus:border-red-500 transition"/>
+      <button class="bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-full border border-gray-700 transition flex items-center text-gray-400 hover:text-white">
+        <i data-lucide="search" class="w-4 h-4"></i>
+      </button>
+    </div>
+    <div class="w-52 flex-shrink-0 flex justify-end relative">
+      <button onclick="toggleProfile()" class="flex items-center gap-2 hover:bg-gray-800 px-3 py-1.5 rounded-full transition">
         <div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-red-600 flex items-center justify-center font-bold text-sm">
-          <% if (user.avatar) { %>
-            <img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover">
-          <% } else { %>
-            <%= user.firstName.charAt(0).toUpperCase() %>
-          <% } %>
+          <% if (user.avatar) { %><img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover"><% } else { %><%= user.firstName.charAt(0).toUpperCase() %><% } %>
         </div>
-        <span class="text-white text-sm font-medium hidden sm:block"><%= user.firstName %></span>
+        <span class="text-sm font-medium hidden sm:block"><%= user.firstName %></span>
         <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
       </button>
-      <div id="profileDropdown"
-        class="hidden absolute top-12 right-0 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-56 z-50 overflow-hidden">
+      <div id="profileDropdown" class="hidden absolute top-12 right-0 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-56 z-50 overflow-hidden">
         <div class="px-4 py-3 border-b border-gray-700 flex items-center gap-3">
           <div class="w-10 h-10 rounded-full overflow-hidden bg-red-600 flex items-center justify-center font-bold text-sm">
-            <% if (user.avatar) { %>
-              <img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover">
-            <% } else { %>
-              <%= user.firstName.charAt(0).toUpperCase() %>
-            <% } %>
+            <% if (user.avatar) { %><img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover"><% } else { %><%= user.firstName.charAt(0).toUpperCase() %><% } %>
           </div>
           <div>
-            <p class="text-white text-sm font-semibold"><%= user.firstName %> <%= user.lastName %></p>
+            <p class="text-sm font-semibold"><%= user.firstName %> <%= user.lastName %></p>
             <p class="text-gray-400 text-xs"><%= user.email %></p>
           </div>
         </div>
         <div class="py-1">
-          <a href="/viewer/profile"
-            class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="user-circle" class="w-4 h-4"></i> My Profile
-          </a>
-          <a href="/viewer/history"
-            class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="history" class="w-4 h-4"></i> Watch History
-          </a>
-          <a href="/viewer/playlists"
-            class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="list-music" class="w-4 h-4"></i> Playlists
-          </a>
-          <a href="/viewer/subscriptions"
-            class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="bell" class="w-4 h-4"></i> Subscriptions
-          </a>
+          <a href="/viewer/profile" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition"><i data-lucide="user-circle" class="w-4 h-4"></i> My Profile</a>
+          <a href="/viewer/history" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition"><i data-lucide="history" class="w-4 h-4"></i> Watch History</a>
+          <a href="/viewer/playlists" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition"><i data-lucide="list-music" class="w-4 h-4"></i> Playlists</a>
+          <a href="/viewer/subscriptions" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition"><i data-lucide="bell" class="w-4 h-4"></i> Subscriptions</a>
+          <button onclick="toggleTheme()" class="w-full flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition text-left">
+            <i data-lucide="sun" class="w-4 h-4" id="themeIcon"></i><span id="themeLabel">Light Mode</span>
+          </button>
           <div class="border-t border-gray-700 my-1"></div>
-          <a href="/auth/logout"
-            class="flex items-center gap-3 px-4 py-2.5 text-red-400 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out
-          </a>
+          <a href="/auth/logout" class="flex items-center gap-3 px-4 py-2.5 text-red-400 hover:bg-gray-800 text-sm transition"><i data-lucide="log-out" class="w-4 h-4"></i> Sign Out</a>
         </div>
       </div>
     </div>
   </nav>
 
-  <div class="max-w-5xl mx-auto px-6 py-8 w-full">
+  <div class="flex flex-1 min-h-0">
 
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-8">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 bg-purple-600/20 rounded-xl flex items-center justify-center">
-          <i data-lucide="list-music" class="w-5 h-5 text-purple-400"></i>
-        </div>
-        <div>
-          <h2 class="text-2xl font-bold">Playlists</h2>
-          <p class="text-gray-400 text-sm"><%= playlists.length %> playlist<%= playlists.length !== 1 ? 's' : '' %></p>
-        </div>
+    <!-- Left nav sidebar -->
+    <aside id="sidebar" class="w-52 flex-shrink-0 bg-gray-950 border-r border-gray-900 overflow-y-auto">
+      <div class="space-y-0.5 px-2 py-4">
+        <a href="/viewer/home"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-800 text-gray-400 hover:text-white text-sm transition">
+          <i data-lucide="home" class="w-4 h-4"></i> Home
+        </a>
+        <a href="/viewer/subscriptions"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-800 text-gray-400 hover:text-white text-sm transition">
+          <i data-lucide="bell" class="w-4 h-4"></i> Subscriptions
+        </a>
+        <a href="/viewer/history"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-800 text-gray-400 hover:text-white text-sm transition">
+          <i data-lucide="history" class="w-4 h-4"></i> History
+        </a>
+        <a href="/viewer/playlists"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gray-800 text-white text-sm font-semibold">
+          <i data-lucide="list-music" class="w-4 h-4 text-red-500"></i> Playlists
+        </a>
+
+        <% if (playlists.length > 0) { %>
+          <div class="border-t border-gray-800 my-3 mx-1"></div>
+          <p class="text-gray-500 text-xs px-3 pt-1 pb-2 uppercase tracking-wider font-medium">My Playlists</p>
+          <% playlists.forEach(p => { %>
+            <a href="/viewer/playlist/<%= p.Id %>"
+               class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-800 text-gray-400 hover:text-white text-sm transition">
+              <i data-lucide="play-circle" class="w-4 h-4 flex-shrink-0"></i>
+              <span class="truncate"><%= p.Title %></span>
+            </a>
+          <% }) %>
+        <% } %>
       </div>
-      <button onclick="document.getElementById('createModal').classList.remove('hidden')"
-              class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2.5 rounded-full transition">
-        <i data-lucide="plus" class="w-4 h-4"></i> New Playlist
-      </button>
-    </div>
+    </aside>
 
-    <% if (playlists.length === 0) { %>
-      <div class="text-center mt-20">
-        <div class="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-          <i data-lucide="list-music" class="w-10 h-10 text-gray-600"></i>
-        </div>
-        <h3 class="text-xl font-semibold text-gray-300 mb-2">No playlists yet</h3>
-        <p class="text-gray-500 text-sm mb-6">Create a playlist to organize your favourite videos</p>
-        <button onclick="document.getElementById('createModal').classList.remove('hidden')"
-                class="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-full text-sm transition">
-          <i data-lucide="plus" class="w-4 h-4"></i> Create Playlist
-        </button>
-      </div>
-    <% } else { %>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        <% playlists.forEach(p => { %>
-          <div class="bg-gray-900 rounded-2xl overflow-hidden hover:bg-gray-800 transition group cursor-pointer">
+    <!-- Main content -->
+    <main class="flex-1 overflow-y-auto">
+      <div class="max-w-6xl mx-auto px-6 py-7">
 
-            <!-- Thumbnail Area -->
-            <div class="relative h-36 bg-gradient-to-br from-purple-900/40 to-gray-800 flex items-center justify-center">
-              <i data-lucide="list-music" class="w-12 h-12 text-gray-600 group-hover:text-purple-400 transition"></i>
-              <div class="absolute top-3 right-3">
-                <span class="bg-black/60 text-white text-xs px-2 py-1 rounded-lg flex items-center gap-1">
-                  <i data-lucide="play-circle" class="w-3 h-3"></i>
-                  <%= p.TotalVideos %> videos
-                </span>
-              </div>
+        <!-- Page header -->
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 bg-red-600/15 rounded-2xl flex items-center justify-center">
+              <i data-lucide="library" class="w-5 h-5 text-red-500"></i>
             </div>
-
-            <!-- Info -->
-            <div class="p-4">
-              <h3 class="font-semibold truncate mb-1"><%= p.Title %></h3>
-              <% if (p.Description) { %>
-                <p class="text-gray-400 text-xs line-clamp-1 mb-3"><%= p.Description %></p>
-              <% } %>
-              <div class="flex items-center justify-between">
-                <span class="text-xs px-2 py-1 rounded-full flex items-center gap-1
-                  <%= p.Visibility === 'Public' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400' %>">
-                  <i data-lucide="<%= p.Visibility === 'Public' ? 'globe' : 'lock' %>" class="w-3 h-3"></i>
-                  <%= p.Visibility %>
-                </span>
-                <span class="text-gray-500 text-xs flex items-center gap-1">
-                  <i data-lucide="calendar" class="w-3 h-3"></i>
-                  <%= new Date(p.CreatedAt).toLocaleDateString() %>
-                </span>
-              </div>
+            <div>
+              <h1 class="text-xl font-bold">My Library</h1>
+              <p class="text-gray-500 text-sm mt-0.5">
+                <% const totalVideos = playlists.reduce((s, p) => s + (p.TotalVideos || 0), 0); %>
+                <%= playlists.length %> playlist<%= playlists.length !== 1 ? 's' : '' %><% if (totalVideos > 0) { %> · <%= totalVideos %> video<%= totalVideos !== 1 ? 's' : '' %><% } %>
+              </p>
             </div>
-
           </div>
-        <% }) %>
+          <button onclick="document.getElementById('createModal').classList.remove('hidden')"
+                  class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2.5 rounded-full font-semibold transition shadow-lg shadow-red-900/20">
+            <i data-lucide="plus" class="w-4 h-4"></i> New Playlist
+          </button>
+        </div>
+        <div class="border-b border-gray-800 mb-7"></div>
+
+        <% if (playlists.length === 0) { %>
+          <!-- Empty state -->
+          <div class="flex flex-col items-center justify-center py-20 text-center">
+            <div class="relative mb-8">
+              <div class="w-28 h-28 bg-gray-800/80 rounded-3xl flex items-center justify-center">
+                <i data-lucide="list-music" class="w-14 h-14 text-gray-600"></i>
+              </div>
+              <div class="absolute -bottom-2 -right-2 w-10 h-10 bg-red-600 rounded-full flex items-center justify-center shadow-lg">
+                <i data-lucide="plus" class="w-5 h-5 text-white"></i>
+              </div>
+            </div>
+            <h3 class="text-xl font-bold mb-2">No playlists yet</h3>
+            <p class="text-gray-500 text-sm mb-1 max-w-xs">Create playlists to organise and save your favourite videos</p>
+            <p class="text-gray-600 text-xs mb-8">While watching a video, click <span class="text-gray-400 font-medium">Save</span> to add it to a playlist</p>
+            <button onclick="document.getElementById('createModal').classList.remove('hidden')"
+                    class="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-7 py-3 rounded-full text-sm font-semibold transition shadow-lg shadow-red-900/20">
+              <i data-lucide="plus" class="w-4 h-4"></i> Create Your First Playlist
+            </button>
+          </div>
+        <% } else { %>
+          <!-- Playlist grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-5 gap-y-8 pb-8">
+            <% playlists.forEach(p => { %>
+              <div class="group flex flex-col">
+                <!-- Thumbnail with stacked effect -->
+                <a href="/viewer/playlist/<%= p.Id %>" class="playlist-stack block mb-3">
+                  <div class="rounded-xl overflow-hidden aspect-video bg-gray-800 relative">
+                    <% if (p.thumbnail) { %>
+                      <img src="<%= p.thumbnail %>" alt="<%= p.Title %>"
+                           class="w-full h-full object-cover group-hover:brightness-75 transition duration-300"
+                           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                      <div class="absolute inset-0 items-center justify-center bg-gray-800" style="display:none">
+                        <i data-lucide="list-music" class="w-14 h-14 text-gray-600"></i>
+                      </div>
+                    <% } else { %>
+                      <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
+                        <i data-lucide="list-music" class="w-14 h-14 text-gray-700 group-hover:text-gray-500 transition"></i>
+                      </div>
+                    <% } %>
+                    <!-- Right strip: video count -->
+                    <div class="absolute top-0 right-0 bottom-0 w-20 bg-black/70 flex flex-col items-center justify-center gap-1 rounded-r-xl">
+                      <i data-lucide="list" class="w-4 h-4 text-white/80"></i>
+                      <span class="text-white font-bold text-base leading-none"><%= p.TotalVideos %></span>
+                      <span class="text-white/60 text-xs">videos</span>
+                    </div>
+                    <!-- Hover overlay -->
+                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-200">
+                      <div class="flex items-center gap-2 bg-black/60 backdrop-blur-sm rounded-full px-5 py-2.5 border border-white/20">
+                        <i data-lucide="play" class="w-4 h-4 text-white"></i>
+                        <span class="text-white font-semibold text-sm">Play all</span>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+                <!-- Info -->
+                <a href="/viewer/playlist/<%= p.Id %>" class="flex-1 block">
+                  <h3 class="text-sm font-semibold line-clamp-2 leading-snug mb-1 group-hover:text-red-400 transition">
+                    <%= p.Title %>
+                  </h3>
+                  <% if (p.Description) { %>
+                    <p class="text-gray-500 text-xs line-clamp-1 mb-2"><%= p.Description %></p>
+                  <% } %>
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xs px-2 py-0.5 rounded-full flex items-center gap-1 font-medium
+                      <%= p.Visibility === 'Public' ? 'bg-green-500/15 text-green-400' : 'bg-gray-500/15 text-gray-400' %>">
+                      <i data-lucide="<%= p.Visibility === 'Public' ? 'globe' : 'lock' %>" class="w-2.5 h-2.5"></i>
+                      <%= p.Visibility %>
+                    </span>
+                    <span class="text-gray-600 text-xs">·</span>
+                    <span class="text-gray-500 text-xs flex items-center gap-1">
+                      <i data-lucide="calendar" class="w-2.5 h-2.5"></i>
+                      <%= timeAgo(p.CreatedAt) %>
+                    </span>
+                  </div>
+                </a>
+              </div>
+            <% }) %>
+          </div>
+        <% } %>
       </div>
-    <% } %>
+    </main>
   </div>
 
   <!-- Create Playlist Modal -->
-  <div id="createModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
-    <div class="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
-      <div class="flex items-center justify-between mb-5">
+  <div id="createModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div class="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+      <div class="flex items-center justify-between mb-6">
         <h3 class="font-bold text-lg flex items-center gap-2">
-          <i data-lucide="plus-circle" class="w-5 h-5 text-red-500"></i>
-          Create New Playlist
+          <div class="w-8 h-8 bg-red-600/20 rounded-lg flex items-center justify-center">
+            <i data-lucide="plus-circle" class="w-4 h-4 text-red-500"></i>
+          </div>
+          New Playlist
         </h3>
         <button onclick="document.getElementById('createModal').classList.add('hidden')"
-                class="text-gray-400 hover:text-white transition">
+                class="text-gray-500 hover:text-white hover:bg-gray-800 p-1.5 rounded-lg transition">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
-
       <form action="/viewer/playlist/create" method="POST" class="space-y-4">
         <div>
-          <label class="block text-gray-400 text-sm mb-1.5">Title <span class="text-red-500">*</span></label>
+          <label class="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">Title <span class="text-red-500">*</span></label>
           <input type="text" name="title" required placeholder="My Awesome Playlist"
-            class="w-full bg-gray-800 text-white border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition">
+            class="w-full bg-gray-800 text-white border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition placeholder-gray-600">
         </div>
         <div>
-          <label class="block text-gray-400 text-sm mb-1.5">Description</label>
-          <textarea name="description" rows="3" placeholder="What's this playlist about?"
-            class="w-full bg-gray-800 text-white border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition resize-none"></textarea>
+          <label class="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">Description <span class="text-gray-600 normal-case tracking-normal font-normal">(optional)</span></label>
+          <textarea name="description" rows="2" placeholder="What's this playlist about?"
+            class="w-full bg-gray-800 text-white border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition resize-none placeholder-gray-600"></textarea>
         </div>
         <div>
-          <label class="block text-gray-400 text-sm mb-2">Visibility</label>
-          <div class="flex gap-4">
-            <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer bg-gray-800 px-4 py-2 rounded-xl border border-gray-700 hover:border-red-500 transition flex-1 justify-center">
+          <label class="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">Visibility</label>
+          <div class="grid grid-cols-2 gap-3">
+            <label class="flex items-center gap-2.5 text-sm text-gray-300 cursor-pointer bg-gray-800 px-4 py-2.5 rounded-xl border border-gray-700 hover:border-red-500/60 transition">
               <input type="radio" name="visibility" value="Public" checked class="accent-red-500">
-              <i data-lucide="globe" class="w-4 h-4"></i> Public
+              <i data-lucide="globe" class="w-3.5 h-3.5 text-green-400"></i> Public
             </label>
-            <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer bg-gray-800 px-4 py-2 rounded-xl border border-gray-700 hover:border-red-500 transition flex-1 justify-center">
+            <label class="flex items-center gap-2.5 text-sm text-gray-300 cursor-pointer bg-gray-800 px-4 py-2.5 rounded-xl border border-gray-700 hover:border-red-500/60 transition">
               <input type="radio" name="visibility" value="Private" class="accent-red-500">
-              <i data-lucide="lock" class="w-4 h-4"></i> Private
+              <i data-lucide="lock" class="w-3.5 h-3.5 text-gray-400"></i> Private
             </label>
           </div>
         </div>
         <div class="flex gap-3 pt-2">
           <button type="submit"
-            class="flex-1 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-sm transition">
+            class="flex-1 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-sm font-semibold transition">
             <i data-lucide="plus" class="w-4 h-4"></i> Create
           </button>
-          <button type="button"
-            onclick="document.getElementById('createModal').classList.add('hidden')"
-            class="flex-1 flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 text-white py-2.5 rounded-xl text-sm transition">
-            <i data-lucide="x" class="w-4 h-4"></i> Cancel
+          <button type="button" onclick="document.getElementById('createModal').classList.add('hidden')"
+            class="flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-300 px-5 py-2.5 rounded-xl text-sm transition">
+            Cancel
           </button>
         </div>
       </form>
     </div>
   </div>
 
-  <script>lucide.createIcons();</script>
+  <script>
+    lucide.createIcons();
+
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('hidden'); }
+    function toggleProfile()  { document.getElementById('profileDropdown').classList.toggle('hidden'); }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#profileDropdown') && !e.target.closest('[onclick="toggleProfile()"]')) {
+        document.getElementById('profileDropdown')?.classList.add('hidden');
+      }
+    });
+    document.getElementById('createModal').addEventListener('click', function(e) {
+      if (e.target === this) this.classList.add('hidden');
+    });
+
+    function applyTheme(t) {
+      const icon  = document.getElementById('themeIcon');
+      const label = document.getElementById('themeLabel');
+      if (t === 'light') {
+        document.body.classList.add('light');
+        if (icon)  icon.setAttribute('data-lucide', 'moon');
+        if (label) label.textContent = 'Dark Mode';
+      } else {
+        document.body.classList.remove('light');
+        if (icon)  icon.setAttribute('data-lucide', 'sun');
+        if (label) label.textContent = 'Light Mode';
+      }
+      lucide.createIcons();
+    }
+    function toggleTheme() {
+      const next = localStorage.getItem('binge_theme') === 'light' ? 'dark' : 'light';
+      localStorage.setItem('binge_theme', next);
+      applyTheme(next);
+    }
+    applyTheme(localStorage.getItem('binge_theme') || 'dark');
+
+    document.getElementById('searchInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && this.value.trim())
+        window.location.href = '/viewer/home?search=' + encodeURIComponent(this.value.trim());
+    });
+  </script>
 </body>
 </html>

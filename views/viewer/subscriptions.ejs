@@ -1,114 +1,125 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Binge — Subscriptions</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="shortcut icon" href="/favicon.ico">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="/binge.css">
+  <style>
+    body.light { background-color: #f0f4f8; color: #334155; }
+    body.light .bg-gray-950 { background-color: #ffffff !important; }
+    body.light .bg-gray-900 { background-color: #f8fafc !important; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    body.light .bg-gray-800 { background-color: #e8edf5 !important; }
+    body.light .bg-gray-700 { background-color: #d5dcea !important; }
+    body.light .text-white  { color: #0f172a !important; }
+    body.light .text-gray-100 { color: #0f172a !important; }
+    body.light .text-gray-200 { color: #1e293b !important; }
+    body.light .text-gray-300 { color: #334155 !important; }
+    body.light .text-gray-400 { color: #475569 !important; }
+    body.light .text-gray-500 { color: #64748b !important; }
+    body.light .text-gray-600 { color: #8896aa !important; }
+    body.light .border-gray-700 { border-color: #d1dce9 !important; }
+    body.light .border-gray-800 { border-color: #e2eaf3 !important; }
+    body.light .border-gray-900 { border-color: #f0f4f8 !important; }
+    body.light .hover\:bg-gray-800:hover { background-color: #e8edf5 !important; }
+    body.light .hover\:bg-gray-700:hover { background-color: #d5dcea !important; }
+    body.light .hover\:text-white:hover  { color: #0f172a !important; }
+    body.light nav.sticky { box-shadow: 0 1px 8px rgba(0,0,0,0.09); }
+    body.light #sidebar { background-color: #f8fafc !important; border-right-color: #e2eaf3 !important; }
+    body.light #profileDropdown { box-shadow: 0 8px 32px rgba(0,0,0,0.14) !important; }
+    body.light input::placeholder { color: #94a3b8 !important; }
+  </style>
 </head>
-<body class="bg-gray-950 text-white min-h-screen flex flex-col">
+<body class="bg-gray-950 text-white h-full flex flex-col overflow-hidden">
 
   <!-- Navbar -->
-  <nav class="bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center gap-4 sticky top-0 z-50 w-full">
-    <div class="flex items-center gap-3 w-48 flex-shrink-0">
-      <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-gray-800 transition">
+  <nav class="sticky bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center gap-4 z-50 w-full flex-shrink-0">
+    <div class="flex items-center gap-3 w-52 flex-shrink-0">
+      <button onclick="toggleSidebar()"
+              class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-800 text-gray-400 hover:text-white transition flex-shrink-0">
         <i data-lucide="menu" class="w-5 h-5"></i>
       </button>
-      <a href="/viewer/home" class="text-xl font-bold text-red-500">Binge</a>
+      <a href="/viewer/home" class="flex items-center flex-shrink-0">
+        <img src="/logo.png" alt="Binge" class="h-7 w-auto object-contain"
+             onerror="this.onerror=null;this.src='/logo.svg'">
+      </a>
     </div>
     <div class="flex-1 flex gap-2 max-w-2xl mx-auto">
-      <input type="text" placeholder="Search videos..."
+      <input type="text" id="searchInput" placeholder="Search videos..."
         class="flex-1 bg-gray-900 text-white border border-gray-700 rounded-full px-5 py-2 text-sm focus:outline-none focus:border-red-500 transition"/>
-      <button class="bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-full border border-gray-700 transition">
+      <button class="bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-full border border-gray-700 transition flex items-center text-gray-400 hover:text-white">
         <i data-lucide="search" class="w-4 h-4"></i>
       </button>
     </div>
-    <div class="w-48 flex-shrink-0 flex justify-end relative">
-      <button onclick="toggleProfile()"
-        class="flex items-center gap-2 hover:bg-gray-800 px-3 py-1.5 rounded-full transition">
+    <div class="w-52 flex-shrink-0 flex justify-end relative">
+      <button onclick="toggleProfile()" class="flex items-center gap-2 hover:bg-gray-800 px-3 py-1.5 rounded-full transition">
         <div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-red-600 flex items-center justify-center font-bold text-sm">
-          <% if (user.avatar) { %>
-            <img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover">
-          <% } else { %>
-            <%= user.firstName.charAt(0).toUpperCase() %>
-          <% } %>
+          <% if (user.avatar) { %><img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover"><% } else { %><%= user.firstName.charAt(0).toUpperCase() %><% } %>
         </div>
-        <span class="text-white text-sm font-medium hidden sm:block"><%= user.firstName %></span>
+        <span class="text-sm font-medium hidden sm:block"><%= user.firstName %></span>
         <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
       </button>
-      <div id="profileDropdown"
-        class="hidden absolute top-12 right-0 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-56 z-50 overflow-hidden">
+      <div id="profileDropdown" class="hidden absolute top-12 right-0 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-56 z-50 overflow-hidden">
         <div class="px-4 py-3 border-b border-gray-700 flex items-center gap-3">
           <div class="w-10 h-10 rounded-full overflow-hidden bg-red-600 flex items-center justify-center font-bold text-sm">
-            <% if (user.avatar) { %>
-              <img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover">
-            <% } else { %>
-              <%= user.firstName.charAt(0).toUpperCase() %>
-            <% } %>
+            <% if (user.avatar) { %><img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover"><% } else { %><%= user.firstName.charAt(0).toUpperCase() %><% } %>
           </div>
           <div>
-            <p class="text-white text-sm font-semibold"><%= user.firstName %> <%= user.lastName %></p>
+            <p class="text-sm font-semibold"><%= user.firstName %> <%= user.lastName %></p>
             <p class="text-gray-400 text-xs"><%= user.email %></p>
           </div>
         </div>
         <div class="py-1">
-          <a href="/viewer/profile"
-            class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="user-circle" class="w-4 h-4"></i> My Profile
-          </a>
-          <a href="/viewer/history"
-            class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="history" class="w-4 h-4"></i> Watch History
-          </a>
-          <a href="/viewer/playlists"
-            class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="list-music" class="w-4 h-4"></i> Playlists
-          </a>
-          <a href="/viewer/subscriptions"
-            class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="bell" class="w-4 h-4"></i> Subscriptions
-          </a>
+          <a href="/viewer/profile" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition"><i data-lucide="user-circle" class="w-4 h-4"></i> My Profile</a>
+          <a href="/viewer/history" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition"><i data-lucide="history" class="w-4 h-4"></i> Watch History</a>
+          <a href="/viewer/playlists" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition"><i data-lucide="list-music" class="w-4 h-4"></i> Playlists</a>
+          <a href="/viewer/subscriptions" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition"><i data-lucide="bell" class="w-4 h-4"></i> Subscriptions</a>
+          <button onclick="toggleTheme()" class="w-full flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition text-left">
+            <i data-lucide="sun" class="w-4 h-4" id="themeIcon"></i><span id="themeLabel">Light Mode</span>
+          </button>
           <div class="border-t border-gray-700 my-1"></div>
-          <a href="/auth/logout"
-            class="flex items-center gap-3 px-4 py-2.5 text-red-400 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out
-          </a>
+          <a href="/auth/logout" class="flex items-center gap-3 px-4 py-2.5 text-red-400 hover:bg-gray-800 text-sm transition"><i data-lucide="log-out" class="w-4 h-4"></i> Sign Out</a>
         </div>
       </div>
     </div>
   </nav>
 
-  <div class="flex flex-1 overflow-hidden">
+  <div class="flex flex-1 min-h-0">
 
     <!-- Sidebar -->
-    <aside id="sidebar" class="w-52 flex-shrink-0 bg-gray-950 border-r border-gray-900 pt-4 pb-10 overflow-y-auto">
-      <div class="space-y-1 px-2">
-        <a href="/viewer/home" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition">
+    <aside id="sidebar" class="w-52 flex-shrink-0 bg-gray-950 border-r border-gray-900 overflow-y-auto">
+      <div class="space-y-0.5 px-2 py-4">
+        <a href="/viewer/home"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-800 text-gray-400 hover:text-white text-sm transition">
           <i data-lucide="home" class="w-4 h-4"></i> Home
         </a>
-        <a href="/viewer/subscriptions" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gray-800 text-white text-sm font-medium">
-          <i data-lucide="bell" class="w-4 h-4"></i> Subscriptions
+        <a href="/viewer/subscriptions"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gray-800 text-white text-sm font-semibold">
+          <i data-lucide="bell" class="w-4 h-4 text-red-500"></i> Subscriptions
         </a>
-        <a href="/viewer/history" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition">
+        <a href="/viewer/history"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-800 text-gray-400 hover:text-white text-sm transition">
           <i data-lucide="history" class="w-4 h-4"></i> History
         </a>
-        <a href="/viewer/playlists" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition">
+        <a href="/viewer/playlists"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-800 text-gray-400 hover:text-white text-sm transition">
           <i data-lucide="list-music" class="w-4 h-4"></i> Playlists
         </a>
 
         <% if (creators.length > 0) { %>
-          <div class="border-t border-gray-800 my-3"></div>
-          <p class="text-gray-500 text-xs px-3 mb-2 uppercase tracking-wider">Subscriptions</p>
+          <div class="border-t border-gray-800 my-3 mx-1"></div>
+          <p class="text-gray-500 text-xs px-3 pt-1 pb-2 uppercase tracking-wider font-medium">Channels</p>
           <% creators.forEach(c => { %>
             <a href="/viewer/channel/<%= c.Id %>"
-               class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition">
-              <div class="w-6 h-6 rounded-full overflow-hidden bg-red-600 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                <% if (c.Avatar) { %>
-                  <img src="/uploads/<%= c.Avatar %>" class="w-full h-full object-cover">
-                <% } else { %>
-                  <%= c.ChannelName.charAt(0).toUpperCase() %>
-                <% } %>
+               class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-800 text-gray-400 hover:text-white text-sm transition">
+              <div class="w-6 h-6 rounded-full overflow-hidden bg-red-600 flex items-center justify-center text-xs font-bold flex-shrink-0 text-white">
+                <% if (c.Avatar) { %><img src="/uploads/<%= c.Avatar %>" class="w-full h-full object-cover"><% } else { %><%= c.ChannelName.charAt(0).toUpperCase() %><% } %>
               </div>
               <span class="truncate"><%= c.ChannelName %></span>
             </a>
@@ -117,24 +128,18 @@
       </div>
     </aside>
 
-    <!-- Main Content -->
+    <!-- Main -->
     <main class="flex-1 overflow-y-auto px-6 py-5">
 
-      <!-- Header -->
-      <div class="flex items-center gap-3 mb-6">
-        <i data-lucide="bell" class="w-6 h-6 text-red-500"></i>
-        <h2 class="text-xl font-bold">Subscriptions</h2>
-      </div>
-
       <% if (creators.length === 0) { %>
-        <!-- Empty State -->
         <div class="text-center mt-24">
           <div class="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
             <i data-lucide="bell-off" class="w-10 h-10 text-gray-600"></i>
           </div>
           <h3 class="text-xl font-semibold text-gray-300 mb-2">No subscriptions yet</h3>
           <p class="text-gray-500 text-sm mb-6">Subscribe to creators to see their latest videos here</p>
-          <a href="/viewer/home" class="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-full text-sm transition">
+          <a href="/viewer/home"
+             class="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-full text-sm transition font-semibold">
             <i data-lucide="compass" class="w-4 h-4"></i> Browse Videos
           </a>
         </div>
@@ -144,12 +149,8 @@
         <div class="flex gap-4 mb-8 overflow-x-auto pb-2">
           <% creators.forEach(c => { %>
             <a href="/viewer/channel/<%= c.Id %>" class="flex flex-col items-center gap-2 flex-shrink-0 group">
-              <div class="w-16 h-16 rounded-full overflow-hidden bg-red-600 flex items-center justify-center text-xl font-bold ring-2 ring-transparent group-hover:ring-red-500 transition">
-                <% if (c.Avatar) { %>
-                  <img src="/uploads/<%= c.Avatar %>" class="w-full h-full object-cover">
-                <% } else { %>
-                  <%= c.ChannelName.charAt(0).toUpperCase() %>
-                <% } %>
+              <div class="w-16 h-16 rounded-full overflow-hidden bg-red-600 flex items-center justify-center text-xl font-bold text-white ring-2 ring-transparent group-hover:ring-red-500 transition">
+                <% if (c.Avatar) { %><img src="/uploads/<%= c.Avatar %>" class="w-full h-full object-cover"><% } else { %><%= c.ChannelName.charAt(0).toUpperCase() %><% } %>
               </div>
               <span class="text-xs text-gray-400 group-hover:text-white transition text-center w-16 truncate"><%= c.ChannelName %></span>
             </a>
@@ -163,19 +164,20 @@
             <p class="text-gray-500">No recent videos from your subscriptions</p>
           </div>
         <% } else { %>
-          <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <i data-lucide="play-circle" class="w-4 h-4"></i> Latest Videos
+          <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-5 flex items-center gap-2">
+            <i data-lucide="play-circle" class="w-4 h-4 text-red-500"></i> Latest Videos
           </h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8 pb-8">
             <% videos.forEach(video => { %>
               <a href="/viewer/watch/<%= video.Id %>" class="block group cursor-pointer">
-
-                <!-- Thumbnail -->
                 <div class="rounded-xl overflow-hidden aspect-video mb-3 relative bg-gray-800">
                   <% if (video.thumbnail) { %>
                     <img src="<%= video.thumbnail %>" alt="<%= video.Title %>"
                          class="w-full h-full object-cover group-hover:brightness-75 transition"
-                         onerror="this.style.display='none'">
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                    <div class="absolute inset-0 items-center justify-center" style="display:none">
+                      <i data-lucide="play-circle" class="w-14 h-14 text-gray-600"></i>
+                    </div>
                   <% } else { %>
                     <div class="w-full h-full flex items-center justify-center">
                       <i data-lucide="play-circle" class="w-14 h-14 text-gray-600"></i>
@@ -190,29 +192,18 @@
                     </div>
                   </div>
                 </div>
-
-                <!-- Info -->
                 <div class="flex gap-3">
-                  <a href="/viewer/channel/<%= video.CreatorId %>" class="flex-shrink-0 mt-0.5">
-                    <div class="w-9 h-9 rounded-full overflow-hidden bg-red-600 flex items-center justify-center font-bold text-sm">
-                      <% if (video.CreatorAvatar) { %>
-                        <img src="/uploads/<%= video.CreatorAvatar %>" class="w-full h-full object-cover">
-                      <% } else { %>
-                        <%= video.ChannelName.charAt(0).toUpperCase() %>
-                      <% } %>
+                  <a href="/viewer/channel/<%= video.CreatorId %>" class="flex-shrink-0 mt-0.5" onclick="event.stopPropagation()">
+                    <div class="w-9 h-9 rounded-full overflow-hidden bg-red-600 flex items-center justify-center font-bold text-sm text-white">
+                      <% if (video.CreatorAvatar) { %><img src="/uploads/<%= video.CreatorAvatar %>" class="w-full h-full object-cover"><% } else { %><%= video.ChannelName.charAt(0).toUpperCase() %><% } %>
                     </div>
                   </a>
                   <div class="flex-1 min-w-0">
-                    <h3 class="text-white text-sm font-semibold line-clamp-2 leading-snug mb-1 group-hover:text-red-400 transition">
-                      <%= video.Title %>
-                    </h3>
+                    <h3 class="text-sm font-semibold line-clamp-2 leading-snug mb-1 group-hover:text-red-500 transition"><%= video.Title %></h3>
                     <p class="text-gray-400 text-xs"><%= video.ChannelName %></p>
-                    <p class="text-gray-500 text-xs">
-                      <%= video.Views.toLocaleString() %> views · <%= new Date(video.UploadDate).toLocaleDateString() %>
-                    </p>
+                    <p class="text-gray-500 text-xs"><%= formatViews(video.Views) %> views · <%= timeAgo(video.UploadDate) %></p>
                   </div>
                 </div>
-
               </a>
             <% }) %>
           </div>
@@ -223,19 +214,40 @@
 
   <script>
     lucide.createIcons();
-    
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('hidden');
-    }
 
-    function toggleProfile() {
-      document.getElementById('profileDropdown').classList.toggle('hidden');
-    }
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('hidden'); }
+    function toggleProfile()  { document.getElementById('profileDropdown').classList.toggle('hidden'); }
 
     document.addEventListener('click', (e) => {
-      if (!e.target.closest('.relative') && !e.target.closest('[onclick="toggleProfile()"]')) {
-        document.getElementById('profileDropdown').classList.add('hidden');
+      if (!e.target.closest('#profileDropdown') && !e.target.closest('[onclick="toggleProfile()"]')) {
+        document.getElementById('profileDropdown')?.classList.add('hidden');
       }
+    });
+
+    function applyTheme(t) {
+      const icon  = document.getElementById('themeIcon');
+      const label = document.getElementById('themeLabel');
+      if (t === 'light') {
+        document.body.classList.add('light');
+        if (icon)  icon.setAttribute('data-lucide', 'moon');
+        if (label) label.textContent = 'Dark Mode';
+      } else {
+        document.body.classList.remove('light');
+        if (icon)  icon.setAttribute('data-lucide', 'sun');
+        if (label) label.textContent = 'Light Mode';
+      }
+      lucide.createIcons();
+    }
+    function toggleTheme() {
+      const next = localStorage.getItem('binge_theme') === 'light' ? 'dark' : 'light';
+      localStorage.setItem('binge_theme', next);
+      applyTheme(next);
+    }
+    applyTheme(localStorage.getItem('binge_theme') || 'dark');
+
+    document.getElementById('searchInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && this.value.trim())
+        window.location.href = '/viewer/home?search=' + encodeURIComponent(this.value.trim());
     });
   </script>
 </body>

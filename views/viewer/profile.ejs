@@ -4,20 +4,87 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Binge — My Profile</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="shortcut icon" href="/favicon.ico">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="/binge.css">
+  <style>
+    body.light { background-color: #f0f4f8; color: #334155; }
+    body.light .bg-gray-950 { background-color: #ffffff !important; }
+    body.light .bg-gray-900 { background-color: #f8fafc !important; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    body.light .bg-gray-800 { background-color: #e8edf5 !important; }
+    body.light .bg-gray-700 { background-color: #d5dcea !important; }
+    body.light .text-white  { color: #0f172a !important; }
+    body.light .text-gray-100 { color: #0f172a !important; }
+    body.light .text-gray-200 { color: #1e293b !important; }
+    body.light .text-gray-300 { color: #334155 !important; }
+    body.light .text-gray-400 { color: #475569 !important; }
+    body.light .text-gray-500 { color: #64748b !important; }
+    body.light .text-gray-600 { color: #8896aa !important; }
+    body.light .border-gray-700 { border-color: #d1dce9 !important; }
+    body.light .border-gray-800 { border-color: #e2eaf3 !important; }
+    body.light .border-gray-900 { border-color: #f0f4f8 !important; }
+    body.light .hover\:bg-gray-800:hover { background-color: #e8edf5 !important; }
+    body.light .hover\:bg-gray-700:hover { background-color: #d5dcea !important; }
+    body.light .hover\:text-white:hover  { color: #0f172a !important; }
+    body.light nav { box-shadow: 0 1px 8px rgba(0,0,0,0.09); }
+    body.light #profileDropdown { box-shadow: 0 8px 32px rgba(0,0,0,0.14) !important; }
+    body.light input::placeholder { color: #94a3b8 !important; }
+  </style>
 </head>
 <body class="bg-gray-950 text-white min-h-screen flex flex-col">
 
   <!-- Navbar -->
-  <nav class="bg-gray-950 border-b border-gray-800 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
-    <a href="/viewer/home" class="flex items-center gap-2">
-      <i data-lucide="arrow-left" class="w-5 h-5 text-gray-400 hover:text-white transition"></i>
-      <span class="text-xl font-bold text-red-500">Binge</span>
-    </a>
-    <a href="/auth/logout" class="flex items-center gap-2 text-red-400 hover:text-red-300 text-sm transition">
-      <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out
-    </a>
+  <nav class="bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center gap-4 sticky top-0 z-50 w-full">
+    <div class="flex items-center gap-3 w-48 flex-shrink-0">
+      <a href="/viewer/home" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-gray-600 text-gray-300 hover:text-white transition flex-shrink-0">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+      </a>
+      <a href="/viewer/home" class="flex items-center flex-shrink-0">
+        <img src="/logo.png" alt="Binge" class="h-7 w-auto object-contain" onerror="this.onerror=null;this.src='/logo.svg'">
+      </a>
+    </div>
+    <div class="flex-1 flex gap-2 max-w-2xl mx-auto">
+      <input type="text" id="searchInput" placeholder="Search videos..."
+        class="flex-1 bg-gray-900 text-white border border-gray-700 rounded-full px-5 py-2 text-sm focus:outline-none focus:border-red-500 transition"/>
+      <button class="bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-full border border-gray-700 transition flex items-center">
+        <i data-lucide="search" class="w-4 h-4"></i>
+      </button>
+    </div>
+    <div class="w-48 flex-shrink-0 flex justify-end relative">
+      <button onclick="toggleProfile()" class="flex items-center gap-2 hover:bg-gray-800 px-3 py-1.5 rounded-full transition">
+        <div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-red-600 flex items-center justify-center font-bold text-sm">
+          <% if (user.avatar) { %><img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover"><% } else { %><%= user.firstName.charAt(0).toUpperCase() %><% } %>
+        </div>
+        <span class="text-white text-sm font-medium hidden sm:block"><%= user.firstName %></span>
+        <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
+      </button>
+      <div id="profileDropdown" class="hidden absolute top-12 right-0 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-56 z-50 overflow-hidden">
+        <div class="px-4 py-3 border-b border-gray-700 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full overflow-hidden bg-red-600 flex items-center justify-center font-bold text-sm">
+            <% if (user.avatar) { %><img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover"><% } else { %><%= user.firstName.charAt(0).toUpperCase() %><% } %>
+          </div>
+          <div>
+            <p class="text-white text-sm font-semibold"><%= user.firstName %> <%= user.lastName %></p>
+            <p class="text-gray-400 text-xs"><%= user.email %></p>
+          </div>
+        </div>
+        <div class="py-1">
+          <a href="/viewer/profile" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition"><i data-lucide="user-circle" class="w-4 h-4"></i> My Profile</a>
+          <a href="/viewer/history" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition"><i data-lucide="history" class="w-4 h-4"></i> Watch History</a>
+          <a href="/viewer/playlists" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition"><i data-lucide="list-music" class="w-4 h-4"></i> Playlists</a>
+          <a href="/viewer/subscriptions" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition"><i data-lucide="bell" class="w-4 h-4"></i> Subscriptions</a>
+          <button onclick="toggleTheme()" class="w-full flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition text-left">
+            <i data-lucide="sun" class="w-4 h-4" id="themeIcon"></i><span id="themeLabel">Light Mode</span>
+          </button>
+          <div class="border-t border-gray-700 my-1"></div>
+          <a href="/auth/logout" class="flex items-center gap-3 px-4 py-2.5 text-red-400 hover:bg-gray-800 text-sm transition"><i data-lucide="log-out" class="w-4 h-4"></i> Sign Out</a>
+        </div>
+      </div>
+    </div>
   </nav>
 
   <!-- Banner -->
@@ -34,7 +101,6 @@
 
       <!-- Avatar Section -->
       <div class="px-8 pt-6 pb-6 flex items-end gap-6">
-        <!-- Avatar -->
         <div class="relative flex-shrink-0">
           <div class="w-24 h-24 rounded-full border-4 border-gray-900 overflow-hidden bg-red-600 flex items-center justify-center text-3xl font-bold shadow-xl">
             <% if (userData.Avatar) { %>
@@ -44,14 +110,12 @@
               <img id="avatarPreview" class="w-full h-full object-cover hidden">
             <% } %>
           </div>
-          <!-- Upload button overlay -->
           <label for="avatarInput"
             class="absolute bottom-0 right-0 w-7 h-7 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center cursor-pointer transition shadow-lg border-2 border-gray-900">
             <i data-lucide="camera" class="w-3.5 h-3.5 text-white"></i>
           </label>
         </div>
 
-        <!-- Name & Stats -->
         <div class="flex-1 pb-1">
           <h2 class="text-2xl font-bold"><%= userData.FirstName %> <%= userData.LastName %></h2>
           <p class="text-gray-400 text-sm flex items-center gap-1.5 mt-1">
@@ -69,7 +133,7 @@
         </div>
       </div>
 
-      <!-- Quick avatar upload form (hidden, triggered by camera button) -->
+      <!-- Hidden avatar upload form -->
       <form action="/viewer/profile/avatar" method="POST" enctype="multipart/form-data" id="avatarForm" class="hidden">
         <input type="file" name="avatar" id="avatarInput" accept="image/*" class="hidden">
       </form>
@@ -94,7 +158,6 @@
           <i data-lucide="edit-3" class="w-4 h-4 text-red-400"></i> Edit Profile
         </h3>
         <form action="/viewer/profile/update" method="POST" class="space-y-5">
-
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-gray-400 text-xs mb-1.5 uppercase tracking-wider">First Name</label>
@@ -113,7 +176,6 @@
               </div>
             </div>
           </div>
-
           <div>
             <label class="block text-gray-400 text-xs mb-1.5 uppercase tracking-wider">Email Address</label>
             <div class="relative">
@@ -123,7 +185,6 @@
               <span class="absolute right-3.5 top-3 text-xs text-gray-500">Cannot change</span>
             </div>
           </div>
-
           <div>
             <label class="block text-gray-400 text-xs mb-1.5 uppercase tracking-wider">Country</label>
             <div class="relative">
@@ -136,7 +197,6 @@
               </select>
             </div>
           </div>
-
           <div class="flex gap-3 pt-2">
             <button type="submit"
               class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm px-6 py-2.5 rounded-xl transition font-medium">
@@ -147,7 +207,6 @@
               <i data-lucide="x" class="w-4 h-4"></i> Cancel
             </a>
           </div>
-
         </form>
       </div>
     </div>
@@ -167,16 +226,22 @@
         <span class="text-sm text-gray-300">Subscriptions</span>
       </a>
     </div>
-
   </div>
 
   <script>
     lucide.createIcons();
 
-    // Click camera icon → trigger file input → auto submit
+    function toggleProfile() { document.getElementById('profileDropdown').classList.toggle('hidden'); }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#profileDropdown') && !e.target.closest('[onclick="toggleProfile()"]')) {
+        document.getElementById('profileDropdown')?.classList.add('hidden');
+      }
+    });
+
+    // Avatar upload
     document.getElementById('avatarInput').addEventListener('change', function() {
       if (this.files && this.files[0]) {
-        // Preview
         const reader = new FileReader();
         reader.onload = e => {
           const preview = document.getElementById('avatarPreview');
@@ -186,11 +251,35 @@
           if (initial) initial.classList.add('hidden');
         };
         reader.readAsDataURL(this.files[0]);
-        // Auto submit
         document.getElementById('avatarForm').submit();
       }
     });
-  </script>
 
+    function applyTheme(t) {
+      const icon  = document.getElementById('themeIcon');
+      const label = document.getElementById('themeLabel');
+      if (t === 'light') {
+        document.body.classList.add('light');
+        if (icon)  icon.setAttribute('data-lucide', 'moon');
+        if (label) label.textContent = 'Dark Mode';
+      } else {
+        document.body.classList.remove('light');
+        if (icon)  icon.setAttribute('data-lucide', 'sun');
+        if (label) label.textContent = 'Light Mode';
+      }
+      lucide.createIcons();
+    }
+    function toggleTheme() {
+      const next = localStorage.getItem('binge_theme') === 'light' ? 'dark' : 'light';
+      localStorage.setItem('binge_theme', next);
+      applyTheme(next);
+    }
+    applyTheme(localStorage.getItem('binge_theme') || 'dark');
+
+    document.getElementById('searchInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && this.value.trim())
+        window.location.href = '/viewer/home?search=' + encodeURIComponent(this.value.trim());
+    });
+  </script>
 </body>
 </html>

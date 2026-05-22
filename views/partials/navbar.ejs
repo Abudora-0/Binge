@@ -1,0 +1,70 @@
+<nav class="bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center gap-4 sticky top-0 z-50 w-full">
+  <!-- Logo -->
+  <div class="flex items-center gap-3 w-48 flex-shrink-0">
+    <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-gray-800 transition">
+      <i data-lucide="menu" class="w-5 h-5"></i>
+    </button>
+    <a href="/viewer/home" class="flex items-center flex-shrink-0">
+      <img src="/logo.png" alt="Binge" class="h-7 w-auto object-contain" onerror="this.onerror=null;this.src='/logo.svg'">
+    </a>
+  </div>
+
+  <!-- Search -->
+  <div class="flex-1 flex gap-2 max-w-2xl mx-auto">
+    <input type="text" id="searchInput" placeholder="Search videos..."
+      class="flex-1 bg-gray-900 text-white border border-gray-700 rounded-full px-5 py-2 text-sm focus:outline-none focus:border-red-500 transition"/>
+    <button class="bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-full border border-gray-700 transition flex items-center justify-center">
+      <i data-lucide="search" class="w-4 h-4"></i>
+    </button>
+  </div>
+
+  <!-- Profile -->
+  <div class="w-48 flex-shrink-0 flex justify-end relative">
+    <button onclick="toggleProfile()" class="flex items-center gap-2 hover:bg-gray-800 px-3 py-1.5 rounded-full transition">
+      <div class="w-8 h-8 rounded-full overflow-hidden bg-red-600 flex items-center justify-center font-bold text-sm flex-shrink-0">
+        <% if (user.avatar) { %>
+          <img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover">
+        <% } else { %>
+          <%= user.firstName.charAt(0).toUpperCase() %>
+        <% } %>
+      </div>
+      <span class="text-white text-sm font-medium hidden sm:block"><%= user.firstName %></span>
+      <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
+    </button>
+
+    <!-- Dropdown -->
+    <div id="profileDropdown" class="hidden absolute top-12 right-0 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-56 z-50 overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-700 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full overflow-hidden bg-red-600 flex items-center justify-center font-bold text-sm flex-shrink-0">
+          <% if (user.avatar) { %>
+            <img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover">
+          <% } else { %>
+            <%= user.firstName.charAt(0).toUpperCase() %>
+          <% } %>
+        </div>
+        <div>
+          <p class="text-white text-sm font-semibold"><%= user.firstName %> <%= user.lastName %></p>
+          <p class="text-gray-400 text-xs"><%= user.email %></p>
+        </div>
+      </div>
+      <div class="py-1">
+        <a href="/viewer/profile" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
+          <i data-lucide="user-circle" class="w-4 h-4"></i> My Profile
+        </a>
+        <a href="/viewer/history" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
+          <i data-lucide="history" class="w-4 h-4"></i> Watch History
+        </a>
+        <a href="/viewer/playlists" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
+          <i data-lucide="list-music" class="w-4 h-4"></i> Playlists
+        </a>
+        <a href="/viewer/subscriptions" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
+          <i data-lucide="bell" class="w-4 h-4"></i> Subscriptions
+        </a>
+        <div class="border-t border-gray-700 my-1"></div>
+        <a href="/auth/logout" class="flex items-center gap-3 px-4 py-2.5 text-red-400 hover:bg-gray-800 text-sm transition">
+          <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>

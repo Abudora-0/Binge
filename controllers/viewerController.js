@@ -11,7 +11,7 @@ function getYoutubeThumbnail(url) {
             videoId = url.split('youtu.be/')[1].split('?')[0];
         }
         if (videoId) {
-            return `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+            return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
         }
     } catch (e) { }
     return null;
@@ -102,7 +102,7 @@ const watchVideo = (req, res) => {
 
                         // Get related videos
                         const relatedQuery = `
-                        SELECT v.Id, v.Title, v.Views, v.Duration, c.ChannelName
+                        SELECT v.Id, v.Title, v.Views, v.Duration, v.VideoUrl, c.ChannelName
                         FROM video v
                         JOIN creator c ON v.CreatorId = c.Id
                         WHERE v.CategoryId = ? AND v.Id != ? AND v.Status = 'Published'
@@ -122,14 +122,27 @@ const watchVideo = (req, res) => {
                                 [userId, videoId]
                             );
 
-                            res.render('viewer/watch', {
-                                user: req.session.user,
-                                video,
-                                embedUrl,
-                                liked,
-                                subscribed,
-                                comments,
-                                related
+                            // Get user playlists for save button
+                            db.query(`
+                            SELECT p.Id, p.Title, COUNT(pi.Id) AS TotalVideos
+                            FROM playlist p
+                            LEFT JOIN playlistitem pi ON pi.PlaylistId = p.Id
+                            WHERE p.UserId = ?
+                            GROUP BY p.Id, p.Title
+                            ORDER BY p.CreatedAt DESC
+                        `, [userId], (err, userPlaylists) => {
+                                if (err) userPlaylists = [];
+
+                                res.render('viewer/watch', {
+                                    user: req.session.user,
+                                    video,
+                                    embedUrl,
+                                    liked,
+                                    subscribed,
+                                    comments,
+                                    related,
+                                    userPlaylists
+                                });
                             });
                         });
                     });
@@ -159,8 +172,8 @@ const subscribe = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
 
     const creatorId = req.params.id;
-    const userId    = req.session.user.id;
-    const referer   = req.headers.referer || '/viewer/home';
+    const userId = req.session.user.id;
+    const referer = req.headers.referer || '/viewer/home';
 
     db.beginTransaction((err) => {
         if (err) {
@@ -325,7 +338,7 @@ const history = (req, res) => {
 
     const query = `
         SELECT wh.WatchedAt, wh.CompletionPercent,
-               v.Id AS VideoId, v.Title, v.Duration, v.Views,
+               v.Id AS VideoId, v.Title, v.Duration, v.Views, v.VideoUrl,
                c.ChannelName, cat.Name AS Category
         FROM watchhistory wh
         JOIN video v      ON wh.VideoId    = v.Id
@@ -335,12 +348,15 @@ const history = (req, res) => {
         ORDER BY wh.WatchedAt DESC
         LIMIT 50
     `;
-
     db.query(query, [userId], (err, history) => {
         if (err) {
             logger.logError('history', err.message);
             history = [];
         }
+        history = history.map(v => ({
+            ...v,
+            thumbnail: getYoutubeThumbnail(v.VideoUrl)
+        }));
         res.render('viewer/history', { user: req.session.user, history });
     });
 };
@@ -350,12 +366,20 @@ const playlists = (req, res) => {
 
     const userId = req.session.user.id;
 
+    // Also pull the first video's URL so we can show a real cover thumbnail
     const query = `
-        SELECT p.*, COUNT(pi.Id) AS TotalVideos
+        SELECT p.Id, p.Title, p.Description, p.Visibility, p.CreatedAt,
+               COUNT(pi.Id) AS TotalVideos,
+               (SELECT v2.VideoUrl
+                FROM playlistitem pi2
+                JOIN video v2 ON pi2.VideoId = v2.Id
+                WHERE pi2.PlaylistId = p.Id
+                ORDER BY pi2.OrderNo ASC
+                LIMIT 1) AS CoverUrl
         FROM playlist p
         LEFT JOIN playlistitem pi ON pi.PlaylistId = p.Id
         WHERE p.UserId = ?
-        GROUP BY p.Id
+        GROUP BY p.Id, p.Title, p.Description, p.Visibility, p.CreatedAt
         ORDER BY p.CreatedAt DESC
     `;
 
@@ -364,6 +388,10 @@ const playlists = (req, res) => {
             logger.logError('playlists', err.message);
             playlists = [];
         }
+        playlists = playlists.map(p => ({
+            ...p,
+            thumbnail: p.CoverUrl ? getYoutubeThumbnail(p.CoverUrl) : null
+        }));
         res.render('viewer/playlists', { user: req.session.user, playlists });
     });
 };
@@ -485,14 +513,116 @@ const channelPage = (req, res) => {
         });
 };
 
+const addToPlaylist = (req, res) => {
+    if (!req.session.user) return res.redirect('/auth/login');
 
+    const { playlistId, videoId } = req.body;
+    const userId = req.session.user.id;
+
+    // Verify playlist belongs to user
+    db.query('SELECT Id FROM playlist WHERE Id = ? AND UserId = ?',
+        [playlistId, userId], (err, result) => {
+        if (err || result.length === 0) return res.redirect('back');
+
+        // Check if already in playlist
+        db.query('SELECT Id FROM playlistitem WHERE PlaylistId = ? AND VideoId = ?',
+            [playlistId, videoId], (err, existing) => {
+            if (existing && existing.length > 0) {
+                return res.redirect('back');
+            }
+
+            // Get max order number
+            db.query('SELECT MAX(OrderNo) AS maxOrder FROM playlistitem WHERE PlaylistId = ?',
+                [playlistId], (err, orderResult) => {
+                const nextOrder = (orderResult[0].maxOrder || 0) + 1;
+
+                db.query(
+                    'INSERT INTO playlistitem (PlaylistId, VideoId, OrderNo) VALUES (?, ?, ?)',
+                    [playlistId, videoId, nextOrder],
+                    (err) => {
+                        if (err) logger.logError('addToPlaylist', err.message);
+                        res.redirect('back');
+                    }
+                );
+            });
+        });
+    });
+};
+
+
+
+const deleteHistoryItem = (req, res) => {
+    if (!req.session.user) return res.redirect('/auth/login');
+    const { videoId } = req.body;
+    const userId = req.session.user.id;
+    db.query('DELETE FROM watchhistory WHERE UserId = ? AND VideoId = ?', [userId, videoId], (err) => {
+        if (err) logger.logError('deleteHistoryItem', err.message);
+        res.redirect('/viewer/history');
+    });
+};
+
+const clearHistory = (req, res) => {
+    if (!req.session.user) return res.redirect('/auth/login');
+    const userId = req.session.user.id;
+    db.query('DELETE FROM watchhistory WHERE UserId = ?', [userId], (err) => {
+        if (err) logger.logError('clearHistory', err.message);
+        res.redirect('/viewer/history');
+    });
+};
+
+const getPlaylist = (req, res) => {
+    if (!req.session.user) return res.redirect('/auth/login');
+
+    const playlistId = req.params.id;
+    const userId = req.session.user.id;
+
+    db.query('SELECT * FROM playlist WHERE Id = ? AND UserId = ?', [playlistId, userId], (err, result) => {
+        if (err || result.length === 0) return res.redirect('/viewer/playlists');
+        const playlist = result[0];
+
+        const videosQuery = `
+            SELECT pi.OrderNo,
+                   v.Id, v.Title, v.Duration, v.Views, v.VideoUrl, v.UploadDate,
+                   c.ChannelName, c.Id AS CreatorId
+            FROM playlistitem pi
+            JOIN video v ON pi.VideoId = v.Id
+            JOIN creator c ON v.CreatorId = c.Id
+            WHERE pi.PlaylistId = ?
+            ORDER BY pi.OrderNo ASC
+        `;
+
+        db.query(videosQuery, [playlistId], (err, videos) => {
+            if (err) videos = [];
+            videos = videos.map(v => ({ ...v, thumbnail: getYoutubeThumbnail(v.VideoUrl) }));
+            res.render('viewer/playlist-detail', { user: req.session.user, playlist, videos });
+        });
+    });
+};
+
+const removeFromPlaylist = (req, res) => {
+    if (!req.session.user) return res.redirect('/auth/login');
+
+    const { playlistId, videoId } = req.body;
+    const userId = req.session.user.id;
+
+    db.query('SELECT Id FROM playlist WHERE Id = ? AND UserId = ?', [playlistId, userId], (err, result) => {
+        if (err || result.length === 0) return res.redirect('/viewer/playlists');
+
+        db.query('DELETE FROM playlistitem WHERE PlaylistId = ? AND VideoId = ?',
+            [playlistId, videoId], (err) => {
+                if (err) logger.logError('removeFromPlaylist', err.message);
+                res.redirect('/viewer/playlist/' + playlistId);
+            });
+    });
+};
 
 module.exports = {
     home, watchVideo, likeVideo, subscribe, addComment,
     subscriptions, history, playlists, createPlaylist,
-    reportVideo, showProfile, updateAvatar, updateProfile, channelPage
+    reportVideo, showProfile, updateAvatar, updateProfile,
+    channelPage, addToPlaylist, getPlaylist, removeFromPlaylist,
+    deleteHistoryItem, clearHistory
 };
-
 
 
 

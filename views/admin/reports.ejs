@@ -4,15 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Binge — Reports</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="shortcut icon" href="/favicon.ico">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="/binge.css">
 </head>
 <body class="bg-gray-950 text-white min-h-screen">
 
   <nav class="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
     <div class="flex items-center gap-2">
-      <i data-lucide="bar-chart-2" class="w-5 h-5 text-red-500"></i>
-      <h1 class="text-xl font-bold text-red-500">Binge <span class="text-gray-400 text-sm font-normal ml-1">Reports</span></h1>
+      <img src="/logo.png" alt="Binge" class="h-7 w-auto object-contain" onerror="this.onerror=null;this.src='/logo.svg'">
+      <span class="text-gray-400 text-sm font-normal ml-1 flex items-center gap-1.5">
+        <i data-lucide="bar-chart-2" class="w-4 h-4 text-red-500"></i> Reports
+      </span>
     </div>
     <div class="flex items-center gap-4">
       <a href="/admin/dashboard" class="flex items-center gap-2 text-gray-400 hover:text-white text-sm transition">

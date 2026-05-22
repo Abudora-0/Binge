@@ -4,48 +4,69 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= video.Title %></title>
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="shortcut icon" href="/favicon.ico">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="/binge.css">
+  <style>
+    body.light { background-color: #f0f4f8; color: #334155; }
+    body.light .bg-gray-950 { background-color: #ffffff !important; }
+    body.light .bg-gray-900 { background-color: #f8fafc !important; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    body.light .bg-gray-800 { background-color: #e8edf5 !important; }
+    body.light .bg-gray-700 { background-color: #d5dcea !important; }
+    body.light .text-white  { color: #0f172a !important; }
+    body.light .text-gray-100 { color: #0f172a !important; }
+    body.light .text-gray-200 { color: #1e293b !important; }
+    body.light .text-gray-300 { color: #334155 !important; }
+    body.light .text-gray-400 { color: #475569 !important; }
+    body.light .text-gray-500 { color: #64748b !important; }
+    body.light .text-gray-600 { color: #8896aa !important; }
+    body.light .border-gray-700 { border-color: #d1dce9 !important; }
+    body.light .border-gray-800 { border-color: #e2eaf3 !important; }
+    body.light .border-gray-900 { border-color: #f0f4f8 !important; }
+    body.light .hover\:bg-gray-800:hover { background-color: #e8edf5 !important; }
+    body.light .hover\:bg-gray-700:hover { background-color: #d5dcea !important; }
+    body.light .hover\:text-white:hover  { color: #0f172a !important; }
+    body.light nav { box-shadow: 0 1px 8px rgba(0,0,0,0.09); }
+    body.light #profileDropdown { box-shadow: 0 8px 32px rgba(0,0,0,0.14) !important; }
+    body.light input::placeholder { color: #94a3b8 !important; }
+  </style>
 </head>
+
 <body class="bg-gray-950 text-white min-h-screen flex flex-col">
 
   <!-- Navbar -->
-  <nav class="bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center gap-4 sticky top-0 z-50">
+  <nav class="bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center gap-4 sticky top-0 z-50 w-full">
     <div class="flex items-center gap-3 w-48 flex-shrink-0">
-      <a href="/viewer/home" class="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-gray-800 transition">
-        <i data-lucide="menu" class="w-5 h-5"></i>
+      <a href="/viewer/home" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-gray-600 text-gray-300 hover:text-white transition flex-shrink-0">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
       </a>
-      <a href="/viewer/home" class="text-xl font-bold text-red-500">Binge</a>
+      <a href="/viewer/home" class="flex items-center flex-shrink-0">
+        <img src="/logo.png" alt="Binge" class="h-7 w-auto object-contain" onerror="this.onerror=null;this.src='/logo.svg'">
+      </a>
     </div>
     <div class="flex-1 flex gap-2 max-w-2xl mx-auto">
-      <input type="text" placeholder="Search videos..."
+      <input type="text" id="searchInput" placeholder="Search videos..."
         class="flex-1 bg-gray-900 text-white border border-gray-700 rounded-full px-5 py-2 text-sm focus:outline-none focus:border-red-500 transition"/>
-      <button class="bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-full border border-gray-700 transition">
+      <button class="bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-full border border-gray-700 transition flex items-center">
         <i data-lucide="search" class="w-4 h-4"></i>
       </button>
     </div>
     <div class="w-48 flex-shrink-0 flex justify-end relative">
-      <button onclick="toggleProfile()"
-        class="flex items-center gap-2 hover:bg-gray-800 px-3 py-1.5 rounded-full transition">
+      <button onclick="toggleProfile()" class="flex items-center gap-2 hover:bg-gray-800 px-3 py-1.5 rounded-full transition">
         <div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-red-600 flex items-center justify-center font-bold text-sm">
-          <% if (user.avatar) { %>
-            <img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover">
-          <% } else { %>
-            <%= user.firstName.charAt(0).toUpperCase() %>
-          <% } %>
+          <% if (user.avatar) { %><img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover"><% } else { %><%= user.firstName.charAt(0).toUpperCase() %><% } %>
         </div>
         <span class="text-white text-sm font-medium hidden sm:block"><%= user.firstName %></span>
         <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
       </button>
-      <div id="profileDropdown"
-        class="hidden absolute top-12 right-0 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-56 z-50 overflow-hidden">
+      <div id="profileDropdown" class="hidden absolute top-12 right-0 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-56 z-50 overflow-hidden">
         <div class="px-4 py-3 border-b border-gray-700 flex items-center gap-3">
           <div class="w-10 h-10 rounded-full overflow-hidden bg-red-600 flex items-center justify-center font-bold text-sm">
-            <% if (user.avatar) { %>
-              <img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover">
-            <% } else { %>
-              <%= user.firstName.charAt(0).toUpperCase() %>
-            <% } %>
+            <% if (user.avatar) { %><img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover"><% } else { %><%= user.firstName.charAt(0).toUpperCase() %><% } %>
           </div>
           <div>
             <p class="text-white text-sm font-semibold"><%= user.firstName %> <%= user.lastName %></p>
@@ -53,27 +74,15 @@
           </div>
         </div>
         <div class="py-1">
-          <a href="/viewer/profile"
-            class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="user-circle" class="w-4 h-4"></i> My Profile
-          </a>
-          <a href="/viewer/history"
-            class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="history" class="w-4 h-4"></i> Watch History
-          </a>
-          <a href="/viewer/playlists"
-            class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="list-music" class="w-4 h-4"></i> Playlists
-          </a>
-          <a href="/viewer/subscriptions"
-            class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="bell" class="w-4 h-4"></i> Subscriptions
-          </a>
+          <a href="/viewer/profile" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition"><i data-lucide="user-circle" class="w-4 h-4"></i> My Profile</a>
+          <a href="/viewer/history" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition"><i data-lucide="history" class="w-4 h-4"></i> Watch History</a>
+          <a href="/viewer/playlists" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition"><i data-lucide="list-music" class="w-4 h-4"></i> Playlists</a>
+          <a href="/viewer/subscriptions" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition"><i data-lucide="bell" class="w-4 h-4"></i> Subscriptions</a>
+          <button onclick="toggleTheme()" class="w-full flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition text-left">
+            <i data-lucide="sun" class="w-4 h-4" id="themeIcon"></i><span id="themeLabel">Light Mode</span>
+          </button>
           <div class="border-t border-gray-700 my-1"></div>
-          <a href="/auth/logout"
-            class="flex items-center gap-3 px-4 py-2.5 text-red-400 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out
-          </a>
+          <a href="/auth/logout" class="flex items-center gap-3 px-4 py-2.5 text-red-400 hover:bg-gray-800 text-sm transition"><i data-lucide="log-out" class="w-4 h-4"></i> Sign Out</a>
         </div>
       </div>
     </div>
@@ -95,34 +104,77 @@
       <!-- Title -->
       <h1 class="text-lg font-bold mb-3 leading-snug"><%= video.Title %></h1>
 
-      <!-- Actions Row -->
-      <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
-        <div class="flex items-center gap-3 text-gray-400 text-sm">
+      <!-- Actions Row: meta info + all action buttons in one line -->
+      <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+        <!-- Left: views / date / category -->
+        <div class="flex items-center gap-3 text-gray-400 text-sm flex-wrap">
           <span class="flex items-center gap-1.5">
             <i data-lucide="eye" class="w-4 h-4"></i>
-            <%= video.Views.toLocaleString() %> views
+            <%= formatViews(video.Views) %> views
           </span>
           <span class="text-gray-600">•</span>
-          <span><%= new Date(video.UploadDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></span>
+          <span><%= timeAgo(video.UploadDate) %></span>
           <span class="bg-red-600/20 text-red-400 px-2 py-0.5 rounded-full text-xs font-medium"><%= video.Category %></span>
         </div>
+
+        <!-- Right: Like / Share / Save -->
         <div class="flex items-center gap-2">
+
+          <!-- Like -->
           <form action="/viewer/like/<%= video.Id %>" method="POST" class="inline">
             <button type="submit"
-              class="flex items-center gap-2 <%= liked ? 'bg-red-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700' %> px-4 py-2 rounded-full text-sm transition">
-              <i data-lucide="heart" class="w-4 h-4"></i>
-              <%= liked ? 'Liked' : 'Like' %> · <%= video.LikeCount %>
+              class="flex items-center gap-2 <%= liked ? 'bg-red-600/15 text-red-500 border border-red-500/40 hover:bg-red-600/25' : 'bg-gray-800 text-gray-400 border border-gray-700 hover:bg-gray-700 hover:text-white' %> px-4 py-2 rounded-full text-sm font-medium transition">
+              <i data-lucide="thumbs-up" class="w-4 h-4"></i>
+              <span><%= formatViews(video.LikeCount) %></span>
             </button>
           </form>
-          <button class="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-full text-sm transition">
+
+          <!-- Share (copies URL to clipboard) -->
+          <button onclick="shareVideo()"
+            class="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-full text-sm transition">
             <i data-lucide="share-2" class="w-4 h-4"></i> Share
           </button>
-          <form action="/viewer/report/<%= video.Id %>" method="POST" class="inline">
-            <button type="submit"
+
+          <!-- Save to Playlist -->
+          <div class="relative">
+            <button onclick="togglePlaylistMenu()"
               class="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-full text-sm transition">
-              <i data-lucide="flag" class="w-4 h-4"></i> Report
+              <i data-lucide="list-plus" class="w-4 h-4"></i> Save
             </button>
-          </form>
+            <div id="playlistMenu"
+              class="hidden absolute top-10 right-0 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-56 z-50 overflow-hidden">
+              <div class="px-4 py-3 border-b border-gray-700">
+                <p class="text-white text-sm font-semibold flex items-center gap-2">
+                  <i data-lucide="list-music" class="w-4 h-4 text-red-400"></i> Save to Playlist
+                </p>
+              </div>
+              <div class="py-1 max-h-48 overflow-y-auto">
+                <% if (userPlaylists && userPlaylists.length > 0) { %>
+                  <% userPlaylists.forEach(p => { %>
+                    <form action="/viewer/playlist/add" method="POST">
+                      <input type="hidden" name="playlistId" value="<%= p.Id %>">
+                      <input type="hidden" name="videoId" value="<%= video.Id %>">
+                      <button type="submit"
+                        class="w-full flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition text-left">
+                        <i data-lucide="list-music" class="w-4 h-4 text-gray-500"></i>
+                        <span class="truncate flex-1"><%= p.Title %></span>
+                        <span class="text-gray-500 text-xs"><%= p.TotalVideos %></span>
+                      </button>
+                    </form>
+                  <% }) %>
+                <% } else { %>
+                  <p class="px-4 py-3 text-gray-500 text-sm">No playlists yet</p>
+                <% } %>
+              </div>
+              <div class="border-t border-gray-700 p-2">
+                <a href="/viewer/playlists"
+                  class="flex items-center gap-2 px-3 py-2 text-red-400 hover:bg-gray-800 text-sm rounded-lg transition">
+                  <i data-lucide="plus" class="w-4 h-4"></i> Create new playlist
+                </a>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -133,10 +185,12 @@
             <%= video.ChannelName.charAt(0).toUpperCase() %>
           </div>
           <div>
-            <a href="/viewer/channel/<%= video.CreatorId %>" class="font-semibold hover:text-red-400 transition"><%= video.ChannelName %></a>
+            <a href="/viewer/channel/<%= video.CreatorId %>" class="font-semibold hover:text-red-400 transition">
+              <%= video.ChannelName %>
+            </a>
             <p class="text-gray-400 text-xs flex items-center gap-1 mt-0.5">
               <i data-lucide="users" class="w-3 h-3"></i>
-              <%= video.TotalSubscribers.toLocaleString() %> subscribers
+              <%= formatViews(video.TotalSubscribers) %> subscribers
             </p>
           </div>
         </div>
@@ -192,7 +246,7 @@
                 <div class="flex-1">
                   <div class="flex items-center gap-2 mb-1">
                     <span class="text-sm font-semibold"><%= comment.FirstName %> <%= comment.LastName %></span>
-                    <span class="text-gray-500 text-xs"><%= new Date(comment.CommentDate).toLocaleDateString() %></span>
+                    <span class="text-gray-500 text-xs"><%= timeAgo(comment.CommentDate) %></span>
                   </div>
                   <p class="text-gray-300 text-sm leading-relaxed"><%= comment.Content %></p>
                 </div>
@@ -217,12 +271,14 @@
         <div class="space-y-3">
           <% related.forEach(v => { %>
             <a href="/viewer/watch/<%= v.Id %>" class="flex gap-3 hover:bg-gray-900 rounded-xl p-2 transition group">
-              <!-- Thumbnail -->
               <div class="w-40 h-24 rounded-lg overflow-hidden flex-shrink-0 relative bg-gray-800">
                 <% if (v.thumbnail) { %>
                   <img src="<%= v.thumbnail %>" alt="<%= v.Title %>"
-                       class="w-full h-full object-cover group-hover:brightness-75 transition"
-                       onerror="this.style.display='none'">
+                    class="w-full h-full object-cover group-hover:brightness-75 transition"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                  <div class="absolute inset-0 items-center justify-center" style="display:none">
+                    <i data-lucide="play-circle" class="w-8 h-8 text-gray-600"></i>
+                  </div>
                 <% } else { %>
                   <div class="w-full h-full flex items-center justify-center">
                     <i data-lucide="play-circle" class="w-8 h-8 text-gray-600"></i>
@@ -232,13 +288,11 @@
                   <%= Math.floor(v.Duration/60) %>:<%= String(v.Duration%60).padStart(2,'0') %>
                 </span>
               </div>
-              <!-- Info -->
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium line-clamp-2 leading-snug mb-1 group-hover:text-red-400 transition"><%= v.Title %></p>
                 <p class="text-gray-400 text-xs"><%= v.ChannelName %></p>
                 <p class="text-gray-500 text-xs flex items-center gap-1 mt-1">
-                  <i data-lucide="eye" class="w-3 h-3"></i>
-                  <%= v.Views.toLocaleString() %> views
+                  <i data-lucide="eye" class="w-3 h-3"></i> <%= formatViews(v.Views) %> views
                 </p>
               </div>
             </a>
@@ -246,21 +300,81 @@
         </div>
       <% } %>
     </div>
+  </div>
 
+  <!-- Share toast -->
+  <div id="shareToast"
+    class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-800 border border-gray-700 text-white px-5 py-2.5 rounded-full text-sm shadow-xl z-[100] flex items-center gap-2">
+    <i data-lucide="check" class="w-4 h-4 text-green-400"></i> Link copied to clipboard!
   </div>
 
   <script>
     lucide.createIcons();
 
-    function toggleProfile() {
-      document.getElementById('profileDropdown').classList.toggle('hidden');
-    }
+    document.getElementById('searchInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && this.value.trim())
+        window.location.href = '/viewer/home?search=' + encodeURIComponent(this.value.trim());
+    });
+
+    function toggleProfile() { document.getElementById('profileDropdown').classList.toggle('hidden'); }
+
+    function togglePlaylistMenu() { document.getElementById('playlistMenu').classList.toggle('hidden'); }
 
     document.addEventListener('click', (e) => {
-      if (!e.target.closest('.relative') && !e.target.closest('[onclick="toggleProfile()"]')) {
-        document.getElementById('profileDropdown').classList.add('hidden');
+      if (!e.target.closest('#profileDropdown') && !e.target.closest('[onclick="toggleProfile()"]')) {
+        document.getElementById('profileDropdown')?.classList.add('hidden');
+      }
+      if (!e.target.closest('#playlistMenu') && !e.target.closest('[onclick="togglePlaylistMenu()"]')) {
+        document.getElementById('playlistMenu')?.classList.add('hidden');
       }
     });
+
+    // Share: copy URL to clipboard
+    function shareVideo() {
+      const url = window.location.href;
+      const toast = document.getElementById('shareToast');
+      const show = () => {
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 2500);
+      };
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(show).catch(() => fallbackCopy(url, show));
+      } else {
+        fallbackCopy(url, show);
+      }
+    }
+    function fallbackCopy(text, cb) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity  = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); cb(); } catch(e) {}
+      document.body.removeChild(ta);
+    }
+
+    // Theme
+    function applyTheme(t) {
+      const icon  = document.getElementById('themeIcon');
+      const label = document.getElementById('themeLabel');
+      if (t === 'light') {
+        document.body.classList.add('light');
+        if (icon)  icon.setAttribute('data-lucide', 'moon');
+        if (label) label.textContent = 'Dark Mode';
+      } else {
+        document.body.classList.remove('light');
+        if (icon)  icon.setAttribute('data-lucide', 'sun');
+        if (label) label.textContent = 'Light Mode';
+      }
+      lucide.createIcons();
+    }
+    function toggleTheme() {
+      const next = localStorage.getItem('binge_theme') === 'light' ? 'dark' : 'light';
+      localStorage.setItem('binge_theme', next);
+      applyTheme(next);
+    }
+    applyTheme(localStorage.getItem('binge_theme') || 'dark');
   </script>
 </body>
 </html>

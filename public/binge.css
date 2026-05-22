@@ -1,0 +1,51 @@
+/* ═══════════════════════════════════════════════════════════
+   Binge — Global Styles
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Custom Scrollbar — WebKit (Chrome, Edge, Safari) ─────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2d3748;
+  border-radius: 999px;
+  transition: background 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #dc2626;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ── Custom Scrollbar — Firefox ───────────────────────────── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2d3748 transparent;
+}
+
+/* ── Light Mode Scrollbar ─────────────────────────────────── */
+body.light ::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+}
+
+body.light ::-webkit-scrollbar-thumb:hover {
+  background: #dc2626;
+}
+
+body.light * {
+  scrollbar-color: #94a3b8 transparent;
+}
+
+/* ── Smooth scrolling ─────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+}

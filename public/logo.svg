@@ -1,8 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 218 56" role="img" aria-label="Binge">
-  <text x="2" y="46"
-        font-family="'Arial Black','Impact','Helvetica Neue',Arial,sans-serif"
-        font-weight="900"
-        font-size="52"
-        fill="#CC0D0D"
-        letter-spacing="-1">BiNGE</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 72" role="img" aria-label="Binge">
+  <defs>
+    <style>
+      .logo-text {
+        font-family: 'Arial Rounded MT Bold', 'Nunito', 'Trebuchet MS', 'Segoe UI', sans-serif;
+        font-weight: 900;
+        font-size: 62px;
+        fill: #dc2626;
+        stroke: #dc2626;
+        stroke-width: 3px;
+        stroke-linejoin: round;
+        paint-order: stroke fill;
+        letter-spacing: 1px;
+      }
+    </style>
+  </defs>
+  <text class="logo-text" x="8" y="58">BiNGE</text>
 </svg>

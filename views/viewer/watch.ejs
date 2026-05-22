@@ -181,9 +181,15 @@
       <!-- Channel + Subscribe -->
       <div class="bg-gray-900 rounded-2xl p-4 flex items-center justify-between mb-5">
         <div class="flex items-center gap-3">
-          <div class="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0">
-            <%= video.ChannelName.charAt(0).toUpperCase() %>
-          </div>
+          <a href="/viewer/channel/<%= video.CreatorId %>"
+            class="w-12 h-12 bg-red-600 rounded-full overflow-hidden flex items-center justify-center text-lg font-bold flex-shrink-0">
+            <% if (video.CreatorAvatar) { %>
+              <img src="/uploads/<%= video.CreatorAvatar %>" class="w-full h-full object-cover"
+                   onerror="this.style.display='none';this.parentElement.innerText='<%= video.ChannelName.charAt(0).toUpperCase() %>'">
+            <% } else { %>
+              <%= video.ChannelName.charAt(0).toUpperCase() %>
+            <% } %>
+          </a>
           <div>
             <a href="/viewer/channel/<%= video.CreatorId %>" class="font-semibold hover:text-red-400 transition">
               <%= video.ChannelName %>
@@ -290,7 +296,16 @@
               </div>
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium line-clamp-2 leading-snug mb-1 group-hover:text-red-400 transition"><%= v.Title %></p>
-                <p class="text-gray-400 text-xs"><%= v.ChannelName %></p>
+                <div class="flex items-center gap-1.5 mt-1">
+                  <div class="w-5 h-5 bg-red-600 rounded-full overflow-hidden flex items-center justify-center text-xs font-bold flex-shrink-0 text-white">
+                    <% if (v.CreatorAvatar) { %>
+                      <img src="/uploads/<%= v.CreatorAvatar %>" class="w-full h-full object-cover">
+                    <% } else { %>
+                      <%= v.ChannelName.charAt(0).toUpperCase() %>
+                    <% } %>
+                  </div>
+                  <p class="text-gray-400 text-xs truncate"><%= v.ChannelName %></p>
+                </div>
                 <p class="text-gray-500 text-xs flex items-center gap-1 mt-1">
                   <i data-lucide="eye" class="w-3 h-3"></i> <%= formatViews(v.Views) %> views
                 </p>

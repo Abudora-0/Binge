@@ -4,7 +4,7 @@ const logger = require('../config/logger');
 
 // Show login page
 const showLogin = (req, res) => {
-    res.render('login', { error: null });
+    res.render('login', { error: null, resetError: null, resetSuccess: null, resetEmail: '' });
 };
 
 // Show register page
@@ -132,40 +132,32 @@ const register = (req, res) => {
 const login = (req, res) => {
     const { email, password, role } = req.body;
 
+    const loginError = (msg) => res.render('login', { error: msg, resetError: null, resetSuccess: null, resetEmail: '' });
+
     // ── Validators ──
-    if (!email || !password || !role) {
-        return res.render('login', { error: 'All fields are required.' });
-    }
+    if (!email || !password || !role) return loginError('All fields are required.');
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        return res.render('login', { error: 'Please enter a valid email address.' });
-    }
+    if (!emailRegex.test(email)) return loginError('Please enter a valid email address.');
 
     // ── Find user ──
     const query = 'SELECT * FROM user WHERE Email = ?';
     db.query(query, [email], (err, results) => {
         if (err) {
             logger.logError('authController', err.message);
-            return res.render('login', { error: 'Something went wrong. Please try again.' });
+            return loginError('Something went wrong. Please try again.');
         }
 
-        if (results.length === 0) {
-            return res.render('login', { error: 'No account found with this email.' });
-        }
+        if (results.length === 0) return loginError('No account found with this email.');
 
         const user = results[0];
 
         // ── Check password ──
         const passwordMatch = bcrypt.compareSync(password, user.Password);
-        if (!passwordMatch) {
-            return res.render('login', { error: 'Incorrect password.' });
-        }
+        if (!passwordMatch) return loginError('Incorrect password.');
 
         // ── Check status ──
-        if (user.Status !== 'Active') {
-            return res.render('login', { error: 'Your account has been suspended.' });
-        }
+        if (user.Status !== 'Active') return loginError('Your account has been suspended.');
 
         // ── Store session ──
         req.session.user = {
@@ -190,4 +182,81 @@ const logout = (req, res) => {
     res.redirect('/auth/login');
 };
 
-module.exports = { showLogin, showRegister, register, login, logout };
+// Handle forgot password (direct reset — no email service required)
+const forgotPassword = (req, res) => {
+    const { email, newPassword, confirmPassword } = req.body;
+
+    if (!email || !newPassword || !confirmPassword) {
+        return res.render('login', {
+            error: null,
+            resetError: 'All fields are required.',
+            resetEmail: email || ''
+        });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return res.render('login', {
+            error: null,
+            resetError: 'Please enter a valid email address.',
+            resetEmail: email
+        });
+    }
+
+    if (newPassword.length < 8) {
+        return res.render('login', {
+            error: null,
+            resetError: 'Password must be at least 8 characters.',
+            resetEmail: email
+        });
+    }
+
+    if (newPassword !== confirmPassword) {
+        return res.render('login', {
+            error: null,
+            resetError: 'Passwords do not match.',
+            resetEmail: email
+        });
+    }
+
+    db.query('SELECT Id FROM user WHERE Email = ?', [email], (err, results) => {
+        if (err) {
+            logger.logError('forgotPassword', err.message);
+            return res.render('login', {
+                error: null,
+                resetError: 'Something went wrong. Please try again.',
+                resetEmail: email
+            });
+        }
+
+        if (results.length === 0) {
+            return res.render('login', {
+                error: null,
+                resetError: 'No account found with this email address.',
+                resetEmail: email
+            });
+        }
+
+        const hashedPassword = bcrypt.hashSync(newPassword, 10);
+
+        db.query('UPDATE user SET Password = ? WHERE Email = ?', [hashedPassword, email], (err) => {
+            if (err) {
+                logger.logError('forgotPassword - update', err.message);
+                return res.render('login', {
+                    error: null,
+                    resetError: 'Failed to update password. Please try again.',
+                    resetEmail: email
+                });
+            }
+
+            res.render('login', {
+                error: null,
+                resetError: null,
+                resetSuccess: 'Password updated successfully! You can now sign in.',
+                resetEmail: ''
+            });
+        });
+    });
+};
+
+module.exports = { showLogin, showRegister, register, login, logout, forgotPassword };

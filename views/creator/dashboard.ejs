@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,14 +11,40 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <link rel="stylesheet" href="/binge.css">
+  <style>
+    body.light { background-color: #f0f4f8; color: #334155; }
+    body.light .bg-gray-950 { background-color: #ffffff !important; }
+    body.light .bg-gray-900 { background-color: #f8fafc !important; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    body.light .bg-gray-800 { background-color: #e8edf5 !important; }
+    body.light .bg-gray-700 { background-color: #d5dcea !important; }
+    body.light .text-white  { color: #0f172a !important; }
+    body.light .text-gray-100 { color: #0f172a !important; }
+    body.light .text-gray-200 { color: #1e293b !important; }
+    body.light .text-gray-300 { color: #334155 !important; }
+    body.light .text-gray-400 { color: #475569 !important; }
+    body.light .text-gray-500 { color: #64748b !important; }
+    body.light .text-gray-600 { color: #8896aa !important; }
+    body.light .border-gray-700 { border-color: #d1dce9 !important; }
+    body.light .border-gray-800 { border-color: #e2eaf3 !important; }
+    body.light .border-gray-900 { border-color: #f0f4f8 !important; }
+    body.light .hover\:bg-gray-800:hover { background-color: #e8edf5 !important; }
+    body.light .hover\:bg-gray-700:hover { background-color: #d5dcea !important; }
+    body.light .hover\:text-white:hover  { color: #0f172a !important; }
+    body.light nav.sticky { box-shadow: 0 1px 8px rgba(0,0,0,0.09); }
+    body.light #sidebar   { background-color: #f8fafc !important; border-right-color: #e2eaf3 !important; }
+    body.light #profileDropdown { box-shadow: 0 8px 32px rgba(0,0,0,0.14) !important; }
+    body.light input::placeholder { color: #94a3b8 !important; }
+    body.light .studio-header { background: linear-gradient(to right, #f1f5f9, #f8fafc) !important; }
+  </style>
 </head>
-<body class="bg-gray-950 text-white min-h-screen flex flex-col">
+
+<body class="bg-gray-950 text-white h-full flex flex-col overflow-hidden">
 
   <!-- Navbar -->
-  <nav class="bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center gap-4 sticky top-0 z-50 w-full">
-    <div class="flex items-center gap-3 w-48 flex-shrink-0">
+  <nav class="sticky bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center gap-4 z-50 w-full flex-shrink-0">
+    <div class="flex items-center gap-3 w-52 flex-shrink-0">
       <button onclick="toggleSidebar()"
-        class="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-gray-800 transition">
+        class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-800 text-gray-400 hover:text-white transition flex-shrink-0">
         <i data-lucide="menu" class="w-5 h-5"></i>
       </button>
       <a href="/viewer/home" class="flex items-center flex-shrink-0">
@@ -27,74 +53,82 @@
     </div>
     <div class="flex-1 flex gap-2 max-w-2xl mx-auto">
       <input type="text" id="searchInput" placeholder="Search videos..."
-        class="flex-1 bg-gray-900 text-white border border-gray-700 rounded-full px-5 py-2 text-sm focus:outline-none focus:border-red-500 transition" />
-      <button
-        class="bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-full border border-gray-700 transition flex items-center">
+        class="flex-1 bg-gray-900 text-white border border-gray-700 rounded-full px-5 py-2 text-sm focus:outline-none focus:border-red-500 transition"/>
+      <button class="bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-full border border-gray-700 transition flex items-center text-gray-400 hover:text-white">
         <i data-lucide="search" class="w-4 h-4"></i>
       </button>
     </div>
-    <div class="w-48 flex-shrink-0 flex justify-end relative">
+    <div class="w-52 flex-shrink-0 flex justify-end relative">
       <button onclick="toggleProfile()" class="flex items-center gap-2 hover:bg-gray-800 px-3 py-1.5 rounded-full transition">
-        <div class="w-8 h-8 rounded-full overflow-hidden bg-red-600 flex items-center justify-center font-bold text-sm flex-shrink-0">
-          <% if (user.avatar) { %>
-            <img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover">
-          <% } else { %>
-            <%= user.firstName.charAt(0).toUpperCase() %>
-          <% } %>
+        <div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-red-600 flex items-center justify-center font-bold text-sm">
+          <% if (user.avatar) { %><img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover"><% } else { %><%= user.firstName.charAt(0).toUpperCase() %><% } %>
         </div>
-        <span class="text-white text-sm font-medium"><%= user.firstName %></span>
+        <span class="text-sm font-medium hidden sm:block"><%= user.firstName %></span>
         <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
       </button>
-
-      <!-- Dropdown -->
-      <div id="profileDropdown" class="hidden absolute top-12 right-0 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-56 z-50 overflow-hidden">
+      <div id="profileDropdown" class="hidden absolute top-12 right-0 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-60 z-50 overflow-hidden">
         <div class="px-4 py-3 border-b border-gray-700 flex items-center gap-3">
           <div class="w-10 h-10 rounded-full overflow-hidden bg-red-600 flex items-center justify-center font-bold text-sm flex-shrink-0">
-            <% if (user.avatar) { %>
-              <img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover">
-            <% } else { %>
-              <%= user.firstName.charAt(0).toUpperCase() %>
-            <% } %>
+            <% if (user.avatar) { %><img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover"><% } else { %><%= user.firstName.charAt(0).toUpperCase() %><% } %>
           </div>
-          <div>
-            <p class="text-white text-sm font-semibold"><%= user.firstName %> <%= user.lastName %></p>
-            <p class="text-gray-400 text-xs"><%= creator.ChannelName %></p>
+          <div class="min-w-0">
+            <p class="text-white text-sm font-semibold truncate"><%= user.firstName %> <%= user.lastName %></p>
+            <p class="text-red-400 text-xs truncate flex items-center gap-1"><i data-lucide="clapperboard" class="w-3 h-3"></i> <%= creator.ChannelName %></p>
           </div>
         </div>
         <div class="py-1">
-            <a href="/creator/profile" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
-              <i data-lucide="user-circle" class="w-4 h-4"></i> My Profile
-            </a>
-            <a href="/creator/upload" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
-              <i data-lucide="upload" class="w-4 h-4"></i> Upload Video
-            </a>
-            <div class="border-t border-gray-700 my-1"></div>
-            <a href="/auth/logout" class="flex items-center gap-3 px-4 py-2.5 text-red-400 hover:bg-gray-800 text-sm transition">
-              <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out
-            </a>
-          </div>
+          <a href="/creator/dashboard" class="flex items-center gap-3 px-4 py-2.5 text-white bg-gray-800 text-sm font-medium">
+            <i data-lucide="layout-dashboard" class="w-4 h-4 text-red-400"></i> Dashboard
+          </a>
+          <a href="/creator/upload" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
+            <i data-lucide="upload-cloud" class="w-4 h-4"></i> Upload Video
+          </a>
+          <a href="/creator/profile" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
+            <i data-lucide="settings" class="w-4 h-4"></i> Profile Settings
+          </a>
+          <div class="border-t border-gray-700 my-1"></div>
+          <a href="/viewer/home" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
+            <i data-lucide="tv-2" class="w-4 h-4"></i> Switch to Viewer
+          </a>
+          <button onclick="toggleTheme()" class="w-full flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition text-left">
+            <i data-lucide="sun" class="w-4 h-4" id="themeIcon"></i><span id="themeLabel">Light Mode</span>
+          </button>
+          <div class="border-t border-gray-700 my-1"></div>
+          <a href="/auth/logout" class="flex items-center gap-3 px-4 py-2.5 text-red-400 hover:bg-gray-800 text-sm transition">
+            <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out
+          </a>
         </div>
       </div>
     </div>
   </nav>
 
-  <div class="flex flex-1">
+  <!-- Body: Sidebar + Main -->
+  <div class="flex flex-1 min-h-0">
 
     <!-- Sidebar -->
-    <aside class="w-52 flex-shrink-0 bg-gray-950 border-r border-gray-900 pt-4 pb-10 hidden md:block">
-      <div class="space-y-1 px-2">
-        <a href="/creator/dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gray-800 text-white text-sm font-medium">
-          <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
+    <aside id="sidebar" class="w-56 flex-shrink-0 bg-gray-950 border-r border-gray-800 overflow-y-auto flex flex-col py-4">
+      <div class="px-4 mb-3">
+        <span class="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
+          <i data-lucide="clapperboard" class="w-3.5 h-3.5 text-red-500"></i> Creator Studio
+        </span>
+      </div>
+      <div class="space-y-0.5 px-2 flex-1">
+        <a href="/creator/dashboard"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gray-800 text-white text-sm font-medium">
+          <i data-lucide="layout-dashboard" class="w-4 h-4 flex-shrink-0 text-red-400"></i> Dashboard
         </a>
-        <a href="/creator/upload" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition">
-          <i data-lucide="upload" class="w-4 h-4"></i> Upload Video
+        <a href="/creator/upload"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition">
+          <i data-lucide="upload-cloud" class="w-4 h-4 flex-shrink-0"></i> Upload Video
         </a>
-        <a href="/creator/profile" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition">
-          <i data-lucide="user-circle" class="w-4 h-4"></i> My Profile
+        <a href="/creator/profile"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition">
+          <i data-lucide="settings" class="w-4 h-4 flex-shrink-0"></i> Profile Settings
         </a>
-        <div class="border-t border-gray-800 my-3"></div>
-        <a href="/viewer/home" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white text-sm transition">
-          <i data-lucide="tv-2" class="w-4 h-4"></i> View as Viewer
+        <div class="border-t border-gray-800 mx-1 my-2"></div>
+        <a href="/viewer/home"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition">
+          <i data-lucide="tv-2" class="w-4 h-4 flex-shrink-0"></i> Switch to Viewer
         </a>
       </div>
     </aside>
@@ -102,166 +136,193 @@
     <!-- Main Content -->
     <main class="flex-1 overflow-y-auto">
 
-      <!-- Channel Banner -->
-      <div class="relative h-36 bg-gradient-to-r from-red-900/50 via-gray-900 to-gray-950 overflow-hidden">
-        <div class="absolute inset-0 opacity-10">
-          <div class="absolute top-2 left-20 w-32 h-32 bg-red-500 rounded-full blur-3xl"></div>
-          <div class="absolute bottom-2 right-40 w-48 h-48 bg-red-700 rounded-full blur-3xl"></div>
-        </div>
-      </div>
-
-      <div class="px-6 -mt-10 mb-6 flex items-end gap-4">
-        <!-- Avatar -->
-        <div class="relative flex-shrink-0">
-          <div class="w-20 h-20 rounded-full border-4 border-gray-950 overflow-hidden bg-red-600 flex items-center justify-center text-2xl font-bold shadow-xl">
+      <!-- Studio Header -->
+      <div class="studio-header bg-gradient-to-r from-gray-900 via-gray-900 to-gray-950 border-b border-gray-800 px-6 py-5">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl overflow-hidden bg-red-600 flex items-center justify-center text-xl font-bold flex-shrink-0 shadow-lg">
             <% if (user.avatar) { %>
               <img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover">
             <% } else { %>
               <%= user.firstName.charAt(0).toUpperCase() %>
             <% } %>
           </div>
-        </div>
-        <div class="pb-2 flex-1">
-          <h1 class="text-xl font-bold"><%= creator.ChannelName %></h1>
-          <p class="text-gray-400 text-sm"><%= creator.Bio || 'No bio yet — add one in My Profile' %></p>
-        </div>
-        <div class="pb-2">
-          <a href="/creator/upload"
-            class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm px-5 py-2.5 rounded-full transition font-medium">
-            <i data-lucide="plus" class="w-4 h-4"></i> Upload Video
-          </a>
+          <div class="min-w-0 flex-1">
+            <h1 class="text-lg font-bold truncate"><%= creator.ChannelName %></h1>
+            <p class="text-gray-400 text-sm truncate"><%= creator.Bio || 'No bio yet — add one in Profile Settings' %></p>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <a href="/viewer/channel/<%= creator.Id %>"
+              class="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-sm px-4 py-2.5 rounded-full transition font-medium border border-gray-700">
+              <i data-lucide="external-link" class="w-4 h-4"></i> View Channel
+            </a>
+            <a href="/creator/upload"
+              class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm px-5 py-2.5 rounded-full transition font-semibold shadow-lg shadow-red-900/30">
+              <i data-lucide="plus" class="w-4 h-4"></i> Upload
+            </a>
+          </div>
         </div>
       </div>
 
-      <div class="px-6 pb-10">
+      <!-- Stats + Content -->
+      <div class="px-6 py-6 space-y-6">
 
-        <!-- Stats -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div class="bg-gray-900 rounded-2xl p-5 border border-gray-800 hover:border-red-500/30 transition">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-gray-400 text-sm">Total Videos</span>
-              <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                <i data-lucide="video" class="w-4 h-4 text-blue-400"></i>
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-gray-900 rounded-2xl p-5 border border-gray-800 hover:border-blue-500/30 transition group">
+            <div class="flex items-center justify-between mb-4">
+              <p class="text-gray-400 text-xs uppercase tracking-wider font-semibold">Total Videos</p>
+              <div class="w-9 h-9 bg-blue-500/10 rounded-xl flex items-center justify-center group-hover:bg-blue-500/20 transition">
+                <i data-lucide="film" class="w-4 h-4 text-blue-400"></i>
               </div>
             </div>
-            <p class="text-3xl font-bold"><%= stats.totalVideos %></p>
-            <p class="text-gray-500 text-xs mt-1"><%= stats.published %> published</p>
+            <p class="text-3xl font-bold mb-1"><%= stats.totalVideos %></p>
+            <p class="text-gray-500 text-xs flex items-center gap-1">
+              <i data-lucide="check-circle" class="w-3 h-3 text-green-400"></i>
+              <%= stats.published %> published
+            </p>
           </div>
 
-          <div class="bg-gray-900 rounded-2xl p-5 border border-gray-800 hover:border-red-500/30 transition">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-gray-400 text-sm">Total Views</span>
-              <div class="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center">
+          <div class="bg-gray-900 rounded-2xl p-5 border border-gray-800 hover:border-red-500/30 transition group">
+            <div class="flex items-center justify-between mb-4">
+              <p class="text-gray-400 text-xs uppercase tracking-wider font-semibold">Total Views</p>
+              <div class="w-9 h-9 bg-red-500/10 rounded-xl flex items-center justify-center group-hover:bg-red-500/20 transition">
                 <i data-lucide="eye" class="w-4 h-4 text-red-400"></i>
               </div>
             </div>
-            <p class="text-3xl font-bold"><%= stats.totalViews.toLocaleString() %></p>
-            <p class="text-gray-500 text-xs mt-1">across all videos</p>
+            <p class="text-3xl font-bold mb-1"><%= formatViews(stats.totalViews) %></p>
+            <p class="text-gray-500 text-xs">across all videos</p>
           </div>
 
-          <div class="bg-gray-900 rounded-2xl p-5 border border-gray-800 hover:border-red-500/30 transition">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-gray-400 text-sm">Subscribers</span>
-              <div class="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+          <div class="bg-gray-900 rounded-2xl p-5 border border-gray-800 hover:border-green-500/30 transition group">
+            <div class="flex items-center justify-between mb-4">
+              <p class="text-gray-400 text-xs uppercase tracking-wider font-semibold">Subscribers</p>
+              <div class="w-9 h-9 bg-green-500/10 rounded-xl flex items-center justify-center group-hover:bg-green-500/20 transition">
                 <i data-lucide="users" class="w-4 h-4 text-green-400"></i>
               </div>
             </div>
-            <p class="text-3xl font-bold"><%= stats.subscribers.toLocaleString() %></p>
-            <p class="text-gray-500 text-xs mt-1">total subscribers</p>
+            <p class="text-3xl font-bold mb-1"><%= formatViews(stats.subscribers) %></p>
+            <p class="text-gray-500 text-xs flex items-center gap-1">
+              <i data-lucide="thumbs-up" class="w-3 h-3 text-pink-400"></i>
+              <%= formatViews(stats.totalLikes) %> total likes
+            </p>
           </div>
 
-          <div class="bg-gray-900 rounded-2xl p-5 border border-gray-800 hover:border-red-500/30 transition">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-gray-400 text-sm">Published</span>
-              <div class="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                <i data-lucide="check-circle" class="w-4 h-4 text-purple-400"></i>
+          <div class="bg-gray-900 rounded-2xl p-5 border border-gray-800 hover:border-purple-500/30 transition group">
+            <div class="flex items-center justify-between mb-4">
+              <p class="text-gray-400 text-xs uppercase tracking-wider font-semibold">Avg. Views</p>
+              <div class="w-9 h-9 bg-purple-500/10 rounded-xl flex items-center justify-center group-hover:bg-purple-500/20 transition">
+                <i data-lucide="bar-chart-2" class="w-4 h-4 text-purple-400"></i>
               </div>
             </div>
-            <p class="text-3xl font-bold"><%= stats.published %></p>
-            <p class="text-gray-500 text-xs mt-1"><%= stats.totalVideos - stats.published %> drafts/private</p>
+            <p class="text-3xl font-bold mb-1">
+              <%= formatViews(stats.totalVideos > 0 ? Math.round(stats.totalViews / stats.totalVideos) : 0) %>
+            </p>
+            <p class="text-gray-500 text-xs">per video</p>
           </div>
         </div>
 
         <!-- Videos Table -->
-        <div class="bg-gray-900 rounded-2xl border border-gray-800">
+        <div class="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
           <div class="flex items-center justify-between px-6 py-4 border-b border-gray-800">
-            <h3 class="font-bold flex items-center gap-2">
+            <h3 class="font-bold flex items-center gap-2 text-base">
               <i data-lucide="play-square" class="w-5 h-5 text-red-500"></i> My Videos
+              <span class="text-gray-500 text-sm font-normal">(<%= videos.length %>)</span>
             </h3>
             <a href="/creator/upload"
-              class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-xs px-4 py-2 rounded-lg transition">
-              <i data-lucide="plus" class="w-3 h-3"></i> Upload
+              class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-xs px-4 py-2 rounded-lg transition font-semibold">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i> New Video
             </a>
           </div>
 
           <% if (videos.length === 0) { %>
-            <div class="text-center py-16">
-              <div class="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div class="text-center py-20">
+              <div class="w-16 h-16 bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <i data-lucide="video-off" class="w-8 h-8 text-gray-600"></i>
               </div>
-              <p class="text-gray-400 font-medium mb-1">No videos yet</p>
-              <p class="text-gray-500 text-sm mb-4">Upload your first video to get started</p>
-              <a href="/creator/upload" class="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm px-5 py-2.5 rounded-full transition">
-                <i data-lucide="upload" class="w-4 h-4"></i> Upload Video
+              <p class="text-gray-300 font-semibold mb-1">No videos yet</p>
+              <p class="text-gray-500 text-sm mb-5">Upload your first video to start growing your audience</p>
+              <a href="/creator/upload"
+                class="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm px-6 py-2.5 rounded-full transition font-semibold">
+                <i data-lucide="upload-cloud" class="w-4 h-4"></i> Upload Your First Video
               </a>
             </div>
           <% } else { %>
             <div class="overflow-x-auto">
               <table class="w-full text-sm">
                 <thead>
-                  <tr class="text-gray-500 text-xs uppercase tracking-wider border-b border-gray-800">
-                    <th class="text-left px-6 py-3">Video</th>
-                    <th class="text-left px-4 py-3">Category</th>
-                    <th class="text-left px-4 py-3">Views</th>
-                    <th class="text-left px-4 py-3">Status</th>
-                    <th class="text-left px-4 py-3">Date</th>
-                    <th class="text-left px-4 py-3">Actions</th>
+                  <tr class="text-gray-500 text-xs uppercase tracking-wider bg-gray-900 border-b border-gray-800">
+                    <th class="text-left px-6 py-3 font-semibold">Video</th>
+                    <th class="text-left px-4 py-3 font-semibold">Category</th>
+                    <th class="text-left px-4 py-3 font-semibold">Views</th>
+                    <th class="text-left px-4 py-3 font-semibold">Likes</th>
+                    <th class="text-left px-4 py-3 font-semibold">Status</th>
+                    <th class="text-left px-4 py-3 font-semibold">Uploaded</th>
+                    <th class="text-left px-4 py-3 font-semibold">Actions</th>
                   </tr>
                 </thead>
-                <tbody>
-                  <% videos.forEach(video => { %>
-                    <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition">
-                      <td class="px-6 py-4">
+                <tbody class="divide-y divide-gray-800">
+                  <% videos.forEach(video => {
+                    const ytId = video.VideoUrl && video.VideoUrl.includes('youtube.com') && video.VideoUrl.includes('v=')
+                      ? video.VideoUrl.split('v=')[1].split('&')[0] : null;
+                    const thumb = ytId ? 'https://img.youtube.com/vi/' + ytId + '/mqdefault.jpg' : null;
+                  %>
+                    <tr class="hover:bg-gray-800 transition group">
+                      <td class="px-6 py-3.5">
                         <div class="flex items-center gap-3">
-                          <div class="w-16 h-10 bg-gray-800 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center">
-                            <% const thumb = video.VideoUrl && video.VideoUrl.includes('youtube.com') ?
-                              'https://img.youtube.com/vi/' + video.VideoUrl.split('v=')[1] + '/default.jpg' : null; %>
+                          <div class="w-20 h-12 bg-gray-800 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center relative">
                             <% if (thumb) { %>
-                              <img src="<%= thumb %>" class="w-full h-full object-cover" onerror="this.style.display='none'">
+                              <img src="<%= thumb %>" class="w-full h-full object-cover"
+                                onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                              <div class="absolute inset-0 items-center justify-center" style="display:none">
+                                <i data-lucide="play-circle" class="w-5 h-5 text-gray-600"></i>
+                              </div>
                             <% } else { %>
-                              <i data-lucide="play" class="w-4 h-4 text-gray-600"></i>
+                              <i data-lucide="play-circle" class="w-5 h-5 text-gray-600"></i>
                             <% } %>
                           </div>
-                          <p class="font-medium line-clamp-1 max-w-xs"><%= video.Title %></p>
+                          <div class="min-w-0">
+                            <p class="font-medium line-clamp-1 text-sm max-w-xs group-hover:text-red-400 transition"><%= video.Title %></p>
+                            <p class="text-gray-500 text-xs mt-0.5">
+                              <%= Math.floor(video.Duration/60) %>:<%= String(video.Duration%60).padStart(2,'0') %>
+                            </p>
+                          </div>
                         </div>
                       </td>
-                      <td class="px-4 py-4 text-gray-400"><%= video.Category %></td>
-                      <td class="px-4 py-4 text-gray-400">
-                        <span class="flex items-center gap-1">
-                          <i data-lucide="eye" class="w-3 h-3"></i>
-                          <%= video.Views.toLocaleString() %>
+                      <td class="px-4 py-3.5">
+                        <span class="bg-gray-800 text-gray-300 text-xs px-2.5 py-1 rounded-full"><%= video.Category %></span>
+                      </td>
+                      <td class="px-4 py-3.5 text-gray-400 text-sm">
+                        <span class="flex items-center gap-1.5">
+                          <i data-lucide="eye" class="w-3.5 h-3.5 text-gray-500"></i>
+                          <%= formatViews(video.Views) %>
                         </span>
                       </td>
-                      <td class="px-4 py-4">
-                        <span class="px-2.5 py-1 rounded-full text-xs font-medium
-                          <%= video.Status === 'Published' ? 'bg-green-500/20 text-green-400' :
-                              video.Status === 'Private'   ? 'bg-yellow-500/20 text-yellow-400' :
-                              'bg-gray-500/20 text-gray-400' %>">
+                      <td class="px-4 py-3.5 text-gray-400 text-sm">
+                        <span class="flex items-center gap-1.5">
+                          <i data-lucide="thumbs-up" class="w-3.5 h-3.5 text-pink-500/60"></i>
+                          <%= formatViews(video.LikeCount) %>
+                        </span>
+                      </td>
+                      <td class="px-4 py-3.5">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold
+                          <%= video.Status === 'Published' ? 'bg-green-500/15 text-green-400 border border-green-500/20' :
+                              video.Status === 'Private'   ? 'bg-yellow-500/15 text-yellow-400 border border-yellow-500/20' :
+                              'bg-gray-500/15 text-gray-400 border border-gray-500/20' %>">
                           <%= video.Status %>
                         </span>
                       </td>
-                      <td class="px-4 py-4 text-gray-400 text-xs">
-                        <%= new Date(video.UploadDate).toLocaleDateString() %>
+                      <td class="px-4 py-3.5 text-gray-400 text-xs">
+                        <%= timeAgo(video.UploadDate) %>
                       </td>
-                      <td class="px-4 py-4">
+                      <td class="px-4 py-3.5">
                         <div class="flex items-center gap-2">
                           <a href="/creator/video/edit/<%= video.Id %>"
-                            class="flex items-center gap-1 bg-blue-600/20 text-blue-400 hover:bg-blue-600/40 text-xs px-3 py-1.5 rounded-lg transition">
-                            <i data-lucide="edit" class="w-3 h-3"></i> Edit
+                            class="flex items-center gap-1.5 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/20 text-xs px-3 py-1.5 rounded-lg transition font-medium">
+                            <i data-lucide="pencil" class="w-3 h-3"></i> Edit
                           </a>
                           <a href="/creator/video/delete/<%= video.Id %>"
                             onclick="return confirm('Delete this video permanently?')"
-                            class="flex items-center gap-1 bg-red-600/20 text-red-400 hover:bg-red-600/40 text-xs px-3 py-1.5 rounded-lg transition">
+                            class="flex items-center gap-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 text-xs px-3 py-1.5 rounded-lg transition font-medium">
                             <i data-lucide="trash-2" class="w-3 h-3"></i> Delete
                           </a>
                         </div>
@@ -281,23 +342,40 @@
   <script>
     lucide.createIcons();
 
-    function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      if (sidebar) {
-        sidebar.classList.toggle('hidden');
-      }
-    }
-
-    function toggleProfile() {
-      document.getElementById('profileDropdown').classList.toggle('hidden');
-    }
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('hidden'); }
+    function toggleProfile()  { document.getElementById('profileDropdown').classList.toggle('hidden'); }
 
     document.addEventListener('click', (e) => {
-      if (!e.target.closest('.relative')) {
-        const dd = document.getElementById('profileDropdown');
-        if (dd) dd.classList.add('hidden');
+      if (!e.target.closest('#profileDropdown') && !e.target.closest('[onclick="toggleProfile()"]')) {
+        document.getElementById('profileDropdown')?.classList.add('hidden');
       }
     });
+
+    document.getElementById('searchInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && this.value.trim())
+        window.location.href = '/viewer/home?search=' + encodeURIComponent(this.value.trim());
+    });
+
+    function applyTheme(t) {
+      const icon  = document.getElementById('themeIcon');
+      const label = document.getElementById('themeLabel');
+      if (t === 'light') {
+        document.body.classList.add('light');
+        if (icon)  icon.setAttribute('data-lucide', 'moon');
+        if (label) label.textContent = 'Dark Mode';
+      } else {
+        document.body.classList.remove('light');
+        if (icon)  icon.setAttribute('data-lucide', 'sun');
+        if (label) label.textContent = 'Light Mode';
+      }
+      lucide.createIcons();
+    }
+    function toggleTheme() {
+      const next = localStorage.getItem('binge_theme') === 'light' ? 'dark' : 'light';
+      localStorage.setItem('binge_theme', next);
+      applyTheme(next);
+    }
+    applyTheme(localStorage.getItem('binge_theme') || 'dark');
   </script>
 </body>
 </html>

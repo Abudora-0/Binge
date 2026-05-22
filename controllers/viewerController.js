@@ -22,9 +22,11 @@ const home = (req, res) => {
 
     const query = `
         SELECT v.Id, v.Title, v.Views, v.UploadDate, v.Duration, v.VideoUrl,
-               c.ChannelName, cat.Name AS Category
+               c.ChannelName, c.Id AS CreatorId, cat.Name AS Category,
+               u.Avatar AS CreatorAvatar
         FROM video v
         JOIN creator c    ON v.CreatorId  = c.Id
+        JOIN user u       ON c.UserId     = u.Id
         JOIN category cat ON v.CategoryId = cat.Id
         WHERE v.Status = 'Published'
         ORDER BY v.UploadDate DESC
@@ -54,9 +56,11 @@ const watchVideo = (req, res) => {
     const videoQuery = `
         SELECT v.*, cat.Name AS Category,
                c.ChannelName, c.TotalSubscribers, c.Id AS CreatorId,
+               u.Avatar AS CreatorAvatar,
                (SELECT COUNT(*) FROM likes WHERE VideoId = v.Id) AS LikeCount
         FROM video v
         JOIN creator c    ON v.CreatorId  = c.Id
+        JOIN user u       ON c.UserId     = u.Id
         JOIN category cat ON v.CategoryId = cat.Id
         WHERE v.Id = ?
     `;
@@ -102,9 +106,11 @@ const watchVideo = (req, res) => {
 
                         // Get related videos
                         const relatedQuery = `
-                        SELECT v.Id, v.Title, v.Views, v.Duration, v.VideoUrl, c.ChannelName
+                        SELECT v.Id, v.Title, v.Views, v.Duration, v.VideoUrl,
+                               c.ChannelName, u.Avatar AS CreatorAvatar
                         FROM video v
                         JOIN creator c ON v.CreatorId = c.Id
+                        JOIN user u    ON c.UserId    = u.Id
                         WHERE v.CategoryId = ? AND v.Id != ? AND v.Status = 'Published'
                         LIMIT 8
                         `;

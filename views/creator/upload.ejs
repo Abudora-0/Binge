@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Binge — Upload Video</title>
+  <title>Binge — <%= isEdit ? 'Edit Video' : 'Upload Video' %></title>
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -11,14 +11,39 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <link rel="stylesheet" href="/binge.css">
+  <style>
+    body.light { background-color: #f0f4f8; color: #334155; }
+    body.light .bg-gray-950 { background-color: #ffffff !important; }
+    body.light .bg-gray-900 { background-color: #f8fafc !important; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    body.light .bg-gray-800 { background-color: #e8edf5 !important; }
+    body.light .bg-gray-700 { background-color: #d5dcea !important; }
+    body.light .text-white  { color: #0f172a !important; }
+    body.light .text-gray-100 { color: #0f172a !important; }
+    body.light .text-gray-200 { color: #1e293b !important; }
+    body.light .text-gray-300 { color: #334155 !important; }
+    body.light .text-gray-400 { color: #475569 !important; }
+    body.light .text-gray-500 { color: #64748b !important; }
+    body.light .text-gray-600 { color: #8896aa !important; }
+    body.light .border-gray-700 { border-color: #d1dce9 !important; }
+    body.light .border-gray-800 { border-color: #e2eaf3 !important; }
+    body.light .border-gray-900 { border-color: #f0f4f8 !important; }
+    body.light .hover\:bg-gray-800:hover { background-color: #e8edf5 !important; }
+    body.light .hover\:bg-gray-700:hover { background-color: #d5dcea !important; }
+    body.light .hover\:text-white:hover  { color: #0f172a !important; }
+    body.light nav.sticky { box-shadow: 0 1px 8px rgba(0,0,0,0.09); }
+    body.light #sidebar   { background-color: #f8fafc !important; border-right-color: #e2eaf3 !important; }
+    body.light #profileDropdown { box-shadow: 0 8px 32px rgba(0,0,0,0.14) !important; }
+    body.light input::placeholder, body.light textarea::placeholder { color: #94a3b8 !important; }
+  </style>
 </head>
-<body class="bg-gray-950 text-white min-h-screen">
+
+<body class="bg-gray-950 text-white h-full flex flex-col overflow-hidden">
 
   <!-- Navbar -->
-  <nav class="bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center gap-4 sticky top-0 z-50 w-full">
-    <div class="flex items-center gap-3 w-48 flex-shrink-0">
+  <nav class="sticky bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center gap-4 z-50 w-full flex-shrink-0">
+    <div class="flex items-center gap-3 w-52 flex-shrink-0">
       <button onclick="toggleSidebar()"
-        class="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-gray-800 transition">
+        class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-800 text-gray-400 hover:text-white transition flex-shrink-0">
         <i data-lucide="menu" class="w-5 h-5"></i>
       </button>
       <a href="/viewer/home" class="flex items-center flex-shrink-0">
@@ -27,69 +52,48 @@
     </div>
     <div class="flex-1 flex gap-2 max-w-2xl mx-auto">
       <input type="text" id="searchInput" placeholder="Search videos..."
-        class="flex-1 bg-gray-900 text-white border border-gray-700 rounded-full px-5 py-2 text-sm focus:outline-none focus:border-red-500 transition" />
-      <button
-        class="bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-full border border-gray-700 transition flex items-center">
+        class="flex-1 bg-gray-900 text-white border border-gray-700 rounded-full px-5 py-2 text-sm focus:outline-none focus:border-red-500 transition"/>
+      <button class="bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-full border border-gray-700 transition flex items-center text-gray-400 hover:text-white">
         <i data-lucide="search" class="w-4 h-4"></i>
       </button>
     </div>
-    <div class="w-48 flex-shrink-0 flex justify-end relative">
-      <button onclick="toggleProfile()"
-        class="flex items-center gap-2 hover:bg-gray-800 px-3 py-1.5 rounded-full transition">
-        <div
-          class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-red-600 flex items-center justify-center font-bold text-sm">
-          <% if (user.avatar) { %>
-            <img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover">
-            <% } else { %>
-              <%= user.firstName.charAt(0).toUpperCase() %>
-                <% } %>
+    <div class="w-52 flex-shrink-0 flex justify-end relative">
+      <button onclick="toggleProfile()" class="flex items-center gap-2 hover:bg-gray-800 px-3 py-1.5 rounded-full transition">
+        <div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-red-600 flex items-center justify-center font-bold text-sm">
+          <% if (user.avatar) { %><img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover"><% } else { %><%= user.firstName.charAt(0).toUpperCase() %><% } %>
         </div>
-        <span class="text-white text-sm font-medium">
-          <%= user.firstName %>
-        </span>
+        <span class="text-sm font-medium hidden sm:block"><%= user.firstName %></span>
         <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
       </button>
-      <div id="profileDropdown"
-        class="hidden absolute top-12 right-0 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-56 z-50 overflow-hidden">
+      <div id="profileDropdown" class="hidden absolute top-12 right-0 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-60 z-50 overflow-hidden">
         <div class="px-4 py-3 border-b border-gray-700 flex items-center gap-3">
-          <div
-            class="w-10 h-10 rounded-full overflow-hidden bg-red-600 flex items-center justify-center font-bold text-sm">
-            <% if (user.avatar) { %>
-              <img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover">
-              <% } else { %>
-                <%= user.firstName.charAt(0).toUpperCase() %>
-                  <% } %>
+          <div class="w-10 h-10 rounded-full overflow-hidden bg-red-600 flex items-center justify-center font-bold text-sm flex-shrink-0">
+            <% if (user.avatar) { %><img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover"><% } else { %><%= user.firstName.charAt(0).toUpperCase() %><% } %>
           </div>
-          <div>
-            <p class="text-white text-sm font-semibold">
-              <%= user.firstName %>
-                <%= user.lastName %>
-            </p>
-            <p class="text-gray-400 text-xs">
-              <%= user.email %>
-            </p>
+          <div class="min-w-0">
+            <p class="text-white text-sm font-semibold truncate"><%= user.firstName %> <%= user.lastName %></p>
+            <p class="text-red-400 text-xs truncate flex items-center gap-1"><i data-lucide="clapperboard" class="w-3 h-3"></i> <%= creator ? creator.ChannelName : user.email %></p>
           </div>
         </div>
         <div class="py-1">
-          <a href="/viewer/profile"
-            class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="user-circle" class="w-4 h-4"></i> My Profile
+          <a href="/creator/dashboard" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
           </a>
-          <a href="/viewer/history"
-            class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="history" class="w-4 h-4"></i> Watch History
+          <a href="/creator/upload" class="flex items-center gap-3 px-4 py-2.5 text-white bg-gray-800/60 text-sm font-medium">
+            <i data-lucide="upload-cloud" class="w-4 h-4 text-red-400"></i> Upload Video
           </a>
-          <a href="/viewer/playlists"
-            class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="list-music" class="w-4 h-4"></i> Playlists
-          </a>
-          <a href="/viewer/subscriptions"
-            class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="bell" class="w-4 h-4"></i> Subscriptions
+          <a href="/creator/profile" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
+            <i data-lucide="settings" class="w-4 h-4"></i> Profile Settings
           </a>
           <div class="border-t border-gray-700 my-1"></div>
-          <a href="/auth/logout"
-            class="flex items-center gap-3 px-4 py-2.5 text-red-400 hover:bg-gray-800 text-sm transition">
+          <a href="/viewer/home" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
+            <i data-lucide="tv-2" class="w-4 h-4"></i> Switch to Viewer
+          </a>
+          <button onclick="toggleTheme()" class="w-full flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition text-left">
+            <i data-lucide="sun" class="w-4 h-4" id="themeIcon"></i><span id="themeLabel">Light Mode</span>
+          </button>
+          <div class="border-t border-gray-700 my-1"></div>
+          <a href="/auth/logout" class="flex items-center gap-3 px-4 py-2.5 text-red-400 hover:bg-gray-800 text-sm transition">
             <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out
           </a>
         </div>
@@ -97,200 +101,298 @@
     </div>
   </nav>
 
-  <div class="max-w-3xl mx-auto px-6 py-10">
+  <!-- Body: Sidebar + Main -->
+  <div class="flex flex-1 min-h-0">
 
-    <div class="flex items-center gap-3 mb-2">
-      <div class="w-10 h-10 bg-red-600/20 rounded-xl flex items-center justify-center">
-        <i data-lucide="<%= isEdit ? 'edit-3' : 'upload-cloud' %>" class="w-5 h-5 text-red-400"></i>
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-56 flex-shrink-0 bg-gray-950 border-r border-gray-800 overflow-y-auto flex flex-col py-4">
+      <div class="px-4 mb-3">
+        <span class="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
+          <i data-lucide="clapperboard" class="w-3.5 h-3.5 text-red-500"></i> Creator Studio
+        </span>
       </div>
-      <h2 class="text-2xl font-bold"><%= isEdit ? 'Edit Video' : 'Upload New Video' %></h2>
-    </div>
-    <p class="text-gray-400 text-sm mb-8"><%= isEdit ? 'Update your video details below' : 'Fill in the details below to publish your video' %></p>
-
-    <!-- Error -->
-    <% if (typeof error !== 'undefined' && error) { %>
-      <div class="flex items-center gap-2 bg-red-500/20 border border-red-500/50 text-red-400 px-4 py-3 rounded-xl mb-6 text-sm">
-        <i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0"></i>
-        <%= error %>
-      </div>
-    <% } %>
-
-    <form action="<%= isEdit ? '/creator/video/edit/' + video.Id : '/creator/upload' %>" method="POST" class="space-y-6">
-
-      <!-- Title -->
-      <div>
-        <label class="block text-gray-400 text-xs uppercase tracking-wider mb-2">Video Title <span class="text-red-500">*</span></label>
-        <div class="relative">
-          <i data-lucide="heading-2" class="w-4 h-4 absolute left-3.5 top-3 text-gray-500"></i>
-          <input
-            type="text"
-            name="title"
-            required
-            maxlength="200"
-            placeholder="Enter a catchy title"
-            value="<%= isEdit ? video.Title : '' %>"
-            class="w-full bg-gray-800 text-white border border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition"
-          />
-        </div>
-      </div>
-
-      <!-- Description -->
-      <div>
-        <label class="block text-gray-400 text-xs uppercase tracking-wider mb-2">Description</label>
-        <textarea
-          name="description"
-          rows="4"
-          placeholder="Tell viewers about your video..."
-          class="w-full bg-gray-800 text-white border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition resize-none"
-        ><%= isEdit ? video.Description : '' %></textarea>
-      </div>
-
-      <!-- Video URL -->
-      <div>
-        <label class="block text-gray-400 text-xs uppercase tracking-wider mb-2">Video URL <span class="text-red-500">*</span></label>
-        <div class="relative">
-          <i data-lucide="link" class="w-4 h-4 absolute left-3.5 top-3 text-gray-500"></i>
-          <input
-            type="url"
-            name="videoUrl"
-            required
-            placeholder="https://www.youtube.com/watch?v=..."
-            value="<%= isEdit ? video.VideoUrl : '' %>"
-            class="w-full bg-gray-800 text-white border border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition"
-          />
-        </div>
-        <p class="text-gray-500 text-xs mt-1.5"><i data-lucide="info" class="w-3 h-3 inline mr-1"></i>Paste a YouTube or any video URL</p>
-      </div>
-
-      <!-- Duration & Category row -->
-      <div class="grid grid-cols-2 gap-4">
-
-        <!-- Duration -->
-        <div>
-          <label class="block text-gray-400 text-xs uppercase tracking-wider mb-2">Duration (seconds) <span class="text-red-500">*</span></label>
-          <div class="relative">
-            <i data-lucide="clock" class="w-4 h-4 absolute left-3.5 top-3 text-gray-500"></i>
-            <input
-              type="number"
-              name="duration"
-              required
-              min="1"
-              placeholder="e.g. 600"
-              value="<%= isEdit ? video.Duration : '' %>"
-              class="w-full bg-gray-800 text-white border border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition"
-            />
-          </div>
-        </div>
-
-        <!-- Category -->
-        <div>
-          <label class="block text-gray-400 text-xs uppercase tracking-wider mb-2">Category <span class="text-red-500">*</span></label>
-          <div class="relative">
-            <i data-lucide="layers" class="w-4 h-4 absolute left-3.5 top-3 text-gray-500"></i>
-            <select
-              name="categoryId"
-              required
-              class="w-full bg-gray-800 text-white border border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition appearance-none"
-            >
-            <option value="">Select a category</option>
-              <% categories.forEach(cat => { %>
-                <option value="<%= cat.Id %>" <%= isEdit && video.CategoryId === cat.Id ? 'selected' : '' %>>
-                  <%= cat.Name %>
-                </option>
-              <% }) %>
-            </select>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Visibility -->
-      <div>
-        <label class="block text-gray-400 text-xs uppercase tracking-wider mb-3">Visibility</label>
-        <div class="grid grid-cols-3 gap-3">
-          <label class="flex items-center gap-3 bg-gray-800 hover:bg-gray-700 p-3 rounded-xl border border-gray-700 cursor-pointer transition">
-            <input type="radio" name="status" value="Published"
-              <%= !isEdit || video.Status === 'Published' ? 'checked' : '' %>
-              class="accent-red-500">
-            <div class="flex items-center gap-2">
-              <i data-lucide="globe" class="w-4 h-4 text-gray-400"></i>
-              <span class="text-sm text-gray-300">Published</span>
-            </div>
-          </label>
-          <label class="flex items-center gap-3 bg-gray-800 hover:bg-gray-700 p-3 rounded-xl border border-gray-700 cursor-pointer transition">
-            <input type="radio" name="status" value="Private"
-              <%= isEdit && video.Status === 'Private' ? 'checked' : '' %>
-              class="accent-red-500">
-            <div class="flex items-center gap-2">
-              <i data-lucide="lock" class="w-4 h-4 text-gray-400"></i>
-              <span class="text-sm text-gray-300">Private</span>
-            </div>
-          </label>
-          <label class="flex items-center gap-3 bg-gray-800 hover:bg-gray-700 p-3 rounded-xl border border-gray-700 cursor-pointer transition">
-            <input type="radio" name="status" value="Unlisted"
-              <%= isEdit && video.Status === 'Unlisted' ? 'checked' : '' %>
-              class="accent-red-500">
-            <div class="flex items-center gap-2">
-              <i data-lucide="eye-off" class="w-4 h-4 text-gray-400"></i>
-              <span class="text-sm text-gray-300">Unlisted</span>
-            </div>
-          </label>
-        </div>
-      </div>
-
-      <!-- Tags -->
-      <div>
-        <label class="block text-gray-400 text-xs uppercase tracking-wider mb-3">Tags</label>
-        <div class="flex flex-wrap gap-3">
-          <% tags.forEach(tag => { %>
-            <label class="flex items-center gap-2 text-gray-300 text-sm cursor-pointer bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-full border border-gray-700 hover:border-red-500/50 transition">
-              <input type="checkbox" name="tags" value="<%= tag.Id %>"
-                <%= isEdit && video.tags && video.tags.includes(tag.Id) ? 'checked' : '' %>
-                class="accent-red-500">
-              <i data-lucide="tag" class="w-3 h-3"></i>
-              <%= tag.Name %>
-            </label>
-          <% }) %>
-        </div>
-      </div>
-
-      <!-- Submit -->
-      <div class="flex gap-3 pt-2">
-        <button
-          type="submit"
-          class="flex items-center justify-center gap-2 flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-xl transition">
-          <i data-lucide="<%= isEdit ? 'check' : 'upload' %>" class="w-4 h-4"></i>
-          <%= isEdit ? 'Save Changes' : 'Upload Video' %>
-        </button>
+      <div class="space-y-0.5 px-2 flex-1">
         <a href="/creator/dashboard"
-           class="flex items-center justify-center gap-2 flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold py-3 rounded-xl transition">
-          <i data-lucide="x" class="w-4 h-4"></i>
-          Cancel
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition">
+          <i data-lucide="layout-dashboard" class="w-4 h-4 flex-shrink-0"></i> Dashboard
+        </a>
+        <a href="/creator/upload"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gray-800 text-white text-sm font-medium">
+          <i data-lucide="upload-cloud" class="w-4 h-4 flex-shrink-0 text-red-400"></i> Upload Video
+        </a>
+        <a href="/creator/profile"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition">
+          <i data-lucide="settings" class="w-4 h-4 flex-shrink-0"></i> Profile Settings
+        </a>
+        <div class="border-t border-gray-800 mx-1 my-2"></div>
+        <a href="/viewer/home"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition">
+          <i data-lucide="tv-2" class="w-4 h-4 flex-shrink-0"></i> Switch to Viewer
         </a>
       </div>
+    </aside>
 
-    </form>
+    <!-- Main: Upload Form -->
+    <main class="flex-1 overflow-y-auto">
+      <div class="max-w-2xl mx-auto px-6 py-8">
+
+        <!-- Page Header -->
+        <div class="flex items-center gap-3 mb-1">
+          <div class="w-10 h-10 bg-red-600/15 rounded-xl flex items-center justify-center border border-red-500/20">
+            <i data-lucide="<%= isEdit ? 'pencil' : 'upload-cloud' %>" class="w-5 h-5 text-red-400"></i>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold"><%= isEdit ? 'Edit Video' : 'Upload New Video' %></h2>
+            <p class="text-gray-500 text-xs mt-0.5"><%= isEdit ? 'Update your video details below' : 'Fill in the details to publish your video' %></p>
+          </div>
+          <a href="/creator/dashboard" class="ml-auto flex items-center gap-1.5 text-gray-400 hover:text-white text-sm transition">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Dashboard
+          </a>
+        </div>
+
+        <div class="border-t border-gray-800 mt-5 mb-6"></div>
+
+        <!-- Error Alert -->
+        <% if (typeof error !== 'undefined' && error) { %>
+          <div class="flex items-center gap-2 bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl mb-6 text-sm">
+            <i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0"></i> <%= error %>
+          </div>
+        <% } %>
+
+        <form action="<%= isEdit ? '/creator/video/edit/' + video.Id : '/creator/upload' %>" method="POST" class="space-y-5">
+
+          <!-- Title -->
+          <div class="bg-gray-900 rounded-2xl p-5 border border-gray-800 space-y-5">
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="type" class="w-3.5 h-3.5 text-red-400"></i> Basic Info
+            </h3>
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="text-gray-400 text-xs font-medium">Video Title <span class="text-red-500">*</span></label>
+                <span id="titleCounter" class="text-gray-600 text-xs">0 / 200</span>
+              </div>
+              <input type="text" name="title" id="titleInput" required maxlength="200"
+                placeholder="Enter a catchy title..."
+                value="<%= isEdit ? video.Title : (video.title || '') %>"
+                class="w-full bg-gray-800 text-white border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition"/>
+            </div>
+            <div>
+              <label class="block text-gray-400 text-xs mb-1.5 font-medium">Description</label>
+              <textarea name="description" rows="4" placeholder="Tell viewers about your video..."
+                class="w-full bg-gray-800 text-white border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition resize-none"><%= isEdit ? video.Description : (video.description || '') %></textarea>
+            </div>
+          </div>
+
+          <!-- Video URL + Duration + Category -->
+          <div class="bg-gray-900 rounded-2xl p-5 border border-gray-800 space-y-5">
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="link" class="w-3.5 h-3.5 text-red-400"></i> Video Details
+            </h3>
+            <div>
+              <label class="block text-gray-400 text-xs mb-1.5 font-medium">Video URL <span class="text-red-500">*</span></label>
+              <div class="relative">
+                <i data-lucide="link" class="w-4 h-4 absolute left-3.5 top-3 text-gray-500 pointer-events-none"></i>
+                <input type="url" name="videoUrl" id="videoUrlInput" required
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  value="<%= isEdit ? video.VideoUrl : (video.videoUrl || '') %>"
+                  class="w-full bg-gray-800 text-white border border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition"/>
+              </div>
+              <p class="text-gray-600 text-xs mt-1.5 flex items-center gap-1">
+                <i data-lucide="info" class="w-3 h-3"></i> Paste a YouTube or any video embed URL
+              </p>
+              <!-- Live thumbnail preview -->
+              <div id="thumbPreview" class="mt-3 items-center gap-3 bg-gray-800 border border-gray-700 rounded-xl p-3" style="display:none">
+                <img id="thumbImg" src="" alt="Thumbnail" class="w-24 h-14 rounded-lg object-cover flex-shrink-0 bg-gray-700">
+                <div class="min-w-0">
+                  <p class="text-gray-300 text-xs font-medium">YouTube thumbnail detected</p>
+                  <p class="text-gray-500 text-xs mt-0.5 truncate" id="thumbId"></p>
+                </div>
+                <i data-lucide="check-circle" class="w-4 h-4 text-green-400 flex-shrink-0 ml-auto"></i>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-gray-400 text-xs mb-1.5 font-medium">Duration (seconds) <span class="text-red-500">*</span></label>
+                <div class="relative">
+                  <i data-lucide="clock" class="w-4 h-4 absolute left-3.5 top-3 text-gray-500 pointer-events-none"></i>
+                  <input type="number" name="duration" required min="1"
+                    placeholder="e.g. 600"
+                    value="<%= isEdit ? video.Duration : (video.duration || '') %>"
+                    class="w-full bg-gray-800 text-white border border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition"/>
+                </div>
+              </div>
+              <div>
+                <label class="block text-gray-400 text-xs mb-1.5 font-medium">Category <span class="text-red-500">*</span></label>
+                <div class="relative">
+                  <i data-lucide="layers" class="w-4 h-4 absolute left-3.5 top-3 text-gray-500 pointer-events-none"></i>
+                  <select name="categoryId" required
+                    class="w-full bg-gray-800 text-white border border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition appearance-none">
+                    <option value="">Select a category</option>
+                    <% categories.forEach(cat => { %>
+                      <option value="<%= cat.Id %>" <%= isEdit && video.CategoryId === cat.Id ? 'selected' : '' %>>
+                        <%= cat.Name %>
+                      </option>
+                    <% }) %>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Visibility -->
+          <div class="bg-gray-900 rounded-2xl p-5 border border-gray-800 space-y-4">
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="eye" class="w-3.5 h-3.5 text-red-400"></i> Visibility
+            </h3>
+            <div class="grid grid-cols-3 gap-3">
+              <label class="flex items-center gap-3 bg-gray-800 hover:bg-gray-700 p-3 rounded-xl border border-gray-700 cursor-pointer transition has-[:checked]:border-green-500/50 has-[:checked]:bg-green-500/5">
+                <input type="radio" name="status" value="Published"
+                  <%= !isEdit || video.Status === 'Published' ? 'checked' : '' %>
+                  class="accent-red-500">
+                <div class="flex items-center gap-2">
+                  <i data-lucide="globe" class="w-4 h-4 text-green-400"></i>
+                  <span class="text-sm font-medium">Published</span>
+                </div>
+              </label>
+              <label class="flex items-center gap-3 bg-gray-800 hover:bg-gray-700 p-3 rounded-xl border border-gray-700 cursor-pointer transition has-[:checked]:border-yellow-500/50 has-[:checked]:bg-yellow-500/5">
+                <input type="radio" name="status" value="Private"
+                  <%= isEdit && video.Status === 'Private' ? 'checked' : '' %>
+                  class="accent-red-500">
+                <div class="flex items-center gap-2">
+                  <i data-lucide="lock" class="w-4 h-4 text-yellow-400"></i>
+                  <span class="text-sm font-medium">Private</span>
+                </div>
+              </label>
+              <label class="flex items-center gap-3 bg-gray-800 hover:bg-gray-700 p-3 rounded-xl border border-gray-700 cursor-pointer transition has-[:checked]:border-gray-500/50">
+                <input type="radio" name="status" value="Unlisted"
+                  <%= isEdit && video.Status === 'Unlisted' ? 'checked' : '' %>
+                  class="accent-red-500">
+                <div class="flex items-center gap-2">
+                  <i data-lucide="eye-off" class="w-4 h-4 text-gray-400"></i>
+                  <span class="text-sm font-medium">Unlisted</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Tags -->
+          <% if (tags && tags.length > 0) { %>
+            <div class="bg-gray-900 rounded-2xl p-5 border border-gray-800 space-y-4">
+              <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                <i data-lucide="tag" class="w-3.5 h-3.5 text-red-400"></i> Tags
+              </h3>
+              <div class="flex flex-wrap gap-2">
+                <% tags.forEach(tag => { %>
+                  <label class="flex items-center gap-2 text-gray-300 text-sm cursor-pointer bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-full border border-gray-700 hover:border-red-500/40 transition has-[:checked]:border-red-500/60 has-[:checked]:bg-red-500/10 has-[:checked]:text-red-300">
+                    <input type="checkbox" name="tags" value="<%= tag.Id %>"
+                      <%= isEdit && video.tags && video.tags.includes(tag.Id) ? 'checked' : '' %>
+                      class="accent-red-500 sr-only">
+                    <i data-lucide="tag" class="w-3 h-3"></i>
+                    <%= tag.Name %>
+                  </label>
+                <% }) %>
+              </div>
+            </div>
+          <% } %>
+
+          <!-- Submit -->
+          <div class="flex gap-3 pt-1 pb-8">
+            <button type="submit"
+              class="flex items-center justify-center gap-2 flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-red-900/20">
+              <i data-lucide="<%= isEdit ? 'check' : 'upload-cloud' %>" class="w-4 h-4"></i>
+              <%= isEdit ? 'Save Changes' : 'Upload Video' %>
+            </button>
+            <a href="/creator/dashboard"
+              class="flex items-center justify-center gap-2 px-6 bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold py-3 rounded-xl transition">
+              <i data-lucide="x" class="w-4 h-4"></i> Cancel
+            </a>
+          </div>
+
+        </form>
+      </div>
+    </main>
   </div>
 
   <script>
     lucide.createIcons();
 
-    function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      if (sidebar) {
-        sidebar.classList.toggle('hidden');
-      }
-    }
-
-    function toggleProfile() {
-      document.getElementById('profileDropdown').classList.toggle('hidden');
-    }
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('hidden'); }
+    function toggleProfile()  { document.getElementById('profileDropdown').classList.toggle('hidden'); }
 
     document.addEventListener('click', (e) => {
-      if (!e.target.closest('.relative') && !e.target.closest('[onclick="toggleProfile()"]')) {
-        document.getElementById('profileDropdown').classList.add('hidden');
+      if (!e.target.closest('#profileDropdown') && !e.target.closest('[onclick="toggleProfile()"]')) {
+        document.getElementById('profileDropdown')?.classList.add('hidden');
       }
     });
+
+    document.getElementById('searchInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && this.value.trim())
+        window.location.href = '/viewer/home?search=' + encodeURIComponent(this.value.trim());
+    });
+
+    // ── Title character counter ──
+    const titleInput   = document.getElementById('titleInput');
+    const titleCounter = document.getElementById('titleCounter');
+    function updateCounter() {
+      const len = titleInput.value.length;
+      titleCounter.textContent = len + ' / 200';
+      titleCounter.className = len > 180
+        ? 'text-red-400 text-xs'
+        : len > 140 ? 'text-yellow-400 text-xs' : 'text-gray-600 text-xs';
+    }
+    titleInput.addEventListener('input', updateCounter);
+    updateCounter(); // initialise on page load (edit mode)
+
+    // ── Live YouTube thumbnail preview ──
+    const urlInput    = document.getElementById('videoUrlInput');
+    const thumbPreview = document.getElementById('thumbPreview');
+    const thumbImg    = document.getElementById('thumbImg');
+    const thumbIdEl   = document.getElementById('thumbId');
+
+    function extractYtId(url) {
+      try {
+        const u = new URL(url);
+        if (u.hostname.includes('youtube.com') && u.searchParams.get('v'))
+          return u.searchParams.get('v');
+        if (u.hostname === 'youtu.be')
+          return u.pathname.slice(1).split('?')[0];
+      } catch(_) {}
+      return null;
+    }
+
+    function updateThumbPreview() {
+      const ytId = extractYtId(urlInput.value.trim());
+      if (ytId) {
+        thumbImg.src = 'https://img.youtube.com/vi/' + ytId + '/mqdefault.jpg';
+        thumbIdEl.textContent = 'Video ID: ' + ytId;
+        thumbPreview.style.display = 'flex';
+      } else {
+        thumbPreview.style.display = 'none';
+      }
+    }
+    urlInput.addEventListener('input', updateThumbPreview);
+    updateThumbPreview(); // initialise in edit mode
+
+    function applyTheme(t) {
+      const icon  = document.getElementById('themeIcon');
+      const label = document.getElementById('themeLabel');
+      if (t === 'light') {
+        document.body.classList.add('light');
+        if (icon)  icon.setAttribute('data-lucide', 'moon');
+        if (label) label.textContent = 'Dark Mode';
+      } else {
+        document.body.classList.remove('light');
+        if (icon)  icon.setAttribute('data-lucide', 'sun');
+        if (label) label.textContent = 'Light Mode';
+      }
+      lucide.createIcons();
+    }
+    function toggleTheme() {
+      const next = localStorage.getItem('binge_theme') === 'light' ? 'dark' : 'light';
+      localStorage.setItem('binge_theme', next);
+      applyTheme(next);
+    }
+    applyTheme(localStorage.getItem('binge_theme') || 'dark');
   </script>
 </body>
 </html>

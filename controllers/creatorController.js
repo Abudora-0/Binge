@@ -22,7 +22,8 @@ const dashboard = (req, res) => {
 
         // Get creator's videos
         const videosQuery = `
-            SELECT v.*, cat.Name AS Category
+            SELECT v.*, cat.Name AS Category,
+                   (SELECT COUNT(*) FROM likes WHERE VideoId = v.Id) AS LikeCount
             FROM video v
             JOIN category cat ON v.CategoryId = cat.Id
             WHERE v.CreatorId = ?
@@ -36,16 +37,17 @@ const dashboard = (req, res) => {
             }
 
             // Get stats
-            const totalViews = videos.reduce((sum, v) => sum + v.Views, 0);
+            const totalViews  = videos.reduce((sum, v) => sum + (v.Views || 0), 0);
+            const totalLikes  = videos.reduce((sum, v) => sum + (v.LikeCount || 0), 0);
             const totalVideos = videos.length;
-            const published = videos.filter(v => v.Status === 'Published').length;
+            const published   = videos.filter(v => v.Status === 'Published').length;
 
             res.render('creator/dashboard', {
                 user: req.session.user,
                 creator,
                 videos,
                 stats: {
-                    totalViews, totalVideos, published,
+                    totalViews, totalLikes, totalVideos, published,
                     subscribers: creator.TotalSubscribers
                 }
             });
@@ -55,19 +57,23 @@ const dashboard = (req, res) => {
 
 const showUpload = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
+    const userId = req.session.user.id;
 
-    // Get categories and tags
-    db.query('SELECT * FROM category ORDER BY Name', (err, categories) => {
-        if (err) categories = [];
-        db.query('SELECT * FROM tag ORDER BY Name', (err, tags) => {
-            if (err) tags = [];
-            res.render('creator/upload', {
-                user: req.session.user,
-                categories,
-                tags,
-                isEdit: false,
-                video: {},
-                error: null
+    db.query('SELECT * FROM creator WHERE UserId = ?', [userId], (err, creatorResult) => {
+        const creator = (!err && creatorResult.length > 0) ? creatorResult[0] : null;
+        db.query('SELECT * FROM category ORDER BY Name', (err, categories) => {
+            if (err) categories = [];
+            db.query('SELECT * FROM tag ORDER BY Name', (err, tags) => {
+                if (err) tags = [];
+                res.render('creator/upload', {
+                    user: req.session.user,
+                    creator,
+                    categories,
+                    tags,
+                    isEdit: false,
+                    video: {},
+                    error: null
+                });
             });
         });
     });
@@ -81,51 +87,33 @@ const uploadVideo = (req, res) => {
     if (!Array.isArray(tags)) tags = [tags];
     const userId = req.session.user.id;
 
+    // ── Validation helper — preserves form data on error ──
+    const renderError = (errorMsg) => {
+        db.query('SELECT * FROM creator WHERE UserId = ?', [userId], (err, creatorRes) => {
+            const creator = (!err && creatorRes.length > 0) ? creatorRes[0] : null;
+            db.query('SELECT * FROM category ORDER BY Name', (err, categories) => {
+                db.query('SELECT * FROM tag ORDER BY Name', (err, tagList) => {
+                    res.render('creator/upload', {
+                        user: req.session.user,
+                        creator,
+                        categories: categories || [],
+                        tags: tagList || [],
+                        isEdit: false,
+                        video: req.body,
+                        error: errorMsg
+                    });
+                });
+            });
+        });
+    };
+
     // ── Validators ──
-    if (!title || !videoUrl || !duration || !categoryId) {
-        return db.query('SELECT * FROM category', (err, categories) => {
-            db.query('SELECT * FROM tag', (err2, tagList) => {
-                res.render('creator/upload', {
-                    user: req.session.user,
-                    categories: categories || [],
-                    tags: tagList || [],
-                    isEdit: false,
-                    video: {},
-                    error: 'Title, URL, Duration and Category are required.'
-                });
-            });
-        });
-    }
-
-    if (title.length < 3) {
-        return db.query('SELECT * FROM category', (err, categories) => {
-            db.query('SELECT * FROM tag', (err2, tagList) => {
-                res.render('creator/upload', {
-                    user: req.session.user,
-                    categories: categories || [],
-                    tags: tagList || [],
-                    isEdit: false,
-                    video: {},
-                    error: 'Title must be at least 3 characters.'
-                });
-            });
-        });
-    }
-
-    if (isNaN(duration) || duration <= 0) {
-        return db.query('SELECT * FROM category', (err, categories) => {
-            db.query('SELECT * FROM tag', (err2, tagList) => {
-                res.render('creator/upload', {
-                    user: req.session.user,
-                    categories: categories || [],
-                    tags: tagList || [],
-                    isEdit: false,
-                    video: {},
-                    error: 'Duration must be a positive number.'
-                });
-            });
-        });
-    }
+    if (!title || !videoUrl || !duration || !categoryId)
+        return renderError('Title, URL, Duration and Category are required.');
+    if (title.length < 3)
+        return renderError('Title must be at least 3 characters.');
+    if (isNaN(duration) || duration <= 0)
+        return renderError('Duration must be a positive number.');
 
     // Get creator ID
     db.query('SELECT Id FROM creator WHERE UserId = ?', [userId], (err, result) => {
@@ -199,12 +187,12 @@ const showEdit = (req, res) => {
     const videoId = req.params.id;
     const userId = req.session.user.id;
 
-    db.query('SELECT Id FROM creator WHERE UserId = ?', [userId], (err, result) => {
+    db.query('SELECT * FROM creator WHERE UserId = ?', [userId], (err, result) => {
         if (err || result.length === 0) return res.redirect('/auth/login');
 
-        const creatorId = result[0].Id;
+        const creator = result[0];
 
-        db.query('SELECT * FROM video WHERE Id = ? AND CreatorId = ?', [videoId, creatorId], (err, videoResult) => {
+        db.query('SELECT * FROM video WHERE Id = ? AND CreatorId = ?', [videoId, creator.Id], (err, videoResult) => {
             if (err || videoResult.length === 0) return res.redirect('/creator/dashboard');
 
             const video = videoResult[0];
@@ -217,6 +205,7 @@ const showEdit = (req, res) => {
                     db.query('SELECT * FROM tag ORDER BY Name', (err, tags) => {
                         res.render('creator/upload', {
                             user: req.session.user,
+                            creator,
                             categories: categories || [],
                             tags: tags || [],
                             isEdit: true,

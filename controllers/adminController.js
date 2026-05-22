@@ -48,7 +48,7 @@ const dashboard = (req, res) => {
 
                 // Get pending reports
                 const reportsQuery = `
-                    SELECT r.*, u.FirstName, u.LastName, v.Title AS VideoTitle
+                    SELECT r.*, u.FirstName, u.LastName, v.Title AS VideoTitle, v.VideoUrl AS VideoUrl
                     FROM report r
                     JOIN user u  ON r.ReportedBy = u.Id
                     JOIN video v ON r.VideoId    = v.Id
@@ -86,6 +86,12 @@ const updateUserStatus = (req, res) => {
     if (!req.session.user || req.session.user.role !== 'admin') return res.redirect('/auth/login');
 
     const { userId, status } = req.body;
+
+    // Never allow suspending the admin account itself
+    if (parseInt(userId) === req.session.user.id) {
+        return res.redirect('/admin/dashboard');
+    }
+
     db.query('UPDATE user SET Status = ? WHERE Id = ?', [status, userId], (err) => {
         if (err) logger.logError('adminController', err.message);
         res.redirect('/admin/dashboard');

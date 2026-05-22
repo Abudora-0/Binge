@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Binge — Creator Profile</title>
+  <title>Binge — Profile Settings</title>
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -11,13 +11,39 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <link rel="stylesheet" href="/binge.css">
+  <style>
+    body.light { background-color: #f0f4f8; color: #334155; }
+    body.light .bg-gray-950 { background-color: #ffffff !important; }
+    body.light .bg-gray-900 { background-color: #f8fafc !important; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    body.light .bg-gray-800 { background-color: #e8edf5 !important; }
+    body.light .bg-gray-700 { background-color: #d5dcea !important; }
+    body.light .text-white  { color: #0f172a !important; }
+    body.light .text-gray-100 { color: #0f172a !important; }
+    body.light .text-gray-200 { color: #1e293b !important; }
+    body.light .text-gray-300 { color: #334155 !important; }
+    body.light .text-gray-400 { color: #475569 !important; }
+    body.light .text-gray-500 { color: #64748b !important; }
+    body.light .text-gray-600 { color: #8896aa !important; }
+    body.light .border-gray-700 { border-color: #d1dce9 !important; }
+    body.light .border-gray-800 { border-color: #e2eaf3 !important; }
+    body.light .border-gray-900 { border-color: #f0f4f8 !important; }
+    body.light .hover\:bg-gray-800:hover { background-color: #e8edf5 !important; }
+    body.light .hover\:bg-gray-700:hover { background-color: #d5dcea !important; }
+    body.light .hover\:text-white:hover  { color: #0f172a !important; }
+    body.light nav.sticky { box-shadow: 0 1px 8px rgba(0,0,0,0.09); }
+    body.light #sidebar   { background-color: #f8fafc !important; border-right-color: #e2eaf3 !important; }
+    body.light #profileDropdown { box-shadow: 0 8px 32px rgba(0,0,0,0.14) !important; }
+    body.light input::placeholder, body.light textarea::placeholder { color: #94a3b8 !important; }
+  </style>
 </head>
-<body class="bg-gray-950 text-white min-h-screen flex flex-col">
 
-  <nav class="bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center gap-4 sticky top-0 z-50 w-full">
-    <div class="flex items-center gap-3 w-48 flex-shrink-0">
+<body class="bg-gray-950 text-white h-full flex flex-col overflow-hidden">
+
+  <!-- Navbar -->
+  <nav class="sticky bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center gap-4 z-50 w-full flex-shrink-0">
+    <div class="flex items-center gap-3 w-52 flex-shrink-0">
       <button onclick="toggleSidebar()"
-        class="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-gray-800 transition">
+        class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-800 text-gray-400 hover:text-white transition flex-shrink-0">
         <i data-lucide="menu" class="w-5 h-5"></i>
       </button>
       <a href="/viewer/home" class="flex items-center flex-shrink-0">
@@ -26,69 +52,48 @@
     </div>
     <div class="flex-1 flex gap-2 max-w-2xl mx-auto">
       <input type="text" id="searchInput" placeholder="Search videos..."
-        class="flex-1 bg-gray-900 text-white border border-gray-700 rounded-full px-5 py-2 text-sm focus:outline-none focus:border-red-500 transition" />
-      <button
-        class="bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-full border border-gray-700 transition flex items-center">
+        class="flex-1 bg-gray-900 text-white border border-gray-700 rounded-full px-5 py-2 text-sm focus:outline-none focus:border-red-500 transition"/>
+      <button class="bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-full border border-gray-700 transition flex items-center text-gray-400 hover:text-white">
         <i data-lucide="search" class="w-4 h-4"></i>
       </button>
     </div>
-    <div class="w-48 flex-shrink-0 flex justify-end relative">
-      <button onclick="toggleProfile()"
-        class="flex items-center gap-2 hover:bg-gray-800 px-3 py-1.5 rounded-full transition">
-        <div
-          class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-red-600 flex items-center justify-center font-bold text-sm">
-          <% if (user.avatar) { %>
-            <img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover">
-            <% } else { %>
-              <%= user.firstName.charAt(0).toUpperCase() %>
-                <% } %>
+    <div class="w-52 flex-shrink-0 flex justify-end relative">
+      <button onclick="toggleProfile()" class="flex items-center gap-2 hover:bg-gray-800 px-3 py-1.5 rounded-full transition">
+        <div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-red-600 flex items-center justify-center font-bold text-sm">
+          <% if (user.avatar) { %><img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover"><% } else { %><%= user.firstName.charAt(0).toUpperCase() %><% } %>
         </div>
-        <span class="text-white text-sm font-medium">
-          <%= user.firstName %>
-        </span>
+        <span class="text-sm font-medium hidden sm:block"><%= user.firstName %></span>
         <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
       </button>
-      <div id="profileDropdown"
-        class="hidden absolute top-12 right-0 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-56 z-50 overflow-hidden">
+      <div id="profileDropdown" class="hidden absolute top-12 right-0 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-60 z-50 overflow-hidden">
         <div class="px-4 py-3 border-b border-gray-700 flex items-center gap-3">
-          <div
-            class="w-10 h-10 rounded-full overflow-hidden bg-red-600 flex items-center justify-center font-bold text-sm">
-            <% if (user.avatar) { %>
-              <img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover">
-              <% } else { %>
-                <%= user.firstName.charAt(0).toUpperCase() %>
-                  <% } %>
+          <div class="w-10 h-10 rounded-full overflow-hidden bg-red-600 flex items-center justify-center font-bold text-sm flex-shrink-0">
+            <% if (user.avatar) { %><img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover"><% } else { %><%= user.firstName.charAt(0).toUpperCase() %><% } %>
           </div>
-          <div>
-            <p class="text-white text-sm font-semibold">
-              <%= user.firstName %>
-                <%= user.lastName %>
-            </p>
-            <p class="text-gray-400 text-xs">
-              <%= user.email %>
-            </p>
+          <div class="min-w-0">
+            <p class="text-white text-sm font-semibold truncate"><%= user.firstName %> <%= user.lastName %></p>
+            <p class="text-red-400 text-xs truncate flex items-center gap-1"><i data-lucide="clapperboard" class="w-3 h-3"></i> <%= creatorData.ChannelName %></p>
           </div>
         </div>
         <div class="py-1">
-          <a href="/viewer/profile"
-            class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="user-circle" class="w-4 h-4"></i> My Profile
+          <a href="/creator/dashboard" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
           </a>
-          <a href="/viewer/history"
-            class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="history" class="w-4 h-4"></i> Watch History
+          <a href="/creator/upload" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
+            <i data-lucide="upload-cloud" class="w-4 h-4"></i> Upload Video
           </a>
-          <a href="/viewer/playlists"
-            class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="list-music" class="w-4 h-4"></i> Playlists
-          </a>
-          <a href="/viewer/subscriptions"
-            class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
-            <i data-lucide="bell" class="w-4 h-4"></i> Subscriptions
+          <a href="/creator/profile" class="flex items-center gap-3 px-4 py-2.5 text-white bg-gray-800/60 text-sm font-medium">
+            <i data-lucide="settings" class="w-4 h-4 text-red-400"></i> Profile Settings
           </a>
           <div class="border-t border-gray-700 my-1"></div>
-          <a href="/auth/logout"
-            class="flex items-center gap-3 px-4 py-2.5 text-red-400 hover:bg-gray-800 text-sm transition">
+          <a href="/viewer/home" class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition">
+            <i data-lucide="tv-2" class="w-4 h-4"></i> Switch to Viewer
+          </a>
+          <button onclick="toggleTheme()" class="w-full flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-800 text-sm transition text-left">
+            <i data-lucide="sun" class="w-4 h-4" id="themeIcon"></i><span id="themeLabel">Light Mode</span>
+          </button>
+          <div class="border-t border-gray-700 my-1"></div>
+          <a href="/auth/logout" class="flex items-center gap-3 px-4 py-2.5 text-red-400 hover:bg-gray-800 text-sm transition">
             <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out
           </a>
         </div>
@@ -96,172 +101,181 @@
     </div>
   </nav>
 
-  <!-- Banner -->
-  <div class="h-40 bg-gradient-to-r from-red-900/50 via-gray-900 to-gray-950 relative overflow-hidden">
-    <div class="absolute inset-0 opacity-10">
-      <div class="absolute top-4 left-10 w-32 h-32 bg-red-500 rounded-full blur-3xl"></div>
-      <div class="absolute bottom-4 right-20 w-48 h-48 bg-red-700 rounded-full blur-3xl"></div>
-    </div>
-  </div>
+  <!-- Body: Sidebar + Main -->
+  <div class="flex flex-1 min-h-0">
 
-  <div class="max-w-3xl mx-auto px-6 w-full -mt-16 pb-16">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-56 flex-shrink-0 bg-gray-950 border-r border-gray-800 overflow-y-auto flex flex-col py-4">
+      <div class="px-4 mb-3">
+        <span class="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
+          <i data-lucide="clapperboard" class="w-3.5 h-3.5 text-red-500"></i> Creator Studio
+        </span>
+      </div>
+      <div class="space-y-0.5 px-2 flex-1">
+        <a href="/creator/dashboard"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition">
+          <i data-lucide="layout-dashboard" class="w-4 h-4 flex-shrink-0"></i> Dashboard
+        </a>
+        <a href="/creator/upload"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition">
+          <i data-lucide="upload-cloud" class="w-4 h-4 flex-shrink-0"></i> Upload Video
+        </a>
+        <a href="/creator/profile"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gray-800 text-white text-sm font-medium">
+          <i data-lucide="settings" class="w-4 h-4 flex-shrink-0 text-red-400"></i> Profile Settings
+        </a>
+        <div class="border-t border-gray-800 mx-1 my-2"></div>
+        <a href="/viewer/home"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition">
+          <i data-lucide="tv-2" class="w-4 h-4 flex-shrink-0"></i> Switch to Viewer
+        </a>
+      </div>
 
-    <!-- Profile Card -->
-    <div class="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden shadow-2xl mb-6">
-
-      <!-- Avatar + Info -->
-      <div class="px-8 pt-6 pb-6 flex items-end gap-6">
-        <div class="relative flex-shrink-0">
-          <div class="w-24 h-24 rounded-full border-4 border-gray-900 overflow-hidden bg-red-600 flex items-center justify-center text-3xl font-bold shadow-xl">
-            <% if (userData.Avatar) { %>
-              <img src="/uploads/<%= userData.Avatar %>" class="w-full h-full object-cover" id="avatarPreview">
-            <% } else { %>
-              <span id="avatarInitial"><%= userData.FirstName.charAt(0).toUpperCase() %></span>
-              <img id="avatarPreview" class="w-full h-full object-cover hidden">
-            <% } %>
+      <!-- Sidebar stats panel -->
+      <div class="mx-3 mt-auto mb-2 bg-gray-900 rounded-xl p-3 border border-gray-800">
+        <p class="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-2">Channel</p>
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-gray-400 flex items-center gap-1.5"><i data-lucide="users" class="w-3 h-3"></i> Subscribers</span>
+            <span class="text-white font-semibold"><%= formatViews(creatorData.TotalSubscribers) %></span>
           </div>
-          <label for="avatarInput"
-            class="absolute bottom-0 right-0 w-7 h-7 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center cursor-pointer transition shadow-lg border-2 border-gray-900">
-            <i data-lucide="camera" class="w-3.5 h-3.5 text-white"></i>
-          </label>
-        </div>
-
-        <form action="/creator/profile/avatar" method="POST" enctype="multipart/form-data" id="avatarForm" class="hidden">
-          <input type="file" name="avatar" id="avatarInput" accept="image/*" class="hidden">
-        </form>
-
-        <div class="flex-1 pb-1">
-          <h2 class="text-2xl font-bold"><%= userData.FirstName %> <%= userData.LastName %></h2>
-          <p class="text-red-400 text-sm font-medium"><%= creatorData.ChannelName %></p>
-          <p class="text-gray-400 text-sm flex items-center gap-1.5 mt-1">
-            <i data-lucide="mail" class="w-3.5 h-3.5"></i> <%= userData.Email %>
-          </p>
-          <div class="flex items-center gap-3 mt-2">
-            <span class="flex items-center gap-1.5 text-xs text-gray-400 bg-gray-800 px-3 py-1 rounded-full">
-              <i data-lucide="users" class="w-3 h-3"></i> <%= creatorData.TotalSubscribers.toLocaleString() %> subscribers
-            </span>
-            <span class="flex items-center gap-1.5 text-xs text-gray-400 bg-gray-800 px-3 py-1 rounded-full">
-              <i data-lucide="globe" class="w-3 h-3"></i> <%= userData.Country %>
-            </span>
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-gray-400 flex items-center gap-1.5"><i data-lucide="globe" class="w-3 h-3"></i> Country</span>
+            <span class="text-white font-semibold"><%= userData.Country || '—' %></span>
           </div>
         </div>
       </div>
+    </aside>
 
-      <!-- Alerts -->
-      <% if (typeof success !== 'undefined' && success) { %>
-        <div class="mx-8 mb-4 flex items-center gap-2 bg-green-500/20 border border-green-500/50 text-green-400 px-4 py-3 rounded-xl text-sm">
-          <i data-lucide="check-circle" class="w-4 h-4"></i> <%= success %>
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto">
+      <div class="max-w-2xl mx-auto px-6 py-8 pb-12">
+
+        <!-- Page Header with Avatar -->
+        <div class="flex items-center gap-5 mb-6">
+          <div class="relative flex-shrink-0">
+            <div class="w-20 h-20 rounded-2xl overflow-hidden bg-red-600 flex items-center justify-center text-2xl font-bold shadow-xl">
+              <% if (userData.Avatar) { %>
+                <img src="/uploads/<%= userData.Avatar %>" class="w-full h-full object-cover" id="avatarPreview">
+              <% } else { %>
+                <span id="avatarInitial"><%= userData.FirstName.charAt(0).toUpperCase() %></span>
+                <img id="avatarPreview" class="w-full h-full object-cover hidden">
+              <% } %>
+            </div>
+            <label for="avatarInput"
+              class="absolute -bottom-1 -right-1 w-7 h-7 bg-red-600 hover:bg-red-700 rounded-xl flex items-center justify-center cursor-pointer transition shadow-lg border-2 border-gray-950">
+              <i data-lucide="camera" class="w-3.5 h-3.5 text-white"></i>
+            </label>
+          </div>
+
+          <form action="/creator/profile/avatar" method="POST" enctype="multipart/form-data" id="avatarForm" class="hidden">
+            <input type="file" name="avatar" id="avatarInput" accept="image/*" class="hidden">
+          </form>
+
+          <div class="min-w-0 flex-1">
+            <h2 class="text-xl font-bold truncate"><%= userData.FirstName %> <%= userData.LastName %></h2>
+            <p class="text-red-400 text-sm font-medium truncate flex items-center gap-1.5 mt-0.5">
+              <i data-lucide="clapperboard" class="w-3.5 h-3.5"></i> <%= creatorData.ChannelName %>
+            </p>
+            <p class="text-gray-500 text-xs flex items-center gap-1.5 mt-1">
+              <i data-lucide="mail" class="w-3 h-3"></i> <%= userData.Email %>
+            </p>
+          </div>
         </div>
-      <% } %>
-      <% if (typeof error !== 'undefined' && error) { %>
-        <div class="mx-8 mb-4 flex items-center gap-2 bg-red-500/20 border border-red-500/50 text-red-400 px-4 py-3 rounded-xl text-sm">
-          <i data-lucide="alert-circle" class="w-4 h-4"></i> <%= error %>
-        </div>
-      <% } %>
 
-      <div class="border-t border-gray-800 mx-8"></div>
+        <!-- Alerts -->
+        <% if (typeof success !== 'undefined' && success) { %>
+          <div class="flex items-center gap-2 bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-3 rounded-xl mb-5 text-sm">
+            <i data-lucide="check-circle" class="w-4 h-4 flex-shrink-0"></i> <%= success %>
+          </div>
+        <% } %>
+        <% if (typeof error !== 'undefined' && error) { %>
+          <div class="flex items-center gap-2 bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl mb-5 text-sm">
+            <i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0"></i> <%= error %>
+          </div>
+        <% } %>
 
-      <!-- Edit Forms -->
-      <div class="px-8 py-6 space-y-8">
+        <div class="space-y-4">
 
-        <!-- Personal Info -->
-        <div>
-          <h3 class="font-semibold text-base mb-4 flex items-center gap-2 text-gray-200">
-            <i data-lucide="user" class="w-4 h-4 text-red-400"></i> Personal Info
-          </h3>
-          <form action="/creator/profile/update" method="POST" class="space-y-4">
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-gray-400 text-xs mb-1.5 uppercase tracking-wider">First Name</label>
-                <input type="text" name="firstName" value="<%= userData.FirstName %>" required
-                  class="w-full bg-gray-800 text-white border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition">
+          <!-- Personal Info -->
+          <div class="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-800 flex items-center gap-2">
+              <i data-lucide="user" class="w-4 h-4 text-red-400"></i>
+              <h3 class="font-semibold text-sm">Personal Info</h3>
+            </div>
+            <form action="/creator/profile/update" method="POST" class="px-6 py-5 space-y-4">
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-gray-400 text-xs mb-1.5 font-medium uppercase tracking-wider">First Name</label>
+                  <input type="text" name="firstName" value="<%= userData.FirstName %>" required
+                    class="w-full bg-gray-800 text-white border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition"/>
+                </div>
+                <div>
+                  <label class="block text-gray-400 text-xs mb-1.5 font-medium uppercase tracking-wider">Last Name</label>
+                  <input type="text" name="lastName" value="<%= userData.LastName %>" required
+                    class="w-full bg-gray-800 text-white border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition"/>
+                </div>
               </div>
               <div>
-                <label class="block text-gray-400 text-xs mb-1.5 uppercase tracking-wider">Last Name</label>
-                <input type="text" name="lastName" value="<%= userData.LastName %>" required
+                <label class="block text-gray-400 text-xs mb-1.5 font-medium uppercase tracking-wider">Country</label>
+                <select name="country"
                   class="w-full bg-gray-800 text-white border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition">
+                  <% ['Pakistan','India','USA','UK','Canada','Australia','UAE','Saudi Arabia','Other'].forEach(c => { %>
+                    <option value="<%= c %>" <%= userData.Country === c ? 'selected' : '' %>><%= c %></option>
+                  <% }) %>
+                </select>
               </div>
+              <button type="submit"
+                class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm px-5 py-2.5 rounded-xl transition font-semibold">
+                <i data-lucide="save" class="w-4 h-4"></i> Save Changes
+              </button>
+            </form>
+          </div>
+
+          <!-- Channel Info -->
+          <div class="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-800 flex items-center gap-2">
+              <i data-lucide="clapperboard" class="w-4 h-4 text-red-400"></i>
+              <h3 class="font-semibold text-sm">Channel Info</h3>
             </div>
-            <div>
-              <label class="block text-gray-400 text-xs mb-1.5 uppercase tracking-wider">Country</label>
-              <select name="country"
-                class="w-full bg-gray-800 text-white border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition">
-                <% ['Pakistan','India','USA','UK','Canada','Australia','UAE','Saudi Arabia','Other'].forEach(c => { %>
-                  <option value="<%= c %>" <%= userData.Country === c ? 'selected' : '' %>><%= c %></option>
-                <% }) %>
-              </select>
-            </div>
-            <button type="submit"
-              class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm px-5 py-2.5 rounded-xl transition">
-              <i data-lucide="save" class="w-4 h-4"></i> Save Changes
-            </button>
-          </form>
+            <form action="/creator/profile/channel" method="POST" class="px-6 py-5 space-y-4">
+              <div>
+                <label class="block text-gray-400 text-xs mb-1.5 font-medium uppercase tracking-wider">Channel Name</label>
+                <input type="text" name="channelName" value="<%= creatorData.ChannelName %>" required
+                  class="w-full bg-gray-800 text-white border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition"/>
+              </div>
+              <div>
+                <label class="block text-gray-400 text-xs mb-1.5 font-medium uppercase tracking-wider">Bio</label>
+                <textarea name="bio" rows="3" placeholder="Tell viewers about your channel..."
+                  class="w-full bg-gray-800 text-white border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition resize-none"><%= creatorData.Bio || '' %></textarea>
+              </div>
+              <button type="submit"
+                class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm px-5 py-2.5 rounded-xl transition font-semibold">
+                <i data-lucide="save" class="w-4 h-4"></i> Update Channel
+              </button>
+            </form>
+          </div>
+
         </div>
-
-        <div class="border-t border-gray-800"></div>
-
-        <!-- Channel Info -->
-        <div>
-          <h3 class="font-semibold text-base mb-4 flex items-center gap-2 text-gray-200">
-            <i data-lucide="tv-2" class="w-4 h-4 text-red-400"></i> Channel Info
-          </h3>
-          <form action="/creator/profile/channel" method="POST" class="space-y-4">
-            <div>
-              <label class="block text-gray-400 text-xs mb-1.5 uppercase tracking-wider">Channel Name</label>
-              <input type="text" name="channelName" value="<%= creatorData.ChannelName %>" required
-                class="w-full bg-gray-800 text-white border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition">
-            </div>
-            <div>
-              <label class="block text-gray-400 text-xs mb-1.5 uppercase tracking-wider">Bio</label>
-              <textarea name="bio" rows="3" placeholder="Tell viewers about your channel..."
-                class="w-full bg-gray-800 text-white border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-red-500 transition resize-none"><%= creatorData.Bio || '' %></textarea>
-            </div>
-            <button type="submit"
-              class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm px-5 py-2.5 rounded-xl transition">
-              <i data-lucide="save" class="w-4 h-4"></i> Update Channel
-            </button>
-          </form>
-        </div>
-
       </div>
-    </div>
-
-    <!-- Quick Links -->
-    <div class="grid grid-cols-3 gap-4">
-      <a href="/creator/dashboard" class="bg-gray-900 hover:bg-gray-800 border border-gray-800 hover:border-red-500 rounded-2xl p-5 flex flex-col items-center gap-2 transition group">
-        <i data-lucide="layout-dashboard" class="w-6 h-6 text-gray-400 group-hover:text-red-400 transition"></i>
-        <span class="text-sm text-gray-300">Dashboard</span>
-      </a>
-      <a href="/creator/upload" class="bg-gray-900 hover:bg-gray-800 border border-gray-800 hover:border-red-500 rounded-2xl p-5 flex flex-col items-center gap-2 transition group">
-        <i data-lucide="upload" class="w-6 h-6 text-gray-400 group-hover:text-red-400 transition"></i>
-        <span class="text-sm text-gray-300">Upload Video</span>
-      </a>
-      <a href="/viewer/home" class="bg-gray-900 hover:bg-gray-800 border border-gray-800 hover:border-red-500 rounded-2xl p-5 flex flex-col items-center gap-2 transition group">
-        <i data-lucide="tv-2" class="w-6 h-6 text-gray-400 group-hover:text-red-400 transition"></i>
-        <span class="text-sm text-gray-300">View as Viewer</span>
-      </a>
-    </div>
-
+    </main>
   </div>
 
   <script>
     lucide.createIcons();
 
-    function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      if (sidebar) {
-        sidebar.classList.toggle('hidden');
-      }
-    }
-
-    function toggleProfile() {
-      document.getElementById('profileDropdown').classList.toggle('hidden');
-    }
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('hidden'); }
+    function toggleProfile()  { document.getElementById('profileDropdown').classList.toggle('hidden'); }
 
     document.addEventListener('click', (e) => {
-      if (!e.target.closest('.relative') && !e.target.closest('[onclick="toggleProfile()"]')) {
-        document.getElementById('profileDropdown').classList.add('hidden');
+      if (!e.target.closest('#profileDropdown') && !e.target.closest('[onclick="toggleProfile()"]')) {
+        document.getElementById('profileDropdown')?.classList.add('hidden');
       }
+    });
+
+    document.getElementById('searchInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && this.value.trim())
+        window.location.href = '/viewer/home?search=' + encodeURIComponent(this.value.trim());
     });
 
     document.getElementById('avatarInput').addEventListener('change', function() {
@@ -278,6 +292,27 @@
         document.getElementById('avatarForm').submit();
       }
     });
+
+    function applyTheme(t) {
+      const icon  = document.getElementById('themeIcon');
+      const label = document.getElementById('themeLabel');
+      if (t === 'light') {
+        document.body.classList.add('light');
+        if (icon)  icon.setAttribute('data-lucide', 'moon');
+        if (label) label.textContent = 'Dark Mode';
+      } else {
+        document.body.classList.remove('light');
+        if (icon)  icon.setAttribute('data-lucide', 'sun');
+        if (label) label.textContent = 'Light Mode';
+      }
+      lucide.createIcons();
+    }
+    function toggleTheme() {
+      const next = localStorage.getItem('binge_theme') === 'light' ? 'dark' : 'light';
+      localStorage.setItem('binge_theme', next);
+      applyTheme(next);
+    }
+    applyTheme(localStorage.getItem('binge_theme') || 'dark');
   </script>
 </body>
 </html>

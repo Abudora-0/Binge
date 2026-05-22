@@ -192,8 +192,10 @@
       <% } else { %>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8 pb-8" id="videoGrid">
           <% videos.forEach(video => { %>
-            <a href="/viewer/watch/<%= video.Id %>" class="video-card block group cursor-pointer"
-               data-title="<%= video.Title.toLowerCase() %>" data-category="<%= video.Category %>">
+            <!-- outer div — not <a> so we can nest channel links inside without invalid HTML -->
+            <div class="video-card group cursor-pointer"
+               data-title="<%= video.Title.toLowerCase() %>" data-category="<%= video.Category %>"
+               onclick="window.location.href='/viewer/watch/<%= video.Id %>'">
               <div class="rounded-xl overflow-hidden aspect-video mb-3 relative bg-gray-800">
                 <% if (video.thumbnail) { %>
                   <img src="<%= video.thumbnail %>" alt="<%= video.Title %>"
@@ -217,16 +219,23 @@
                 </div>
               </div>
               <div class="flex gap-3">
-                <div class="w-9 h-9 bg-red-600 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 mt-0.5 text-white">
-                  <%= video.ChannelName.charAt(0).toUpperCase() %>
-                </div>
+                <a href="/viewer/channel/<%= video.CreatorId %>" onclick="event.stopPropagation()"
+                   class="w-9 h-9 bg-red-600 rounded-full overflow-hidden flex items-center justify-center font-bold text-sm flex-shrink-0 mt-0.5 text-white">
+                  <% if (video.CreatorAvatar) { %>
+                    <img src="/uploads/<%= video.CreatorAvatar %>" class="w-full h-full object-cover"
+                         onerror="this.style.display='none';this.parentElement.innerText='<%= video.ChannelName.charAt(0).toUpperCase() %>'">
+                  <% } else { %>
+                    <%= video.ChannelName.charAt(0).toUpperCase() %>
+                  <% } %>
+                </a>
                 <div class="flex-1 min-w-0">
                   <h3 class="text-sm font-semibold line-clamp-2 leading-snug mb-1 group-hover:text-red-500 transition"><%= video.Title %></h3>
-                  <p class="text-gray-400 text-xs"><%= video.ChannelName %></p>
+                  <a href="/viewer/channel/<%= video.CreatorId %>" onclick="event.stopPropagation()"
+                     class="text-gray-400 text-xs hover:text-red-400 transition block"><%= video.ChannelName %></a>
                   <p class="text-gray-500 text-xs"><%= formatViews(video.Views) %> views · <%= timeAgo(video.UploadDate) %></p>
                 </div>
               </div>
-            </a>
+            </div>
           <% }) %>
         </div>
       <% } %>

@@ -46,30 +46,15 @@ function pageHeader(doc, title, subtitle = '') {
     return 120;
 }
 
-// Report 1: Trending Videos with filters
+// Report 1: Trending Videos — powered by vw_TrendingVideos
 const trendingVideos = (req, res) => {
-    const { categoryId, from, to } = req.query;
+    const { from, to } = req.query;
 
-    let query = `
-        SELECT v.Id, v.Title, v.Views, v.UploadDate,
-               c.ChannelName, cat.Name AS Category,
-               COUNT(DISTINCT l.Id)  AS TotalLikes,
-               COUNT(DISTINCT cm.Id) AS TotalComments
-        FROM video v
-        JOIN creator c    ON v.CreatorId  = c.Id
-        JOIN category cat ON v.CategoryId = cat.Id
-        LEFT JOIN likes l    ON l.VideoId  = v.Id
-        LEFT JOIN comment cm ON cm.VideoId = v.Id
-        WHERE v.Status = 'Published'
-    `;
+    let query = `SELECT * FROM vw_TrendingVideos WHERE 1=1`;
     const params = [];
-
-    if (categoryId) { query += ` AND v.CategoryId = ?`;   params.push(categoryId); }
-    if (from)       { query += ` AND v.UploadDate >= ?`;  params.push(from); }
-    if (to)         { query += ` AND v.UploadDate <= ?`;  params.push(to); }
-
-    query += ` GROUP BY v.Id, v.Title, v.Views, v.UploadDate, c.ChannelName, cat.Name
-               ORDER BY v.Views DESC LIMIT 20`;
+    if (from) { query += ` AND UploadDate >= ?`; params.push(from); }
+    if (to)   { query += ` AND UploadDate <= ?`; params.push(to); }
+    query += ` ORDER BY Views DESC LIMIT 20`;
 
     db.query(query, params, (err, rows) => {
         if (err) return res.status(500).send('Report error');
@@ -78,28 +63,25 @@ const trendingVideos = (req, res) => {
         res.setHeader('Content-Disposition', 'inline; filename="trending_videos.pdf"');
         doc.pipe(res);
         const y = pageHeader(doc, 'Top Trending Videos', `Generated on ${new Date().toLocaleDateString()}`);
-        const headers = ['Title', 'Channel', 'Category', 'Views', 'Likes', 'Comments'];
-        const data = rows.map(r => [r.Title, r.ChannelName, r.Category, r.Views, r.TotalLikes, r.TotalComments]);
+        const headers = ['Title', 'Channel', 'Category', 'Views', 'Likes', 'Comments', 'Uploaded'];
+        const data = rows.map(r => [
+            r.Title.substring(0, 22), r.ChannelName, r.Category,
+            r.Views, r.TotalLikes, r.TotalComments,
+            new Date(r.UploadDate).toLocaleDateString()
+        ]);
         drawTable(doc, headers, data, y);
         doc.end();
     });
 };
 
-// Report 2: Top Creators with country filter
+// Report 2: Top Creators — powered by vw_CreatorStats
 const topCreators = (req, res) => {
     const { country } = req.query;
 
-    let query = `
-        SELECT c.ChannelName, c.TotalSubscribers, c.TotalViews,
-               COUNT(DISTINCT v.Id) AS TotalVideos, u.Country
-        FROM creator c
-        JOIN user u ON c.UserId = u.Id
-        LEFT JOIN video v ON v.CreatorId = c.Id
-    `;
+    let query = `SELECT * FROM vw_CreatorStats WHERE 1=1`;
     const params = [];
-    if (country) { query += ` WHERE u.Country = ?`; params.push(country); }
-    query += ` GROUP BY c.Id, c.ChannelName, c.TotalSubscribers, c.TotalViews, u.Country
-               ORDER BY c.TotalSubscribers DESC`;
+    if (country) { query += ` AND Country = ?`; params.push(country); }
+    query += ` ORDER BY ActiveSubscribers DESC`;
 
     db.query(query, params, (err, rows) => {
         if (err) return res.status(500).send('Report error');
@@ -107,9 +89,12 @@ const topCreators = (req, res) => {
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', 'inline; filename="top_creators.pdf"');
         doc.pipe(res);
-        const y = pageHeader(doc, 'Most Subscribed Creators', `Generated on ${new Date().toLocaleDateString()}`);
-        const headers = ['Channel', 'Subscribers', 'Total Views', 'Videos', 'Country'];
-        const data = rows.map(r => [r.ChannelName, r.TotalSubscribers, r.TotalViews, r.TotalVideos, r.Country]);
+        const y = pageHeader(doc, 'Creator Stats Report', `Generated on ${new Date().toLocaleDateString()}`);
+        const headers = ['Channel', 'Subscribers', 'Videos', 'Real Views', 'Revenue ($)', 'Country'];
+        const data = rows.map(r => [
+            r.ChannelName, r.ActiveSubscribers, r.PublishedVideos,
+            r.RealTotalViews, parseFloat(r.TotalRevenue).toFixed(2), r.Country
+        ]);
         drawTable(doc, headers, data, y);
         doc.end();
     });
@@ -176,22 +161,15 @@ const monthlyWatch = (req, res) => {
     });
 };
 
-// Report 6: All Users with filters
+// Report 6: All Users — powered by vw_UserActivity
 const allUsers = (req, res) => {
     const { status, country } = req.query;
 
-    let query = `
-        SELECT u.FirstName, u.LastName, u.Email, u.Country,
-               u.JoinDate, u.Status,
-               CASE WHEN c.Id IS NOT NULL THEN 'Creator' ELSE 'Viewer' END AS Role
-        FROM user u
-        LEFT JOIN creator c ON c.UserId = u.Id
-        WHERE 1=1
-    `;
+    let query = `SELECT * FROM vw_UserActivity WHERE 1=1`;
     const params = [];
-    if (status)  { query += ` AND u.Status = ?`;  params.push(status); }
-    if (country) { query += ` AND u.Country = ?`; params.push(country); }
-    query += ` ORDER BY u.JoinDate DESC`;
+    if (status)  { query += ` AND Status = ?`;  params.push(status); }
+    if (country) { query += ` AND Country = ?`; params.push(country); }
+    query += ` ORDER BY LastActive DESC`;
 
     db.query(query, params, (err, rows) => {
         if (err) return res.status(500).send('Report error');
@@ -199,9 +177,13 @@ const allUsers = (req, res) => {
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', 'inline; filename="all_users.pdf"');
         doc.pipe(res);
-        const y = pageHeader(doc, 'All Users Report', `Generated on ${new Date().toLocaleDateString()}`);
-        const headers = ['First Name', 'Last Name', 'Email', 'Country', 'Role', 'Status'];
-        const data = rows.map(r => [r.FirstName, r.LastName, r.Email, r.Country, r.Role, r.Status]);
+        const y = pageHeader(doc, 'User Activity Report', `Generated on ${new Date().toLocaleDateString()}`);
+        const headers = ['Name', 'Country', 'Status', 'Watched', 'Comments', 'Subs', 'Last Active'];
+        const data = rows.map(r => [
+            `${r.FirstName} ${r.LastName}`, r.Country, r.Status,
+            r.VideosWatched, r.CommentsMade, r.Subscriptions,
+            r.LastActive ? new Date(r.LastActive).toLocaleDateString() : 'Never'
+        ]);
         drawTable(doc, headers, data, y);
         doc.end();
     });

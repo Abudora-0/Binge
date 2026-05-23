@@ -1,6 +1,9 @@
-const db = require('../config/db');
-const logger = require('../config/logger');
-const upload = require('../config/upload');
+const db        = require('../config/db');
+const logger    = require('../config/logger');
+const upload    = require('../config/upload');
+const Video     = require('../models/Video');
+const Creator   = require('../models/Creator');
+const Validator = require('../config/Validator');
 
 
 const dashboard = (req, res) => {
@@ -9,47 +12,36 @@ const dashboard = (req, res) => {
 
     const userId = req.session.user.id;
 
-    // Get creator info
-    const creatorQuery = `SELECT * FROM creator WHERE UserId = ?`;
-
-    db.query(creatorQuery, [userId], (err, creatorResult) => {
-        if (err || creatorResult.length === 0) {
-            logger.logError('creatorController', err.message);
+    Creator.findByUserId(userId, (err, creator) => {
+        if (err || !creator) {
+            logger.logError('creatorController.dashboard', err ? err.message : 'Creator not found');
             return res.redirect('/auth/login');
         }
 
-        const creator = creatorResult[0];
+        // ── Call sp_GetCreatorStats — returns TotalVideos, TotalViews, TotalLikes, PublishedVideos, Subscribers ──
+        db.query('CALL sp_GetCreatorStats(?)', [creator.id], (err, spResult) => {
+            if (err) logger.logError('creatorController.dashboard - sp_GetCreatorStats', err.message);
+            const sp = (!err && spResult && spResult[0] && spResult[0][0]) ? spResult[0][0] : null;
 
-        // Get creator's videos
-        const videosQuery = `
-            SELECT v.*, cat.Name AS Category,
-                   (SELECT COUNT(*) FROM likes WHERE VideoId = v.Id) AS LikeCount
-            FROM video v
-            JOIN category cat ON v.CategoryId = cat.Id
-            WHERE v.CreatorId = ?
-            ORDER BY v.UploadDate DESC
-        `;
-
-        db.query(videosQuery, [creator.Id], (err, videos) => {
-            if (err) {
-                logger.logError('creatorController', err.message);
-                videos = [];
-            }
-
-            // Get stats
-            const totalViews  = videos.reduce((sum, v) => sum + (v.Views || 0), 0);
-            const totalLikes  = videos.reduce((sum, v) => sum + (v.LikeCount || 0), 0);
-            const totalVideos = videos.length;
-            const published   = videos.filter(v => v.Status === 'Published').length;
-
-            res.render('creator/dashboard', {
-                user: req.session.user,
-                creator,
-                videos,
-                stats: {
-                    totalViews, totalLikes, totalVideos, published,
-                    subscribers: creator.TotalSubscribers
+            // Still fetch video list for the dashboard table display
+            Video.findByCreator(creator.id, (err, videos) => {
+                if (err) {
+                    logger.logError('creatorController.dashboard - videos', err.message);
+                    videos = [];
                 }
+
+                res.render('creator/dashboard', {
+                    user: req.session.user,
+                    creator,
+                    videos,
+                    stats: {
+                        totalVideos:  sp ? sp.TotalVideos     : videos.length,
+                        totalViews:   sp ? sp.TotalViews      : videos.reduce((s, v) => s + (v.views || 0), 0),
+                        totalLikes:   sp ? sp.TotalLikes      : videos.reduce((s, v) => s + (v.likeCount || 0), 0),
+                        published:    sp ? sp.PublishedVideos : videos.filter(v => v.isPublished()).length,
+                        subscribers:  sp ? sp.Subscribers     : creator.totalSubscribers
+                    }
+                });
             });
         });
     });
@@ -59,15 +51,14 @@ const showUpload = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
     const userId = req.session.user.id;
 
-    db.query('SELECT * FROM creator WHERE UserId = ?', [userId], (err, creatorResult) => {
-        const creator = (!err && creatorResult.length > 0) ? creatorResult[0] : null;
+    Creator.findByUserId(userId, (err, creator) => {
         db.query('SELECT * FROM category ORDER BY Name', (err, categories) => {
             if (err) categories = [];
             db.query('SELECT * FROM tag ORDER BY Name', (err, tags) => {
                 if (err) tags = [];
                 res.render('creator/upload', {
                     user: req.session.user,
-                    creator,
+                    creator: creator || null,
                     categories,
                     tags,
                     isEdit: false,
@@ -87,97 +78,61 @@ const uploadVideo = (req, res) => {
     if (!Array.isArray(tags)) tags = [tags];
     const userId = req.session.user.id;
 
-    // ── Validation helper — preserves form data on error ──
-    const renderError = (errorMsg) => {
-        db.query('SELECT * FROM creator WHERE UserId = ?', [userId], (err, creatorRes) => {
-            const creator = (!err && creatorRes.length > 0) ? creatorRes[0] : null;
+    // ── Reusable error renderer ──
+    const renderError = (msg) => {
+        Creator.findByUserId(userId, (err, creator) => {
             db.query('SELECT * FROM category ORDER BY Name', (err, categories) => {
                 db.query('SELECT * FROM tag ORDER BY Name', (err, tagList) => {
                     res.render('creator/upload', {
-                        user: req.session.user,
-                        creator,
-                        categories: categories || [],
-                        tags: tagList || [],
-                        isEdit: false,
-                        video: req.body,
-                        error: errorMsg
+                        user: req.session.user, creator: creator || null,
+                        categories: categories || [], tags: tagList || [],
+                        isEdit: false, video: req.body, error: msg
                     });
                 });
             });
         });
     };
 
-    // ── Validators ──
-    if (!title || !videoUrl || !duration || !categoryId)
-        return renderError('Title, URL, Duration and Category are required.');
-    if (title.length < 3)
-        return renderError('Title must be at least 3 characters.');
-    if (isNaN(duration) || duration <= 0)
-        return renderError('Duration must be a positive number.');
+    // ── Validate using Validator class ──
+    const validation = Validator.validateVideoUpload({ title, videoUrl, duration, categoryId });
+    if (!validation.valid) return renderError(validation.message);
 
-    // Get creator ID
-    db.query('SELECT Id FROM creator WHERE UserId = ?', [userId], (err, result) => {
-        if (err || result.length === 0) return res.redirect('/auth/login');
+    Creator.findByUserId(userId, (err, creator) => {
+        if (err || !creator) return res.redirect('/auth/login');
 
-        const creatorId = result[0].Id;
+        // ── Call stored procedure sp_UploadVideo ──
+        // sp_UploadVideo inserts the video row atomically and returns the new VideoId
+        db.query(
+            `CALL sp_UploadVideo(?, ?, ?, ?, ?, ?, ?, @videoId)`,
+            [creator.id, categoryId, title, description || '', videoUrl, parseInt(duration), status || 'Published'],
+            (err) => {
+                if (err) {
+                    logger.logError('creatorController.uploadVideo - sp_UploadVideo', err.message);
+                    return renderError('Upload failed. Please try again.');
+                }
 
-        // Transaction — insert video + insert tags must both succeed
-        db.beginTransaction((err) => {
-            if (err) {
-                logger.logError('uploadVideo - beginTransaction', err.message);
-                return res.redirect('/creator/dashboard');
-            }
-
-            const insertVideo = `
-            INSERT INTO video (CreatorId, CategoryId, Title, Description, VideoUrl, Duration, Views, Status)
-            VALUES (?, ?, ?, ?, ?, ?, 0, ?)
-        `;
-
-            db.query(insertVideo,
-                [creatorId, categoryId, title, description, videoUrl, duration, status || 'Published'],
-                (err, result) => {
-                    if (err) {
-                        return db.rollback(() => {
-                            logger.logError('uploadVideo - insert', err.message);
-                            res.redirect('/creator/dashboard');
-                        });
+                // Retrieve the OUT parameter
+                db.query('SELECT @videoId AS videoId', (err, result) => {
+                    if (err || !result || result[0].videoId <= 0) {
+                        logger.logError('creatorController.uploadVideo - OUT param', err ? err.message : 'No videoId');
+                        return res.redirect('/creator/dashboard');
                     }
 
-                    const videoId = result.insertId;
+                    const videoId = result[0].videoId;
 
+                    // Insert tag associations if any tags were selected
                     if (tags.length > 0) {
                         const tagValues = tags.map(tagId => [videoId, tagId]);
-                        db.query('INSERT INTO videotag (VideoId, TagId) VALUES ?', [tagValues], (err) => {
-                            if (err) {
-                                return db.rollback(() => {
-                                    logger.logError('uploadVideo - tags', err.message);
-                                    res.redirect('/creator/dashboard');
-                                });
-                            }
-
-                            db.commit((err) => {
-                                if (err) {
-                                    return db.rollback(() => {
-                                        logger.logError('uploadVideo - commit', err.message);
-                                        res.redirect('/creator/dashboard');
-                                    });
-                                }
-                                res.redirect('/creator/dashboard');
-                            });
-                        });
-                    } else {
-                        db.commit((err) => {
-                            if (err) {
-                                return db.rollback(() => {
-                                    logger.logError('uploadVideo - commit', err.message);
-                                    res.redirect('/creator/dashboard');
-                                });
-                            }
+                        db.query('INSERT IGNORE INTO videotag (VideoId, TagId) VALUES ?', [tagValues], (err) => {
+                            if (err) logger.logError('creatorController.uploadVideo - tags', err.message);
                             res.redirect('/creator/dashboard');
                         });
+                    } else {
+                        res.redirect('/creator/dashboard');
                     }
                 });
-        });
+            }
+        );
     });
 };
 
@@ -185,19 +140,16 @@ const showEdit = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
 
     const videoId = req.params.id;
-    const userId = req.session.user.id;
+    const userId  = req.session.user.id;
 
-    db.query('SELECT * FROM creator WHERE UserId = ?', [userId], (err, result) => {
-        if (err || result.length === 0) return res.redirect('/auth/login');
+    Creator.findByUserId(userId, (err, creator) => {
+        if (err || !creator) return res.redirect('/auth/login');
 
-        const creator = result[0];
-
-        db.query('SELECT * FROM video WHERE Id = ? AND CreatorId = ?', [videoId, creator.Id], (err, videoResult) => {
+        db.query('SELECT * FROM video WHERE Id = ? AND CreatorId = ?', [videoId, creator.id], (err, videoResult) => {
             if (err || videoResult.length === 0) return res.redirect('/creator/dashboard');
 
             const video = videoResult[0];
 
-            // Get selected tags for this video
             db.query('SELECT TagId FROM videotag WHERE VideoId = ?', [videoId], (err, tagResult) => {
                 video.tags = tagResult ? tagResult.map(t => t.TagId) : [];
 
@@ -223,43 +175,61 @@ const editVideo = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
 
     const videoId = req.params.id;
-    const userId = req.session.user.id;
+    const userId  = req.session.user.id;
     const { title, description, videoUrl, duration, categoryId, status } = req.body;
     let tags = req.body.tags || [];
     if (!Array.isArray(tags)) tags = [tags];
 
-    // Validators
-    if (!title || !videoUrl || !duration || !categoryId) {
-        return res.redirect('/creator/dashboard');
-    }
+    const validation = Validator.validateVideoUpload({ title, videoUrl, duration, categoryId });
+    if (!validation.valid) return res.redirect('/creator/dashboard');
 
-    db.query('SELECT Id FROM creator WHERE UserId = ?', [userId], (err, result) => {
-        if (err || result.length === 0) return res.redirect('/auth/login');
+    Creator.findByUserId(userId, (err, creator) => {
+        if (err || !creator) return res.redirect('/auth/login');
 
-        const creatorId = result[0].Id;
-
-        const updateQuery = `
-            UPDATE video
-            SET Title = ?, Description = ?, VideoUrl = ?,
-                Duration = ?, CategoryId = ?, Status = ?
-            WHERE Id = ? AND CreatorId = ?
-        `;
-
-        db.query(updateQuery, [title, description, videoUrl, duration, categoryId, status, videoId, creatorId], (err) => {
+        // ── Wrap update + tag replacement in a transaction ──
+        db.beginTransaction((err) => {
             if (err) {
-                logger.logError('creatorController', err.message);
+                logger.logError('creatorController.editVideo - beginTransaction', err.message);
                 return res.redirect('/creator/dashboard');
             }
 
-            // Update tags — delete old then insert new
-            db.query('DELETE FROM videotag WHERE VideoId = ?', [videoId], (err) => {
-                if (tags.length > 0) {
-                    const tagValues = tags.map(tagId => [videoId, tagId]);
-                    db.query('INSERT INTO videotag (VideoId, TagId) VALUES ?', [tagValues], (err) => {
-                        if (err) logger.logError('creatorController', err.message);
+            Video.update(videoId, creator.id, { title, description, videoUrl, duration, categoryId, status }, (err) => {
+                if (err) {
+                    return db.rollback(() => {
+                        logger.logError('creatorController.editVideo - update', err.message);
+                        res.redirect('/creator/dashboard');
                     });
                 }
-                res.redirect('/creator/dashboard');
+
+                db.query('DELETE FROM videotag WHERE VideoId = ?', [videoId], (err) => {
+                    if (err) {
+                        return db.rollback(() => {
+                            logger.logError('creatorController.editVideo - delete tags', err.message);
+                            res.redirect('/creator/dashboard');
+                        });
+                    }
+
+                    if (tags.length > 0) {
+                        const tagValues = tags.map(tagId => [videoId, tagId]);
+                        db.query('INSERT IGNORE INTO videotag (VideoId, TagId) VALUES ?', [tagValues], (err) => {
+                            if (err) {
+                                return db.rollback(() => {
+                                    logger.logError('creatorController.editVideo - insert tags', err.message);
+                                    res.redirect('/creator/dashboard');
+                                });
+                            }
+                            db.commit((err) => {
+                                if (err) logger.logError('creatorController.editVideo - commit', err.message);
+                                res.redirect('/creator/dashboard');
+                            });
+                        });
+                    } else {
+                        db.commit((err) => {
+                            if (err) logger.logError('creatorController.editVideo - commit', err.message);
+                            res.redirect('/creator/dashboard');
+                        });
+                    }
+                });
             });
         });
     });
@@ -269,20 +239,17 @@ const deleteVideo = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
 
     const videoId = req.params.id;
-    const userId = req.session.user.id;
+    const userId  = req.session.user.id;
 
-    db.query('SELECT Id FROM creator WHERE UserId = ?', [userId], (err, result) => {
-        if (err || result.length === 0) return res.redirect('/auth/login');
+    Creator.findByUserId(userId, (err, creator) => {
+        if (err || !creator) return res.redirect('/auth/login');
 
-        const creatorId = result[0].Id;
-
-        db.query('DELETE FROM video WHERE Id = ? AND CreatorId = ?', [videoId, creatorId], (err) => {
-            if (err) logger.logError('creatorController', err.message);
+        Video.delete(videoId, creator.id, (err) => {
+            if (err) logger.logError('creatorController.deleteVideo', err.message);
             res.redirect('/creator/dashboard');
         });
     });
 };
-
 
 const showProfile = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
@@ -291,15 +258,15 @@ const showProfile = (req, res) => {
     db.query('SELECT * FROM user WHERE Id = ?', [userId], (err, userResult) => {
         if (err || userResult.length === 0) return res.redirect('/creator/dashboard');
 
-        db.query('SELECT * FROM creator WHERE UserId = ?', [userId], (err, creatorResult) => {
-            if (err || creatorResult.length === 0) return res.redirect('/creator/dashboard');
+        Creator.findByUserId(userId, (err, creator) => {
+            if (err || !creator) return res.redirect('/creator/dashboard');
 
             req.session.user.avatar = userResult[0].Avatar;
 
             res.render('creator/profile', {
                 user: req.session.user,
                 userData: userResult[0],
-                creatorData: creatorResult[0],
+                creatorData: creator,
                 success: null, error: null
             });
         });
@@ -309,10 +276,10 @@ const showProfile = (req, res) => {
 const updateCreatorAvatar = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
     if (!req.file) return res.redirect('/creator/profile');
-    const userId = req.session.user.id;
 
+    const userId = req.session.user.id;
     db.query('UPDATE user SET Avatar = ? WHERE Id = ?', [req.file.filename, userId], (err) => {
-        if (err) logger.logError('updateCreatorAvatar', err.message);
+        if (err) logger.logError('creatorController.updateCreatorAvatar', err.message);
         req.session.user.avatar = req.file.filename;
         req.session.save(() => res.redirect('/creator/profile'));
     });
@@ -325,7 +292,7 @@ const updateCreatorProfile = (req, res) => {
 
     db.query('UPDATE user SET FirstName = ?, LastName = ?, Country = ? WHERE Id = ?',
         [firstName, lastName, country, userId], (err) => {
-            if (err) logger.logError('updateCreatorProfile', err.message);
+            if (err) logger.logError('creatorController.updateCreatorProfile', err.message);
             req.session.user.firstName = firstName;
             req.session.user.lastName  = lastName;
             res.redirect('/creator/profile');
@@ -338,14 +305,14 @@ const updateChannel = (req, res) => {
     const { channelName, bio } = req.body;
     const userId = req.session.user.id;
 
-    db.query('UPDATE creator SET ChannelName = ?, Bio = ? WHERE UserId = ?',
-        [channelName, bio, userId], (err) => {
-            if (err) logger.logError('updateChannel', err.message);
-            res.redirect('/creator/profile');
-        }
-    );
+    Creator.updateProfile(userId, { channelName, bio }, (err) => {
+        if (err) logger.logError('creatorController.updateChannel', err.message);
+        res.redirect('/creator/profile');
+    });
 };
 
-module.exports = { dashboard, showUpload, uploadVideo, showEdit, editVideo, deleteVideo, showProfile, updateCreatorAvatar, updateCreatorProfile, updateChannel };
-
-
+module.exports = {
+    dashboard, showUpload, uploadVideo,
+    showEdit, editVideo, deleteVideo,
+    showProfile, updateCreatorAvatar, updateCreatorProfile, updateChannel
+};

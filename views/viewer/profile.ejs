@@ -38,8 +38,8 @@
 <body class="bg-gray-950 text-white min-h-screen flex flex-col">
 
   <!-- Navbar -->
-  <nav class="bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center gap-4 sticky top-0 z-50 w-full">
-    <div class="flex items-center gap-3 w-48 flex-shrink-0">
+  <nav class="bg-gray-950 border-b border-gray-800 px-3 sm:px-4 py-3 flex items-center gap-2 sm:gap-4 sticky top-0 z-50 w-full">
+    <div class="flex items-center gap-3 flex-shrink-0">
       <a href="/viewer/home" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-gray-600 text-gray-300 hover:text-white transition flex-shrink-0">
         <i data-lucide="arrow-left" class="w-4 h-4"></i>
       </a>
@@ -47,20 +47,20 @@
         <img src="/logo.png" alt="Binge" class="h-7 w-auto object-contain" onerror="this.onerror=null;this.src='/logo.svg'">
       </a>
     </div>
-    <div class="flex-1 flex gap-2 max-w-2xl mx-auto">
+    <div class="flex-1 min-w-0 flex gap-2 max-w-2xl mx-auto">
       <input type="text" id="searchInput" placeholder="Search videos..."
-        class="flex-1 bg-gray-900 text-white border border-gray-700 rounded-full px-5 py-2 text-sm focus:outline-none focus:border-red-500 transition"/>
-      <button class="bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-full border border-gray-700 transition flex items-center">
+        class="flex-1 min-w-0 bg-gray-900 text-white border border-gray-700 rounded-full px-3 sm:px-5 py-2 text-sm focus:outline-none focus:border-red-500 transition"/>
+      <button class="hidden sm:flex bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-full border border-gray-700 transition items-center">
         <i data-lucide="search" class="w-4 h-4"></i>
       </button>
     </div>
-    <div class="w-48 flex-shrink-0 flex justify-end relative">
+    <div class="flex-shrink-0 flex justify-end relative">
       <button onclick="toggleProfile()" class="flex items-center gap-2 hover:bg-gray-800 px-3 py-1.5 rounded-full transition">
         <div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-red-600 flex items-center justify-center font-bold text-sm">
           <% if (user.avatar) { %><img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover"><% } else { %><%= user.firstName.charAt(0).toUpperCase() %><% } %>
         </div>
         <span class="text-white text-sm font-medium hidden sm:block"><%= user.firstName %></span>
-        <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
+        <i data-lucide="chevron-down" class="hidden sm:block w-4 h-4 text-gray-400"></i>
       </button>
       <div id="profileDropdown" class="hidden absolute top-12 right-0 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-56 z-50 overflow-hidden">
         <div class="px-4 py-3 border-b border-gray-700 flex items-center gap-3">
@@ -158,7 +158,7 @@
           <i data-lucide="edit-3" class="w-4 h-4 text-red-400"></i> Edit Profile
         </h3>
         <form action="/viewer/profile/update" method="POST" class="space-y-5">
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-gray-400 text-xs mb-1.5 uppercase tracking-wider">First Name</label>
               <div class="relative">

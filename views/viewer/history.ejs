@@ -37,13 +37,18 @@
     /* History card hover to reveal remove btn */
     .history-card .remove-btn { opacity: 0; transition: opacity 0.15s; }
     .history-card:hover .remove-btn { opacity: 1; }
+    /* ─── Mobile sidebar overlay ─── */
+    @media (max-width: 767px) {
+      #sidebar { display: none !important; position: fixed; top: 57px; left: 0; bottom: 0; z-index: 40; width: 240px !important; overflow-y: auto; box-shadow: 4px 0 24px rgba(0,0,0,0.35); }
+      #sidebar.mobile-open { display: flex !important; flex-direction: column; }
+    }
   </style>
 </head>
 <body class="bg-gray-950 text-white h-full flex flex-col overflow-hidden">
 
   <!-- Navbar -->
-  <nav class="sticky bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center gap-4 z-50 w-full flex-shrink-0">
-    <div class="flex items-center gap-3 w-52 flex-shrink-0">
+  <nav class="sticky bg-gray-950 border-b border-gray-800 px-3 sm:px-4 py-3 flex items-center gap-2 sm:gap-4 z-50 w-full flex-shrink-0">
+    <div class="flex items-center gap-3 flex-shrink-0">
       <button onclick="toggleSidebar()"
               class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-800 text-gray-400 hover:text-white transition flex-shrink-0">
         <i data-lucide="menu" class="w-5 h-5"></i>
@@ -53,21 +58,21 @@
              onerror="this.onerror=null;this.src='/logo.svg'">
       </a>
     </div>
-    <div class="flex-1 flex gap-2 max-w-2xl mx-auto">
+    <div class="flex-1 min-w-0 flex gap-2 max-w-2xl mx-auto">
       <input type="text" id="histSearch" placeholder="Search history..."
-        class="flex-1 bg-gray-900 text-white border border-gray-700 rounded-full px-5 py-2 text-sm focus:outline-none focus:border-red-500 transition"
+        class="flex-1 min-w-0 bg-gray-900 text-white border border-gray-700 rounded-full px-3 sm:px-5 py-2 text-sm focus:outline-none focus:border-red-500 transition"
         oninput="filterHistory(this.value)"/>
-      <button class="bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-full border border-gray-700 transition flex items-center text-gray-400 hover:text-white">
+      <button class="hidden sm:flex bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-full border border-gray-700 transition items-center text-gray-400 hover:text-white">
         <i data-lucide="search" class="w-4 h-4"></i>
       </button>
     </div>
-    <div class="w-52 flex-shrink-0 flex justify-end relative">
+    <div class="flex-shrink-0 flex justify-end relative">
       <button onclick="toggleProfile()" class="flex items-center gap-2 hover:bg-gray-800 px-3 py-1.5 rounded-full transition">
         <div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-red-600 flex items-center justify-center font-bold text-sm">
           <% if (user.avatar) { %><img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover"><% } else { %><%= user.firstName.charAt(0).toUpperCase() %><% } %>
         </div>
         <span class="text-sm font-medium hidden sm:block"><%= user.firstName %></span>
-        <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
+        <i data-lucide="chevron-down" class="hidden sm:block w-4 h-4 text-gray-400"></i>
       </button>
       <div id="profileDropdown" class="hidden absolute top-12 right-0 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-56 z-50 overflow-hidden">
         <div class="px-4 py-3 border-b border-gray-700 flex items-center gap-3">
@@ -93,6 +98,9 @@
       </div>
     </div>
   </nav>
+
+  <!-- Mobile sidebar overlay -->
+  <div id="sidebarOverlay" onclick="closeSidebarOverlay()" style="display:none" class="fixed inset-0 bg-black/50 z-[39]"></div>
 
   <div class="flex flex-1 min-h-0">
 
@@ -222,7 +230,7 @@
 
                         <!-- Thumbnail -->
                         <a href="/viewer/watch/<%= item.VideoId %>"
-                           class="w-44 flex-shrink-0 relative rounded-xl overflow-hidden block" style="height:6.5rem">
+                           class="w-28 sm:w-44 flex-shrink-0 relative rounded-xl overflow-hidden block" style="aspect-ratio:16/9">
                           <% if (item.thumbnail) { %>
                             <img src="<%= item.thumbnail %>" alt="<%= item.Title %>"
                                  class="w-full h-full object-cover group-hover:brightness-90 transition duration-300"
@@ -275,7 +283,7 @@
                         </a>
 
                         <!-- Date + remove -->
-                        <div class="flex flex-col items-end justify-between flex-shrink-0 py-0.5">
+                        <div class="hidden sm:flex flex-col items-end justify-between flex-shrink-0 py-0.5">
                           <form action="/viewer/history/delete" method="POST">
                             <input type="hidden" name="videoId" value="<%= item.VideoId %>">
                             <button type="submit" title="Remove from history"
@@ -303,7 +311,20 @@
   <script>
     lucide.createIcons();
 
-    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('hidden'); }
+    function toggleSidebar() {
+      const s = document.getElementById('sidebar');
+      const o = document.getElementById('sidebarOverlay');
+      if (window.innerWidth < 768) {
+        const open = s.classList.toggle('mobile-open');
+        o.style.display = open ? 'block' : 'none';
+      } else {
+        s.classList.toggle('hidden');
+      }
+    }
+    function closeSidebarOverlay() {
+      document.getElementById('sidebar').classList.remove('mobile-open');
+      document.getElementById('sidebarOverlay').style.display = 'none';
+    }
     function toggleProfile()  { document.getElementById('profileDropdown').classList.toggle('hidden'); }
 
     document.addEventListener('click', (e) => {

@@ -178,89 +178,13 @@ const subscribe = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
 
     const creatorId = req.params.id;
-    const userId = req.session.user.id;
-    const referer = req.headers.referer || '/viewer/home';
+    const userId    = req.session.user.id;
+    const referer   = req.headers.referer || '/viewer/home';
 
-    db.beginTransaction((err) => {
-        if (err) {
-            logger.logError('subscribe - beginTransaction', err.message);
-            return res.redirect(referer);
-        }
-
-        db.query('SELECT Id FROM subscription WHERE ViewerId = ? AND CreatorId = ?',
-            [userId, creatorId], (err, result) => {
-                if (err) {
-                    return db.rollback(() => {
-                        logger.logError('subscribe - check', err.message);
-                        res.redirect(referer);
-                    });
-                }
-
-                if (result.length > 0) {
-                    // Unsubscribe
-                    db.query('DELETE FROM subscription WHERE ViewerId = ? AND CreatorId = ?',
-                        [userId, creatorId], (err) => {
-                            if (err) {
-                                return db.rollback(() => {
-                                    logger.logError('subscribe - delete', err.message);
-                                    res.redirect(referer);
-                                });
-                            }
-
-                            db.query('UPDATE creator SET TotalSubscribers = TotalSubscribers - 1 WHERE Id = ?',
-                                [creatorId], (err) => {
-                                    if (err) {
-                                        return db.rollback(() => {
-                                            logger.logError('subscribe - update count', err.message);
-                                            res.redirect(referer);
-                                        });
-                                    }
-
-                                    db.commit((err) => {
-                                        if (err) {
-                                            return db.rollback(() => {
-                                                logger.logError('subscribe - commit', err.message);
-                                                res.redirect(referer);
-                                            });
-                                        }
-                                        res.redirect(referer);
-                                    });
-                                });
-                        });
-
-                } else {
-                    // Subscribe
-                    db.query('INSERT INTO subscription (ViewerId, CreatorId) VALUES (?, ?)',
-                        [userId, creatorId], (err) => {
-                            if (err) {
-                                return db.rollback(() => {
-                                    logger.logError('subscribe - insert', err.message);
-                                    res.redirect(referer);
-                                });
-                            }
-
-                            db.query('UPDATE creator SET TotalSubscribers = TotalSubscribers + 1 WHERE Id = ?',
-                                [creatorId], (err) => {
-                                    if (err) {
-                                        return db.rollback(() => {
-                                            logger.logError('subscribe - update count', err.message);
-                                            res.redirect(referer);
-                                        });
-                                    }
-
-                                    db.commit((err) => {
-                                        if (err) {
-                                            return db.rollback(() => {
-                                                logger.logError('subscribe - commit', err.message);
-                                                res.redirect(referer);
-                                            });
-                                        }
-                                        res.redirect(referer);
-                                    });
-                                });
-                        });
-                }
-            });
+    // ── sp_ToggleSubscription handles subscribe/unsubscribe + TotalSubscribers update atomically ──
+    db.query('CALL sp_ToggleSubscription(?, ?, @action)', [userId, creatorId], (err) => {
+        if (err) logger.logError('viewerController.subscribe - sp_ToggleSubscription', err.message);
+        res.redirect(referer);
     });
 };
 

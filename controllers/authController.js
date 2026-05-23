@@ -1,257 +1,134 @@
-const db = require('../config/db');
-const bcrypt = require('bcryptjs');
-const logger = require('../config/logger');
+const bcrypt    = require('bcryptjs');
+const logger    = require('../config/logger');
+const User      = require('../models/User');
+const Creator   = require('../models/Creator');
+const Validator = require('../config/Validator');
 
-// Show login page
+// ── Show pages ────────────────────────────────────────────────
 const showLogin = (req, res) => {
     res.render('login', { error: null, resetError: null, resetSuccess: null, resetEmail: '' });
 };
 
-// Show register page
 const showRegister = (req, res) => {
     res.render('register', { error: null, success: null });
 };
 
-// Handle registration
+// ── Register ──────────────────────────────────────────────────
 const register = (req, res) => {
     const { firstName, lastName, email, password, confirmPassword, country, role, channelName } = req.body;
 
-    // ── Validators ──
-    if (!firstName || !lastName || !email || !password || !country || !role) {
-        return res.render('register', {
-            error: 'All fields are required.',
-            success: null
-        });
-    }
+    const fail = (msg) => res.render('register', { error: msg, success: null });
 
-    if (firstName.length < 2 || lastName.length < 2) {
-        return res.render('register', {
-            error: 'First and Last name must be at least 2 characters.',
-            success: null
-        });
-    }
+    // ── Validate all fields using Validator class ──
+    const validation = Validator.validateRegistration(
+        { firstName, lastName, email, password, confirmPassword, country, role, channelName }
+    );
+    if (!validation.valid) return fail(validation.message);
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        return res.render('register', {
-            error: 'Please enter a valid email address.',
-            success: null
-        });
-    }
-
-    if (password.length < 8) {
-        return res.render('register', {
-            error: 'Password must be at least 8 characters.',
-            success: null
-        });
-    }
-
-    if (password !== confirmPassword) {
-        return res.render('register', {
-            error: 'Passwords do not match.',
-            success: null
-        });
-    }
-
-    if (role === 'creator' && !channelName) {
-        return res.render('register', {
-            error: 'Channel name is required for creators.',
-            success: null
-        });
-    }
-
-    // ── Check if email already exists ──
-    const checkEmail = 'SELECT Id FROM user WHERE Email = ?';
-    db.query(checkEmail, [email], (err, results) => {
+    // ── Check for duplicate email using User model ──
+    User.emailExists(email, (err, exists) => {
         if (err) {
-            logger.logError('authController', err.message);
-            return res.render('register', {
-                error: 'Something went wrong. Please try again.',
-                success: null
-            });
+            logger.logError('authController.register', err.message);
+            return fail('Something went wrong. Please try again.');
         }
+        if (exists) return fail('An account with this email already exists.');
 
-        if (results.length > 0) {
-            return res.render('register', {
-                error: 'An account with this email already exists.',
-                success: null
-            });
-        }
-
-        // ── Hash password ──
+        // ── Hash and create user ──
         const hashedPassword = bcrypt.hashSync(password, 10);
 
-        // ── Insert user ──
-        const insertUser = `
-            INSERT INTO user (FirstName, LastName, Email, Password, Country, Status)
-            VALUES (?, ?, ?, ?, ?, 'Active')
-        `;
-
-        db.query(insertUser, [firstName, lastName, email, hashedPassword, country], (err, result) => {
+        User.create({ firstName, lastName, email, hashedPassword, country }, (err, userId) => {
             if (err) {
-                logger.logError('authController', err.message);
-                return res.render('register', {
-                    error: 'Registration failed. Please try again.',
-                    success: null
-                });
+                logger.logError('authController.register', err.message);
+                return fail('Registration failed. Please try again.');
             }
 
-            const userId = result.insertId;
-
-            // ── If creator, insert into creator table ──
             if (role === 'creator') {
-                const insertCreator = `
-                    INSERT INTO creator (UserId, ChannelName, TotalSubscribers, TotalViews)
-                    VALUES (?, ?, 0, 0)
-                `;
-                db.query(insertCreator, [userId, channelName], (err) => {
+                Creator.create(userId, channelName, (err) => {
                     if (err) {
-                        logger.logError('authController', err.message);
-                        return res.render('register', {
-                            error: 'Account created but creator setup failed.',
-                            success: null
-                        });
+                        logger.logError('authController.register - creator', err.message);
+                        return fail('Account created but creator setup failed.');
                     }
-
-                    return res.render('register', {
-                        error: null,
-                        success: 'Account created successfully! You can now sign in.'
-                    });
+                    res.render('register', { error: null, success: 'Account created successfully! You can now sign in.' });
                 });
             } else {
-                return res.render('register', {
-                    error: null,
-                    success: 'Account created successfully! You can now sign in.'
-                });
+                res.render('register', { error: null, success: 'Account created successfully! You can now sign in.' });
             }
         });
     });
 };
 
-// Handle login
+// ── Login ─────────────────────────────────────────────────────
 const login = (req, res) => {
     const { email, password, role } = req.body;
+    const fail = (msg) => res.render('login', { error: msg, resetError: null, resetSuccess: null, resetEmail: '' });
 
-    const loginError = (msg) => res.render('login', { error: msg, resetError: null, resetSuccess: null, resetEmail: '' });
+    // ── Validate ──
+    const emailCheck = Validator.validateEmail(email);
+    if (!email || !password || !role) return fail('All fields are required.');
+    if (!emailCheck.valid) return fail(emailCheck.message);
 
-    // ── Validators ──
-    if (!email || !password || !role) return loginError('All fields are required.');
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) return loginError('Please enter a valid email address.');
-
-    // ── Find user ──
-    const query = 'SELECT * FROM user WHERE Email = ?';
-    db.query(query, [email], (err, results) => {
+    // ── Look up user via User model ──
+    User.findByEmail(email, (err, user) => {
         if (err) {
-            logger.logError('authController', err.message);
-            return loginError('Something went wrong. Please try again.');
+            logger.logError('authController.login', err.message);
+            return fail('Something went wrong. Please try again.');
         }
-
-        if (results.length === 0) return loginError('No account found with this email.');
-
-        const user = results[0];
-
-        // ── Check password ──
-        const passwordMatch = bcrypt.compareSync(password, user.Password);
-        if (!passwordMatch) return loginError('Incorrect password.');
-
-        // ── Check status ──
-        if (user.Status !== 'Active') return loginError('Your account has been suspended.');
+        if (!user)                         return fail('No account found with this email.');
+        if (!bcrypt.compareSync(password, user.password)) return fail('Incorrect password.');
+        if (!user.isActive())              return fail('Your account has been suspended.');
 
         // ── Store session ──
         req.session.user = {
-            id: user.Id,
-            firstName: user.FirstName,
-            lastName: user.LastName,
-            email: user.Email,
-            role: role,
-            avatar: user.Avatar || null
+            id:        user.id,
+            firstName: user.firstName,
+            lastName:  user.lastName,
+            email:     user.email,
+            role,
+            avatar:    user.avatar
         };
 
-        // ── Redirect based on role ──
-        if (role === 'admin') return res.redirect('/admin/dashboard');
+        if (role === 'admin')   return res.redirect('/admin/dashboard');
         if (role === 'creator') return res.redirect('/creator/dashboard');
         return res.redirect('/viewer/home');
     });
 };
 
-// Handle logout
+// ── Logout ────────────────────────────────────────────────────
 const logout = (req, res) => {
     req.session.destroy();
     res.redirect('/auth/login');
 };
 
-// Handle forgot password (direct reset — no email service required)
+// ── Forgot Password ───────────────────────────────────────────
 const forgotPassword = (req, res) => {
     const { email, newPassword, confirmPassword } = req.body;
+    const fail = (msg) => res.render('login', { error: null, resetError: msg, resetEmail: email || '' });
 
-    if (!email || !newPassword || !confirmPassword) {
-        return res.render('login', {
-            error: null,
-            resetError: 'All fields are required.',
-            resetEmail: email || ''
-        });
-    }
+    if (!email || !newPassword || !confirmPassword) return fail('All fields are required.');
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        return res.render('login', {
-            error: null,
-            resetError: 'Please enter a valid email address.',
-            resetEmail: email
-        });
-    }
+    const emailCheck    = Validator.validateEmail(email);
+    const passCheck     = Validator.validatePassword(newPassword);
+    const matchCheck    = Validator.passwordsMatch(newPassword, confirmPassword);
 
-    if (newPassword.length < 8) {
-        return res.render('login', {
-            error: null,
-            resetError: 'Password must be at least 8 characters.',
-            resetEmail: email
-        });
-    }
+    if (!emailCheck.valid) return fail(emailCheck.message);
+    if (!passCheck.valid)  return fail(passCheck.message);
+    if (!matchCheck.valid) return fail(matchCheck.message);
 
-    if (newPassword !== confirmPassword) {
-        return res.render('login', {
-            error: null,
-            resetError: 'Passwords do not match.',
-            resetEmail: email
-        });
-    }
-
-    db.query('SELECT Id FROM user WHERE Email = ?', [email], (err, results) => {
+    User.findByEmail(email, (err, user) => {
         if (err) {
-            logger.logError('forgotPassword', err.message);
-            return res.render('login', {
-                error: null,
-                resetError: 'Something went wrong. Please try again.',
-                resetEmail: email
-            });
+            logger.logError('authController.forgotPassword', err.message);
+            return fail('Something went wrong. Please try again.');
         }
+        if (!user) return fail('No account found with this email address.');
 
-        if (results.length === 0) {
-            return res.render('login', {
-                error: null,
-                resetError: 'No account found with this email address.',
-                resetEmail: email
-            });
-        }
-
-        const hashedPassword = bcrypt.hashSync(newPassword, 10);
-
-        db.query('UPDATE user SET Password = ? WHERE Email = ?', [hashedPassword, email], (err) => {
+        const hashed = bcrypt.hashSync(newPassword, 10);
+        User.updatePassword(email, hashed, (err) => {
             if (err) {
-                logger.logError('forgotPassword - update', err.message);
-                return res.render('login', {
-                    error: null,
-                    resetError: 'Failed to update password. Please try again.',
-                    resetEmail: email
-                });
+                logger.logError('authController.forgotPassword - update', err.message);
+                return fail('Failed to update password. Please try again.');
             }
-
             res.render('login', {
-                error: null,
-                resetError: null,
+                error: null, resetError: null,
                 resetSuccess: 'Password updated successfully! You can now sign in.',
                 resetEmail: ''
             });

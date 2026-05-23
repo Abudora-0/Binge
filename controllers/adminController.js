@@ -59,20 +59,29 @@ const dashboard = (req, res) => {
                 db.query(reportsQuery, (err, pendingReports) => {
                     if (err) pendingReports = [];
 
-                    res.render('admin/dashboard', {
-                        user: req.session.user,
-                        stats: {
-                            users:    users.total,
-                            videos:   videos.total,
-                            creators: creators.total,
-                            comments: comments.total,
-                            views:    views.total,
-                            reports:  reports.total
-                        },
-                        allUsers,
-                        allVideos,
-                        pendingReports
-                    });
+                    // ── vw_CreatorDashboard: per-creator stats for the Creators tab ──
+                    db.query(
+                        'SELECT * FROM vw_CreatorDashboard ORDER BY TotalSubscribers DESC',
+                        (err, creatorsOverview) => {
+                            if (err) creatorsOverview = [];
+
+                            res.render('admin/dashboard', {
+                                user: req.session.user,
+                                stats: {
+                                    users:    users.total,
+                                    videos:   videos.total,
+                                    creators: creators.total,
+                                    comments: comments.total,
+                                    views:    views.total,
+                                    reports:  reports.total
+                                },
+                                allUsers,
+                                allVideos,
+                                pendingReports,
+                                creatorsOverview
+                            });
+                        }
+                    );
                 });
             });
         });

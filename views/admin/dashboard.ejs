@@ -35,14 +35,19 @@
     body.light #profileDropdown { box-shadow: 0 8px 32px rgba(0,0,0,0.14) !important; }
     body.light input::placeholder { color: #94a3b8 !important; }
     body.light .admin-header { background: linear-gradient(to right, #f1f5f9, #f8fafc) !important; }
+    /* ─── Mobile sidebar overlay ─── */
+    @media (max-width: 767px) {
+      #sidebar { display: none !important; position: fixed; top: 57px; left: 0; bottom: 0; z-index: 40; width: 240px !important; overflow-y: auto; box-shadow: 4px 0 24px rgba(0,0,0,0.35); }
+      #sidebar.mobile-open { display: flex !important; flex-direction: column; }
+    }
   </style>
 </head>
 
 <body class="bg-gray-950 text-white h-full flex flex-col overflow-hidden">
 
   <!-- ── Navbar ── -->
-  <nav class="sticky bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center gap-4 z-50 w-full flex-shrink-0">
-    <div class="flex items-center gap-3 w-52 flex-shrink-0">
+  <nav class="sticky bg-gray-950 border-b border-gray-800 px-3 sm:px-4 py-3 flex items-center gap-2 sm:gap-4 z-50 w-full flex-shrink-0">
+    <div class="flex items-center gap-3 flex-shrink-0">
       <button onclick="toggleSidebar()"
         class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-800 text-gray-400 hover:text-white transition flex-shrink-0">
         <i data-lucide="menu" class="w-5 h-5"></i>
@@ -51,20 +56,20 @@
         <img src="/logo.png" alt="Binge" class="h-7 w-auto object-contain" onerror="this.onerror=null;this.src='/logo.svg'">
       </a>
     </div>
-    <div class="flex-1 flex gap-2 max-w-2xl mx-auto">
+    <div class="flex-1 min-w-0 flex gap-2 max-w-2xl mx-auto">
       <input type="text" id="searchInput" placeholder="Search videos or users..."
-        class="flex-1 bg-gray-900 text-white border border-gray-700 rounded-full px-5 py-2 text-sm focus:outline-none focus:border-red-500 transition"/>
-      <button class="bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-full border border-gray-700 transition flex items-center text-gray-400 hover:text-white">
+        class="flex-1 min-w-0 bg-gray-900 text-white border border-gray-700 rounded-full px-3 sm:px-5 py-2 text-sm focus:outline-none focus:border-red-500 transition"/>
+      <button class="hidden sm:flex bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-full border border-gray-700 transition items-center text-gray-400 hover:text-white">
         <i data-lucide="search" class="w-4 h-4"></i>
       </button>
     </div>
-    <div class="w-52 flex-shrink-0 flex justify-end relative">
+    <div class="flex-shrink-0 flex justify-end relative">
       <button onclick="toggleProfile()" class="flex items-center gap-2 hover:bg-gray-800 px-3 py-1.5 rounded-full transition">
         <div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-red-600 flex items-center justify-center font-bold text-sm">
           <% if (user.avatar) { %><img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover"><% } else { %><%= user.firstName.charAt(0).toUpperCase() %><% } %>
         </div>
         <span class="text-sm font-medium hidden sm:block"><%= user.firstName %></span>
-        <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
+        <i data-lucide="chevron-down" class="hidden sm:block w-4 h-4 text-gray-400"></i>
       </button>
 
       <!-- Profile Dropdown -->
@@ -104,6 +109,9 @@
     </div>
   </nav>
 
+  <!-- Mobile sidebar overlay -->
+  <div id="sidebarOverlay" onclick="closeSidebarOverlay()" style="display:none" class="fixed inset-0 bg-black/50 z-[39]"></div>
+
   <!-- ── Body: Sidebar + Main ── -->
   <div class="flex flex-1 min-h-0">
 
@@ -124,6 +132,11 @@
           class="sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition text-left">
           <i data-lucide="video" class="w-4 h-4 flex-shrink-0"></i> Videos
           <span class="ml-auto text-gray-500 text-xs"><%= stats.videos %></span>
+        </button>
+        <button onclick="showTab('creators')" id="sidebar-creators"
+          class="sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition text-left">
+          <i data-lucide="tv-2" class="w-4 h-4 flex-shrink-0"></i> Creators
+          <span class="ml-auto text-gray-500 text-xs"><%= stats.creators %></span>
         </button>
         <button onclick="showTab('reports')" id="sidebar-reports"
           class="sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition text-left">
@@ -250,6 +263,10 @@
           <button onclick="showTab('videos')" id="tab-videos"
             class="tab-btn flex items-center gap-2 bg-gray-800 text-gray-300 px-4 py-2 rounded-xl text-sm font-medium flex-shrink-0">
             <i data-lucide="video" class="w-4 h-4"></i> Videos
+          </button>
+          <button onclick="showTab('creators')" id="tab-creators"
+            class="tab-btn flex items-center gap-2 bg-gray-800 text-gray-300 px-4 py-2 rounded-xl text-sm font-medium flex-shrink-0">
+            <i data-lucide="tv-2" class="w-4 h-4"></i> Creators
           </button>
           <button onclick="showTab('reports')" id="tab-reports"
             class="tab-btn flex items-center gap-2 bg-gray-800 text-gray-300 px-4 py-2 rounded-xl text-sm font-medium flex-shrink-0">
@@ -412,6 +429,50 @@
           </div>
         </div>
 
+        <!-- ── Creators Tab (powered by vw_CreatorDashboard) ── -->
+        <div id="tab-content-creators" class="tab-content hidden">
+          <div class="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-800 flex items-center justify-between">
+              <h3 class="font-bold flex items-center gap-2">
+                <i data-lucide="tv-2" class="w-5 h-5 text-purple-400"></i> Creator Overview
+              </h3>
+              <span class="text-gray-500 text-sm"><%= creatorsOverview.length %> creators</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead class="bg-gray-800/60 text-gray-400">
+                  <tr>
+                    <th class="text-left px-4 py-3 font-semibold">#</th>
+                    <th class="text-left px-4 py-3 font-semibold">Channel</th>
+                    <th class="text-left px-4 py-3 font-semibold">Subscribers</th>
+                    <th class="text-left px-4 py-3 font-semibold">Total Views</th>
+                    <th class="text-left px-4 py-3 font-semibold">Videos</th>
+                    <th class="text-left px-4 py-3 font-semibold">Likes</th>
+                    <th class="text-left px-4 py-3 font-semibold">Comments</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-800">
+                  <% creatorsOverview.forEach((c, i) => { %>
+                  <tr class="hover:bg-gray-800/40 transition">
+                    <td class="px-4 py-3 text-gray-500 text-xs"><%= i + 1 %></td>
+                    <td class="px-4 py-3 font-medium text-white">
+                      <a href="/viewer/channel/<%= c.CreatorId %>" class="hover:text-purple-400 transition">
+                        <%= c.ChannelName %>
+                      </a>
+                    </td>
+                    <td class="px-4 py-3 text-gray-300"><%= c.TotalSubscribers.toLocaleString() %></td>
+                    <td class="px-4 py-3 text-gray-300"><%= c.TotalViews.toLocaleString() %></td>
+                    <td class="px-4 py-3 text-gray-300"><%= c.TotalVideos %></td>
+                    <td class="px-4 py-3 text-gray-300"><%= c.TotalLikes %></td>
+                    <td class="px-4 py-3 text-gray-300"><%= c.TotalComments %></td>
+                  </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         <!-- ── Moderation / Reports Tab ── -->
         <div id="tab-content-reports" class="tab-content hidden">
           <div class="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
@@ -513,7 +574,18 @@
     lucide.createIcons();
 
     function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('hidden');
+      const s = document.getElementById('sidebar');
+      const o = document.getElementById('sidebarOverlay');
+      if (window.innerWidth < 768) {
+        const open = s.classList.toggle('mobile-open');
+        o.style.display = open ? 'block' : 'none';
+      } else {
+        s.classList.toggle('hidden');
+      }
+    }
+    function closeSidebarOverlay() {
+      document.getElementById('sidebar').classList.remove('mobile-open');
+      document.getElementById('sidebarOverlay').style.display = 'none';
     }
 
     function toggleProfile() {

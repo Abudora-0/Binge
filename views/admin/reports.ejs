@@ -36,14 +36,19 @@
     body.light input { background-color: #e8edf5 !important; color: #0f172a !important; border-color: #d1dce9 !important; }
     body.light select { background-color: #e8edf5 !important; color: #0f172a !important; border-color: #d1dce9 !important; }
     body.light input::placeholder { color: #94a3b8 !important; }
+    /* ─── Mobile sidebar overlay ─── */
+    @media (max-width: 767px) {
+      #sidebar { display: none !important; position: fixed; top: 57px; left: 0; bottom: 0; z-index: 40; width: 240px !important; overflow-y: auto; box-shadow: 4px 0 24px rgba(0,0,0,0.35); }
+      #sidebar.mobile-open { display: flex !important; flex-direction: column; }
+    }
   </style>
 </head>
 
 <body class="bg-gray-950 text-white h-full flex flex-col overflow-hidden">
 
   <!-- ── Navbar ── -->
-  <nav class="sticky bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center gap-4 z-50 w-full flex-shrink-0">
-    <div class="flex items-center gap-3 w-52 flex-shrink-0">
+  <nav class="sticky bg-gray-950 border-b border-gray-800 px-3 sm:px-4 py-3 flex items-center gap-2 sm:gap-4 z-50 w-full flex-shrink-0">
+    <div class="flex items-center gap-3 flex-shrink-0">
       <button onclick="toggleSidebar()"
         class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-800 text-gray-400 hover:text-white transition flex-shrink-0">
         <i data-lucide="menu" class="w-5 h-5"></i>
@@ -52,7 +57,7 @@
         <img src="/logo.png" alt="Binge" class="h-7 w-auto object-contain" onerror="this.onerror=null;this.src='/logo.svg'">
       </a>
     </div>
-    <div class="flex-1 flex items-center justify-center">
+    <div class="flex-1 min-w-0 flex items-center justify-center">
       <div class="flex items-center gap-2 text-gray-400">
         <a href="/admin/dashboard" class="text-sm hover:text-white transition">Admin Panel</a>
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-gray-600"></i>
@@ -61,13 +66,13 @@
         </span>
       </div>
     </div>
-    <div class="w-52 flex-shrink-0 flex justify-end relative">
+    <div class="flex-shrink-0 flex justify-end relative">
       <button onclick="toggleProfile()" class="flex items-center gap-2 hover:bg-gray-800 px-3 py-1.5 rounded-full transition">
         <div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-red-600 flex items-center justify-center font-bold text-sm">
           <% if (user.avatar) { %><img src="/uploads/<%= user.avatar %>" class="w-full h-full object-cover"><% } else { %><%= user.firstName.charAt(0).toUpperCase() %><% } %>
         </div>
         <span class="text-sm font-medium hidden sm:block"><%= user.firstName %></span>
-        <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
+        <i data-lucide="chevron-down" class="hidden sm:block w-4 h-4 text-gray-400"></i>
       </button>
 
       <!-- Profile Dropdown -->
@@ -106,6 +111,9 @@
       </div>
     </div>
   </nav>
+
+  <!-- Mobile sidebar overlay -->
+  <div id="sidebarOverlay" onclick="closeSidebarOverlay()" style="display:none" class="fixed inset-0 bg-black/50 z-[39]"></div>
 
   <!-- ── Body: Sidebar + Main ── -->
   <div class="flex flex-1 min-h-0">
@@ -546,7 +554,18 @@
     lucide.createIcons();
 
     function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('hidden');
+      const s = document.getElementById('sidebar');
+      const o = document.getElementById('sidebarOverlay');
+      if (window.innerWidth < 768) {
+        const open = s.classList.toggle('mobile-open');
+        o.style.display = open ? 'block' : 'none';
+      } else {
+        s.classList.toggle('hidden');
+      }
+    }
+    function closeSidebarOverlay() {
+      document.getElementById('sidebar').classList.remove('mobile-open');
+      document.getElementById('sidebarOverlay').style.display = 'none';
     }
 
     function toggleProfile() {

@@ -78,7 +78,7 @@
           </div>
           <div class="min-w-0">
             <p class="text-white text-sm font-semibold truncate"><%= user.firstName %> <%= user.lastName %></p>
-            <p class="text-red-400 text-xs truncate flex items-center gap-1"><i data-lucide="clapperboard" class="w-3 h-3"></i> <%= creator.ChannelName %></p>
+            <p class="text-red-400 text-xs truncate flex items-center gap-1"><i data-lucide="clapperboard" class="w-3 h-3"></i> <%= creator.channelName %></p>
           </div>
         </div>
         <div class="py-1">
@@ -157,13 +157,13 @@
               <% } %>
             </div>
             <div class="min-w-0 flex-1">
-              <h1 class="text-lg font-bold truncate"><%= creator.ChannelName %></h1>
-              <p class="text-gray-400 text-sm truncate"><%= creator.Bio || 'No bio yet — add one in Profile Settings' %></p>
+              <h1 class="text-lg font-bold truncate"><%= creator.channelName %></h1>
+              <p class="text-gray-400 text-sm truncate"><%= creator.bio || 'No bio yet — add one in Profile Settings' %></p>
             </div>
           </div>
           <!-- Action buttons -->
           <div class="flex items-center gap-2 sm:flex-shrink-0">
-            <a href="/viewer/channel/<%= creator.Id %>"
+            <a href="/viewer/channel/<%= creator.id %>"
               class="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-sm px-4 py-2.5 rounded-full transition font-medium border border-gray-700">
               <i data-lucide="external-link" class="w-4 h-4"></i> View Channel
             </a>
@@ -274,8 +274,8 @@
                 </thead>
                 <tbody class="divide-y divide-gray-800">
                   <% videos.forEach(video => {
-                    const ytId = video.VideoUrl && video.VideoUrl.includes('youtube.com') && video.VideoUrl.includes('v=')
-                      ? video.VideoUrl.split('v=')[1].split('&')[0] : null;
+                    const ytId = video.videoUrl && video.videoUrl.includes('youtube.com') && video.videoUrl.includes('v=')
+                      ? video.videoUrl.split('v=')[1].split('&')[0] : null;
                     const thumb = ytId ? 'https://img.youtube.com/vi/' + ytId + '/mqdefault.jpg' : null;
                   %>
                     <tr class="hover:bg-gray-800 transition group">
@@ -293,46 +293,46 @@
                             <% } %>
                           </div>
                           <div class="min-w-0">
-                            <p class="font-medium line-clamp-1 text-sm max-w-xs group-hover:text-red-400 transition"><%= video.Title %></p>
+                            <p class="font-medium line-clamp-1 text-sm max-w-xs group-hover:text-red-400 transition"><%= video.title %></p>
                             <p class="text-gray-500 text-xs mt-0.5">
-                              <%= Math.floor(video.Duration/60) %>:<%= String(video.Duration%60).padStart(2,'0') %>
+                              <%= Math.floor(video.duration/60) %>:<%= String(video.duration%60).padStart(2,'0') %>
                             </p>
                           </div>
                         </div>
                       </td>
                       <td class="px-4 py-3.5">
-                        <span class="bg-gray-800 text-gray-300 text-xs px-2.5 py-1 rounded-full"><%= video.Category %></span>
+                        <span class="bg-gray-800 text-gray-300 text-xs px-2.5 py-1 rounded-full"><%= video.category %></span>
                       </td>
                       <td class="px-4 py-3.5 text-gray-400 text-sm">
                         <span class="flex items-center gap-1.5">
                           <i data-lucide="eye" class="w-3.5 h-3.5 text-gray-500"></i>
-                          <%= formatViews(video.Views) %>
+                          <%= formatViews(video.views) %>
                         </span>
                       </td>
                       <td class="px-4 py-3.5 text-gray-400 text-sm">
                         <span class="flex items-center gap-1.5">
                           <i data-lucide="thumbs-up" class="w-3.5 h-3.5 text-pink-500/60"></i>
-                          <%= formatViews(video.LikeCount) %>
+                          <%= formatViews(video.likeCount) %>
                         </span>
                       </td>
                       <td class="px-4 py-3.5">
                         <span class="px-2.5 py-1 rounded-full text-xs font-semibold
-                          <%= video.Status === 'Published' ? 'bg-green-500/15 text-green-400 border border-green-500/20' :
-                              video.Status === 'Private'   ? 'bg-yellow-500/15 text-yellow-400 border border-yellow-500/20' :
+                          <%= video.status === 'Published' ? 'bg-green-500/15 text-green-400 border border-green-500/20' :
+                              video.status === 'Private'   ? 'bg-yellow-500/15 text-yellow-400 border border-yellow-500/20' :
                               'bg-gray-500/15 text-gray-400 border border-gray-500/20' %>">
-                          <%= video.Status %>
+                          <%= video.status %>
                         </span>
                       </td>
                       <td class="px-4 py-3.5 text-gray-400 text-xs">
-                        <%= timeAgo(video.UploadDate) %>
+                        <%= timeAgo(video.uploadDate) %>
                       </td>
                       <td class="px-4 py-3.5">
                         <div class="flex items-center gap-2">
-                          <a href="/creator/video/edit/<%= video.Id %>"
+                          <a href="/creator/video/edit/<%= video.id %>"
                             class="flex items-center gap-1.5 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/20 text-xs px-3 py-1.5 rounded-lg transition font-medium">
                             <i data-lucide="pencil" class="w-3 h-3"></i> Edit
                           </a>
-                          <a href="/creator/video/delete/<%= video.Id %>"
+                          <a href="/creator/video/delete/<%= video.id %>"
                             onclick="return confirm('Delete this video permanently?')"
                             class="flex items-center gap-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 text-xs px-3 py-1.5 rounded-lg transition font-medium">
                             <i data-lucide="trash-2" class="w-3 h-3"></i> Delete

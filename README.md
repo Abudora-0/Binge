@@ -70,16 +70,16 @@ A full-stack video streaming web application built with Node.js, Express, EJS, a
 | Procedure | Called From |
 |---|---|
 | `sp_UploadVideo` | Creator uploads a video |
-| `sp_GetCreatorStats` | Creator dashboard loads |
+| `sp_RecordVideoView` | Viewer watches a video |
 | `sp_ToggleSubscription` | User subscribes / unsubscribes |
 
 ### Triggers (4)
 | Trigger | Event | Effect |
 |---|---|---|
-| `trg_NotifyOnUpload` | AFTER INSERT on video | Notifies all subscribers |
 | `trg_AfterVideoPublished` | AFTER INSERT on video | Notifies subscribers (Published only) |
 | `trg_UpdateCreatorViews` | AFTER UPDATE on video | Keeps creator TotalViews in sync |
 | `trg_AfterVideoDelete` | AFTER DELETE on video | Recalculates creator TotalViews |
+| `trg_LogVideoDelete` | AFTER DELETE on video | Logs every deletion to auditlog table |
 
 ---
 

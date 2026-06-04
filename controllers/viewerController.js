@@ -70,8 +70,11 @@ const watchVideo = (req, res) => {
 
         const video = videoResult[0];
 
-        // Increment view count
-        db.query('UPDATE video SET Views = Views + 1 WHERE Id = ?', [videoId]);
+        // ── sp_RecordVideoView: atomically increments views + inserts watchhistory
+        //    trg_UpdateCreatorViews fires automatically from the UPDATE inside the SP ──
+        db.query('CALL sp_RecordVideoView(?, ?, @newViews)', [videoId, userId], (err) => {
+            if (err) logger.logError('viewerController.watchVideo - sp_RecordVideoView', err.message);
+        });
 
         // Convert YouTube URL to embed URL
         let embedUrl = video.VideoUrl;
@@ -121,12 +124,6 @@ const watchVideo = (req, res) => {
                                 ...v,
                                 thumbnail: getYoutubeThumbnail(v.VideoUrl)
                             }));
-
-                            // Log watch history
-                            db.query(
-                                'INSERT INTO watchhistory (UserId, VideoId, WatchDuration, CompletionPercent) VALUES (?, ?, 0, 0)',
-                                [userId, videoId]
-                            );
 
                             // Get user playlists for save button
                             db.query(`
@@ -349,12 +346,22 @@ const reportVideo = (req, res) => {
     const videoId = req.params.id;
     const userId = req.session.user.id;
 
+    // Prevent duplicate pending reports from the same user on the same video
     db.query(
-        'INSERT INTO report (ReportedBy, VideoId, Reason, Status) VALUES (?, ?, ?, ?)',
-        [userId, videoId, 'Inappropriate Content', 'Pending'],
-        (err) => {
-            if (err) logger.logError('reportVideo', err.message);
-            res.redirect('/viewer/watch/' + videoId);
+        'SELECT Id FROM report WHERE ReportedBy = ? AND VideoId = ? AND Status = ?',
+        [userId, videoId, 'Pending'],
+        (err, existing) => {
+            if (existing && existing.length > 0) {
+                return res.redirect('/viewer/watch/' + videoId);
+            }
+            db.query(
+                'INSERT INTO report (ReportedBy, VideoId, Reason, Status) VALUES (?, ?, ?, ?)',
+                [userId, videoId, 'Inappropriate Content', 'Pending'],
+                (err) => {
+                    if (err) logger.logError('reportVideo', err.message);
+                    res.redirect('/viewer/watch/' + videoId);
+                }
+            );
         }
     );
 };
@@ -365,7 +372,7 @@ const showProfile = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
     const userId = req.session.user.id;
 
-    db.query('SELECT * FROM user WHERE Id = ?', [userId], (err, result) => {
+    db.query('SELECT Id, FirstName, LastName, Email, Country, Avatar, Status, JoinDate FROM user WHERE Id = ?', [userId], (err, result) => {
         if (err || result.length === 0) return res.redirect('/viewer/home');
         const userData = result[0];
 
@@ -421,7 +428,7 @@ const channelPage = (req, res) => {
     const creatorId = req.params.id;
     const userId = req.session.user.id;
 
-    db.query('SELECT c.*, u.Avatar FROM creator c JOIN user u ON c.UserId = u.Id WHERE c.Id = ?',
+    db.query('SELECT c.Id, c.ChannelName, c.Bio, c.TotalSubscribers, c.TotalViews, u.Avatar FROM creator c JOIN user u ON c.UserId = u.Id WHERE c.Id = ?',
         [creatorId], (err, creatorResult) => {
             if (err || creatorResult.length === 0) return res.redirect('/viewer/home');
             const creator = creatorResult[0];
@@ -430,7 +437,11 @@ const channelPage = (req, res) => {
                 [userId, creatorId], (err, subResult) => {
                     const subscribed = subResult && subResult.length > 0;
 
-                    db.query(`SELECT * FROM video WHERE CreatorId = ? AND Status = 'Published' ORDER BY UploadDate DESC`,
+                    db.query(
+                        `SELECT Id, Title, Views, Duration, VideoUrl, UploadDate
+                         FROM video
+                         WHERE CreatorId = ? AND Status = 'Published'
+                         ORDER BY UploadDate DESC`,
                         [creatorId], (err, videos) => {
                             if (err) videos = [];
                             videos = videos.map(v => ({ ...v, thumbnail: getYoutubeThumbnail(v.VideoUrl) }));

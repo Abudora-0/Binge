@@ -18,12 +18,12 @@ const dashboard = (req, res) => {
             return res.redirect('/auth/login');
         }
 
-        // ── Call sp_GetCreatorStats — returns TotalVideos, TotalViews, TotalLikes, PublishedVideos, Subscribers ──
-        db.query('CALL sp_GetCreatorStats(?)', [creator.id], (err, spResult) => {
-            if (err) logger.logError('creatorController.dashboard - sp_GetCreatorStats', err.message);
-            const sp = (!err && spResult && spResult[0] && spResult[0][0]) ? spResult[0][0] : null;
+        // ── vw_CreatorDashboard — same view used by admin, now also powers creator stats ──
+        db.query('SELECT * FROM vw_CreatorDashboard WHERE CreatorId = ?', [creator.id], (err, viewResult) => {
+            if (err) logger.logError('creatorController.dashboard - vw_CreatorDashboard', err.message);
+            const vw = (!err && viewResult && viewResult[0]) ? viewResult[0] : null;
 
-            // Still fetch video list for the dashboard table display
+            // Fetch video list for the dashboard table display
             Video.findByCreator(creator.id, (err, videos) => {
                 if (err) {
                     logger.logError('creatorController.dashboard - videos', err.message);
@@ -35,11 +35,11 @@ const dashboard = (req, res) => {
                     creator,
                     videos,
                     stats: {
-                        totalVideos:  sp ? sp.TotalVideos     : videos.length,
-                        totalViews:   sp ? sp.TotalViews      : videos.reduce((s, v) => s + (v.views || 0), 0),
-                        totalLikes:   sp ? sp.TotalLikes      : videos.reduce((s, v) => s + (v.likeCount || 0), 0),
-                        published:    sp ? sp.PublishedVideos : videos.filter(v => v.isPublished()).length,
-                        subscribers:  sp ? sp.Subscribers     : creator.totalSubscribers
+                        totalVideos:  vw ? vw.TotalVideos      : videos.length,
+                        totalViews:   vw ? vw.TotalViews       : videos.reduce((s, v) => s + (v.views || 0), 0),
+                        totalLikes:   vw ? vw.TotalLikes       : videos.reduce((s, v) => s + (v.likeCount || 0), 0),
+                        published:    vw ? vw.TotalVideos      : videos.filter(v => v.isPublished()).length,
+                        subscribers:  vw ? vw.TotalSubscribers : creator.totalSubscribers
                     }
                 });
             });
@@ -244,9 +244,12 @@ const deleteVideo = (req, res) => {
     Creator.findByUserId(userId, (err, creator) => {
         if (err || !creator) return res.redirect('/auth/login');
 
-        Video.delete(videoId, creator.id, (err) => {
-            if (err) logger.logError('creatorController.deleteVideo', err.message);
-            res.redirect('/creator/dashboard');
+        // Set session variable so trg_LogVideoDelete captures who deleted it
+        db.query('SET @binge_deleted_by = ?', [userId], () => {
+            Video.delete(videoId, creator.id, (err) => {
+                if (err) logger.logError('creatorController.deleteVideo', err.message);
+                res.redirect('/creator/dashboard');
+            });
         });
     });
 };
@@ -255,7 +258,7 @@ const showProfile = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
     const userId = req.session.user.id;
 
-    db.query('SELECT * FROM user WHERE Id = ?', [userId], (err, userResult) => {
+    db.query('SELECT Id, FirstName, LastName, Email, Country, Avatar, Status, JoinDate FROM user WHERE Id = ?', [userId], (err, userResult) => {
         if (err || userResult.length === 0) return res.redirect('/creator/dashboard');
 
         Creator.findByUserId(userId, (err, creator) => {

@@ -22,9 +22,10 @@ const dashboard = (req, res) => {
         });
     }))).then(([users, videos, creators, comments, views, reports]) => {
 
-        // Get all users
+        // Get all users — never select Password
         const usersQuery = `
-            SELECT u.*, 
+            SELECT u.Id, u.FirstName, u.LastName, u.Email, u.Country,
+                   u.Status, u.Avatar, u.JoinDate,
                    CASE WHEN c.Id IS NOT NULL THEN 'Creator' ELSE 'Viewer' END AS Role
             FROM user u
             LEFT JOIN creator c ON c.UserId = u.Id
@@ -36,7 +37,8 @@ const dashboard = (req, res) => {
 
             // Get all videos
             const videosQuery = `
-                SELECT v.*, c.ChannelName, cat.Name AS Category
+                SELECT v.Id, v.Title, v.Views, v.Status, v.UploadDate, v.VideoUrl,
+                       c.ChannelName, cat.Name AS Category
                 FROM video v
                 JOIN creator c    ON v.CreatorId  = c.Id
                 JOIN category cat ON v.CategoryId = cat.Id
@@ -65,21 +67,34 @@ const dashboard = (req, res) => {
                         (err, creatorsOverview) => {
                             if (err) creatorsOverview = [];
 
-                            res.render('admin/dashboard', {
-                                user: req.session.user,
-                                stats: {
-                                    users:    users.total,
-                                    videos:   videos.total,
-                                    creators: creators.total,
-                                    comments: comments.total,
-                                    views:    views.total,
-                                    reports:  reports.total
-                                },
-                                allUsers,
-                                allVideos,
-                                pendingReports,
-                                creatorsOverview
-                            });
+                            // ── Audit log: recent delete/suspend actions ──
+                            db.query(
+                                `SELECT a.*, u.FirstName, u.LastName
+                                 FROM auditlog a
+                                 LEFT JOIN user u ON a.PerformedBy = u.Id
+                                 ORDER BY a.LoggedAt DESC
+                                 LIMIT 50`,
+                                (err, auditLog) => {
+                                    if (err) auditLog = [];
+
+                                    res.render('admin/dashboard', {
+                                        user: req.session.user,
+                                        stats: {
+                                            users:    users.total,
+                                            videos:   videos.total,
+                                            creators: creators.total,
+                                            comments: comments.total,
+                                            views:    views.total,
+                                            reports:  reports.total
+                                        },
+                                        allUsers,
+                                        allVideos,
+                                        pendingReports,
+                                        creatorsOverview,
+                                        auditLog
+                                    });
+                                }
+                            );
                         }
                     );
                 });
@@ -95,25 +110,43 @@ const updateUserStatus = (req, res) => {
     if (!req.session.user || req.session.user.role !== 'admin') return res.redirect('/auth/login');
 
     const { userId, status } = req.body;
+    const adminId = req.session.user.id;
 
     // Never allow suspending the admin account itself
-    if (parseInt(userId) === req.session.user.id) {
+    if (parseInt(userId) === adminId) {
         return res.redirect('/admin/dashboard');
     }
 
-    db.query('UPDATE user SET Status = ? WHERE Id = ?', [status, userId], (err) => {
-        if (err) logger.logError('adminController', err.message);
-        res.redirect('/admin/dashboard');
+    db.query('SELECT FirstName, LastName FROM user WHERE Id = ?', [userId], (err, rows) => {
+        const userName = (!err && rows.length) ? `${rows[0].FirstName} ${rows[0].LastName}` : `User #${userId}`;
+
+        db.query('UPDATE user SET Status = ? WHERE Id = ?', [status, userId], (err) => {
+            if (err) { logger.logError('adminController.updateUserStatus', err.message); }
+
+            // Log the status change to auditlog
+            db.query(
+                'INSERT INTO auditlog (Action, EntityType, EntityId, EntityName, PerformedBy, Details) VALUES (?, ?, ?, ?, ?, ?)',
+                [status === 'Suspended' ? 'SUSPEND_USER' : 'ACTIVATE_USER', 'user', userId, userName, adminId,
+                 `Status changed to ${status}`],
+                (err) => { if (err) logger.logError('adminController.updateUserStatus - auditlog', err.message); }
+            );
+            res.redirect('/admin/dashboard');
+        });
     });
 };
 
 const deleteVideo = (req, res) => {
     if (!req.session.user || req.session.user.role !== 'admin') return res.redirect('/auth/login');
 
-    const videoId = req.params.id;
-    db.query('DELETE FROM video WHERE Id = ?', [videoId], (err) => {
-        if (err) logger.logError('adminController', err.message);
-        res.redirect('/admin/dashboard');
+    const videoId  = req.params.id;
+    const adminId  = req.session.user.id;
+
+    // Set session variable so trg_LogVideoDelete knows who deleted it
+    db.query('SET @binge_deleted_by = ?', [adminId], () => {
+        db.query('DELETE FROM video WHERE Id = ?', [videoId], (err) => {
+            if (err) logger.logError('adminController.deleteVideo', err.message);
+            res.redirect('/admin/dashboard');
+        });
     });
 };
 

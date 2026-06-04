@@ -1,3 +1,20 @@
+# Dependencies
 node_modules/
-logs/
+
+# Environment variables
 .env
+
+# Log files
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Uploaded files (user content — not part of source)
+public/uploads/
+
+# Editor directories
+.vscode/
+.idea/

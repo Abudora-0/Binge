@@ -419,11 +419,11 @@
                         </span>
                       </td>
                       <td class="px-4 py-3.5">
-                        <a href="/admin/video/delete/<%= v.Id %>"
-                           onclick="return confirm('Delete this video permanently?')"
+                        <button type="button"
+                           onclick="showConfirm('This will permanently delete the video and all its data.', () => window.location.href='/admin/video/delete/<%= v.Id %>', { title: 'Delete Video?', okLabel: 'Delete', icon: 'trash-2' })"
                            class="flex items-center gap-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 text-xs px-3 py-1.5 rounded-lg transition font-medium w-fit">
                           <i data-lucide="trash-2" class="w-3 h-3"></i> Delete
-                        </a>
+                        </button>
                       </td>
                     </tr>
                   <% }) %>
@@ -707,5 +707,6 @@
     applyTheme(localStorage.getItem('binge_theme') || 'dark');
   </script>
 
+  <%- include('../partials/confirm-modal') %>
 </body>
 </html>

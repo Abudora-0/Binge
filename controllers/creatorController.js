@@ -1,6 +1,5 @@
 const db        = require('../config/db');
 const logger    = require('../config/logger');
-const upload    = require('../config/upload');
 const Video     = require('../models/Video');
 const Creator   = require('../models/Creator');
 const Validator = require('../config/Validator');
@@ -270,7 +269,8 @@ const showProfile = (req, res) => {
                 user: req.session.user,
                 userData: userResult[0],
                 creatorData: creator,
-                success: null, error: null
+                success: null,
+                error: req.query.error || null
             });
         });
     });

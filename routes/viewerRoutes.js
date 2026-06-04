@@ -16,7 +16,17 @@ router.get('/playlists',     viewerController.playlists);
 router.post('/playlist/create', viewerController.createPlaylist);
 router.post('/report/:id', viewerController.reportVideo);
 router.get('/profile',                viewerController.showProfile);
-router.post('/profile/avatar',        upload.single('avatar'), viewerController.updateAvatar);
+router.post('/profile/avatar', (req, res, next) => {
+    upload.single('avatar')(req, res, (err) => {
+        if (err) {
+            const msg = err.code === 'LIMIT_FILE_SIZE'
+                ? 'File too large. Maximum size is 5MB.'
+                : 'Invalid file type. Please upload a JPEG, PNG, GIF, or WEBP image.';
+            return res.redirect('/viewer/profile?error=' + encodeURIComponent(msg));
+        }
+        next();
+    });
+}, viewerController.updateAvatar);
 router.post('/profile/update',        viewerController.updateProfile);
 router.get('/channel/:id',            viewerController.channelPage);
 router.post('/playlist/add',     viewerController.addToPlaylist);

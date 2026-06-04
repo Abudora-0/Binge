@@ -135,6 +135,15 @@
             <i data-lucide="share-2" class="w-4 h-4"></i> Share
           </button>
 
+          <!-- Report -->
+          <form id="reportForm" action="/viewer/report/<%= video.Id %>" method="POST" class="inline">
+            <button type="button"
+              onclick="showConfirm('Report this video for inappropriate content?', () => document.getElementById('reportForm').submit(), { title: 'Report Video', okLabel: 'Report', icon: 'flag' })"
+              class="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-full text-sm transition">
+              <i data-lucide="flag" class="w-4 h-4"></i> Report
+            </button>
+          </form>
+
           <!-- Save to Playlist -->
           <div class="relative">
             <button onclick="togglePlaylistMenu()"
@@ -391,5 +400,6 @@
     }
     applyTheme(localStorage.getItem('binge_theme') || 'dark');
   </script>
+  <%- include('../partials/confirm-modal') %>
 </body>
 </html>

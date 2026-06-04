@@ -366,8 +366,6 @@ const reportVideo = (req, res) => {
     );
 };
 
-const upload = require('../config/upload');
-
 const showProfile = (req, res) => {
     if (!req.session.user) return res.redirect('/auth/login');
     const userId = req.session.user.id;
@@ -385,7 +383,7 @@ const showProfile = (req, res) => {
             user: req.session.user,
             userData,
             success: null,
-            error: null
+            error: req.query.error || null
         });
     });
 };

@@ -36,6 +36,37 @@
     body.light input { background-color: #e8edf5 !important; color: #0f172a !important; border-color: #d1dce9 !important; }
     body.light select { background-color: #e8edf5 !important; color: #0f172a !important; border-color: #d1dce9 !important; }
     body.light input::placeholder { color: #94a3b8 !important; }
+
+    /* ─── Date & number input icons ─── */
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(0.6) brightness(0.9);
+        cursor: pointer;
+        border-radius: 4px;
+        padding: 1px;
+        opacity: 0.7;
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator:hover {
+        opacity: 1;
+        filter: invert(0.3) sepia(1) saturate(3) hue-rotate(320deg);
+    }
+    /* Hide number spinners */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"] { -moz-appearance: textfield; }
+
+    /* ─── Custom select arrow ─── */
+    select {
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        padding-right: 30px !important;
+    }
+    select:focus {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ef4444' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    }
+
     /* ─── Mobile sidebar overlay ─── */
     @media (max-width: 767px) {
       #sidebar { display: none !important; position: fixed; top: 57px; left: 0; bottom: 0; z-index: 40; width: 240px !important; overflow-y: auto; box-shadow: 4px 0 24px rgba(0,0,0,0.35); }

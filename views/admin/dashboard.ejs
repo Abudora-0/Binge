@@ -296,7 +296,7 @@
                     <th class="text-left px-4 py-3 font-semibold">Role</th>
                     <th class="text-left px-4 py-3 font-semibold">Country</th>
                     <th class="text-left px-4 py-3 font-semibold">Status</th>
-                    <th class="text-left px-4 py-3 font-semibold">Action</th>
+                    <th class="text-left px-4 py-3 font-semibold" colspan="2">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -353,6 +353,15 @@
                               <%= u.Status === 'Active' ? 'Suspend' : 'Activate' %>
                             </button>
                           </form>
+                        <% } %>
+                      </td>
+                      <td class="px-2 py-3.5">
+                        <% if (!isAdmin) { %>
+                          <button type="button"
+                            onclick="showConfirm('This will permanently delete the user and all their data including videos, comments, and subscriptions.', () => window.location.href='/admin/user/delete/<%= u.Id %>', { title: 'Delete User?', okLabel: 'Delete', icon: 'trash-2' })"
+                            class="flex items-center gap-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 text-xs px-3 py-1.5 rounded-lg transition font-medium">
+                            <i data-lucide="trash-2" class="w-3 h-3"></i> Delete
+                          </button>
                         <% } %>
                       </td>
                     </tr>
@@ -453,6 +462,7 @@
                     <th class="text-left px-4 py-3 font-semibold">Videos</th>
                     <th class="text-left px-4 py-3 font-semibold">Likes</th>
                     <th class="text-left px-4 py-3 font-semibold">Comments</th>
+                    <th class="text-left px-4 py-3 font-semibold">Action</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-800">
@@ -469,6 +479,13 @@
                     <td class="px-4 py-3 text-gray-300"><%= c.TotalVideos %></td>
                     <td class="px-4 py-3 text-gray-300"><%= c.TotalLikes %></td>
                     <td class="px-4 py-3 text-gray-300"><%= c.TotalComments %></td>
+                    <td class="px-4 py-3">
+                      <button type="button"
+                        onclick="showConfirm('This will permanently delete the channel and all its videos, likes, and comments.', () => window.location.href='/admin/creator/delete/<%= c.CreatorId %>', { title: 'Delete Channel?', okLabel: 'Delete', icon: 'trash-2' })"
+                        class="flex items-center gap-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 text-xs px-3 py-1.5 rounded-lg transition font-medium">
+                        <i data-lucide="trash-2" class="w-3 h-3"></i> Delete
+                      </button>
+                    </td>
                   </tr>
                   <% }) %>
                 </tbody>
@@ -598,9 +615,11 @@
                     <tr class="hover:bg-gray-800 transition">
                       <td class="px-6 py-3">
                         <span class="px-2.5 py-1 rounded-full text-xs font-semibold
-                          <%= log.Action === 'DELETE_VIDEO'   ? 'bg-red-500/15 text-red-400' :
-                              log.Action === 'SUSPEND_USER'   ? 'bg-yellow-500/15 text-yellow-400' :
-                              log.Action === 'ACTIVATE_USER'  ? 'bg-green-500/15 text-green-400' :
+                          <%= log.Action === 'DELETE_VIDEO'    ? 'bg-red-500/15 text-red-400' :
+                              log.Action === 'DELETE_USER'     ? 'bg-red-500/15 text-red-400' :
+                              log.Action === 'DELETE_CREATOR'  ? 'bg-red-500/15 text-red-400' :
+                              log.Action === 'SUSPEND_USER'    ? 'bg-yellow-500/15 text-yellow-400' :
+                              log.Action === 'ACTIVATE_USER'   ? 'bg-green-500/15 text-green-400' :
                               'bg-gray-500/15 text-gray-400' %>">
                           <%= log.Action.replace(/_/g, ' ') %>
                         </span>

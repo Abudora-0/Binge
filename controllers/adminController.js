@@ -160,4 +160,50 @@ const resolveReport = (req, res) => {
     });
 };
 
-module.exports = { dashboard, updateUserStatus, deleteVideo, resolveReport };
+const deleteUser = (req, res) => {
+    if (!req.session.user || req.session.user.role !== 'admin') return res.redirect('/auth/login');
+
+    const userId  = req.params.id;
+    const adminId = req.session.user.id;
+
+    if (parseInt(userId) === adminId) return res.redirect('/admin/dashboard');
+
+    db.query('SELECT FirstName, LastName FROM user WHERE Id = ?', [userId], (err, rows) => {
+        const userName = (!err && rows.length) ? `${rows[0].FirstName} ${rows[0].LastName}` : `User #${userId}`;
+
+        db.query('DELETE FROM user WHERE Id = ?', [userId], (err) => {
+            if (err) { logger.logError('adminController.deleteUser', err.message); }
+
+            db.query(
+                'INSERT INTO auditlog (Action, EntityType, EntityId, EntityName, PerformedBy, Details) VALUES (?, ?, ?, ?, ?, ?)',
+                ['DELETE_USER', 'user', userId, userName, adminId, 'User account permanently deleted'],
+                (err) => { if (err) logger.logError('adminController.deleteUser - auditlog', err.message); }
+            );
+            res.redirect('/admin/dashboard');
+        });
+    });
+};
+
+const deleteCreator = (req, res) => {
+    if (!req.session.user || req.session.user.role !== 'admin') return res.redirect('/auth/login');
+
+    const creatorId = req.params.id;
+    const adminId   = req.session.user.id;
+
+    db.query('SELECT ChannelName FROM creator WHERE Id = ?', [creatorId], (err, rows) => {
+        const channelName = (!err && rows.length) ? rows[0].ChannelName : `Creator #${creatorId}`;
+
+        db.query('DELETE FROM creator WHERE Id = ?', [creatorId], (err) => {
+            if (err) { logger.logError('adminController.deleteCreator', err.message); }
+
+            db.query(
+                'INSERT INTO auditlog (Action, EntityType, EntityId, EntityName, PerformedBy, Details) VALUES (?, ?, ?, ?, ?, ?)',
+                ['DELETE_CREATOR', 'creator', creatorId, channelName, adminId, 'Creator channel and all videos permanently deleted'],
+                (err) => { if (err) logger.logError('adminController.deleteCreator - auditlog', err.message); }
+            );
+            res.redirect('/admin/dashboard');
+        });
+    });
+};
+
+module.exports = { dashboard, updateUserStatus, deleteVideo, deleteUser, deleteCreator, resolveReport };
